@@ -1,0 +1,216 @@
+import { useState } from "react";
+
+export default function Profile({ items, spaces }) {
+    const favoriteItems = items.filter((item) => item.favorite);
+    const [profileView, setProfileView] = useState("all");
+    const visibleItems = profileView === "favorites" ? favoriteItems : items;
+    return (
+      <div style={profilePage}>
+        <div style={profileHeader}>
+          <div style={profileAvatar}>T</div>
+  
+          <div style={profileTitleBlock}>
+            <h1 style={profileTitle}>My Looptie</h1>
+            <p style={profileSubtitle}>Your saved media, spaces, and favorites.</p>
+          </div>
+        </div>
+  
+        <div style={profileStats}>
+          <div style={profileStatCard}>
+            <strong style={profileStatNumber}>{items.length}</strong>
+            <span style={profileStatLabel}>Items</span>
+          </div>
+
+          <div style={profileStatCard}>
+            <strong style={profileStatNumber}>{favoriteItems.length}</strong>
+            <span style={profileStatLabel}>Favorites</span>
+          </div>
+
+          <div style={profileStatCard}>
+            <strong style={profileStatNumber}>{spaces.length}</strong>
+            <span style={profileStatLabel}>Spaces</span>
+          </div>
+        </div>
+        <div style={profileTabs}>
+        <button
+          style={{
+            ...profileTab,
+            background: profileView === "all" ? "#7c3aed" : "#18181b",
+          }}
+          onClick={() => setProfileView("all")}
+        >
+          All
+        </button>
+        
+        <button
+          style={{
+            ...profileTab,
+            background: profileView === "favorites" ? "#7c3aed" : "#18181b",
+          }}
+          onClick={() => setProfileView("favorites")}
+        >
+          Favorites
+        </button>
+      </div>
+        <div style={profileGrid}>
+        {visibleItems.map((item) => (
+            <div style={profileCardItem} key={item.id}>
+            <img
+              src={item.image}
+              alt=""
+              style={profileImage}
+            />
+          
+            {item.favorite && (
+              <div style={profileFavoriteBadge}>
+                ♥
+              </div>
+            )}
+          
+            <div style={profileOverlay}>
+              <span>{item.space}</span>
+            </div>
+          </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const profilePage = {
+    padding: "20px",
+    paddingBottom: "100px",
+    background: "black",
+    minHeight: "100vh",
+  };
+  
+  const profileAvatar = {
+    width: "70px",
+    height: "70px",
+    borderRadius: "999px",
+    background: "#8b5cf6",
+    color: "black",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "28px",
+    fontWeight: "bold",
+  };
+  
+  const profileStats = {
+    display: "flex",
+    gap: "12px",
+    marginBottom: "24px",
+  };
+
+  const profileStatCard = {
+    flex: 1,
+    background: "linear-gradient(145deg, #26223a, #1d1a2b)",
+    border: "1px solid #4c4563",
+    borderRadius: "18px",
+    padding: "14px 10px",
+    textAlign: "center",
+    boxShadow: "0 4px 18px rgba(124, 58, 237, 0.12)",
+  };
+
+  
+  const profileGrid = {
+    columnCount: 2,
+    columnGap: "12px",
+  };
+  
+  const profileCardItem = {
+    display: "inline-block",
+    width: "100%",
+    marginBottom: "12px",
+    breakInside: "avoid",
+    background: "#18181b",
+    border: "1px solid #27272a",
+    borderRadius: "20px",
+    overflow: "hidden",
+    position: "relative"
+  };
+  
+  const profileImage = {
+    width: "100%",
+    height: "auto",
+    display: "block",
+  };
+  
+  const profileOverlay = {
+    position: "absolute",
+    bottom: "10px",
+    left: "10px",
+    background: "rgba(0,0,0,0.6)",
+    backdropFilter: "blur(8px)",
+    padding: "6px 10px",
+    borderRadius: "999px",
+    fontSize: "12px",
+    color: "white",
+  };
+
+  const profileTitleBlock = {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+  };
+  
+  const profileTitle = {
+    margin: 0,
+    color: "white",
+    fontSize: "24px",
+    fontWeight: "800",
+    lineHeight: 1.1,
+  };
+  
+  const profileSubtitle = {
+    margin: "6px 0 0",
+    color: "#b3adbf",
+    fontSize: "13px",
+  };
+  
+  const profileHeader = {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    marginBottom: "18px",
+  };
+
+  const profileStatNumber = {
+    display: "block",
+    fontSize: "18px",
+    color: "white",
+    lineHeight: 1,
+  };
+  
+  const profileStatLabel = {
+    display: "block",
+    marginTop: "4px",
+    fontSize: "11px",
+    color: "#a1a1aa",
+  };
+
+  const profileTabs = {
+    display: "flex",
+    gap: "10px",
+    marginBottom: "18px",
+  };
+  
+  const profileTab = {
+    border: "1px solid #27272a",
+    borderRadius: "999px",
+    padding: "9px 14px",
+    color: "white",
+    fontWeight: "700",
+    cursor: "pointer",
+  };
+
+  const profileFavoriteBadge = {
+    position: "absolute",
+    top: "10px",
+    left: "10px",
+    color: "#ef4444",
+    fontSize: "22px",
+    zIndex: 2,
+    textShadow: "0 2px 10px rgba(0,0,0,.5)",
+  };

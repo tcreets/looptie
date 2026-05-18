@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  background: black;
+  font-family: Inter, sans-serif;
+}
+
+.horizontal-pretty-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.horizontal-pretty-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.horizontal-pretty-scrollbar::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 999px;
+}
+
+.horizontal-pretty-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+.profile-page {
+  padding: 20px;
+  padding-bottom: 90px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.profile-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #16161d;
+  border: 1px solid #2d2b38;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: white;
+}
+
+.profile-header p {
+  margin: 4px 0 0;
+  color: #b3adbf;
+  font-size: 14px;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.profile-stats div {
+  background: #2a2633;
+  border: 1px solid #3a3447;
+  border-radius: 18px;
+  padding: 14px;
+  text-align: center;
+}
+
+.profile-stats strong {
+  display: block;
+  font-size: 20px;
+  color: white;
+}
+
+.profile-stats span {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.profile-actions {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.profile-actions button {
+  border: 1px solid #2d2b38;
+  background: #16161d;
+  color: white;
+  border-radius: 16px;
+  padding: 14px;
+  text-align: left;
+  font-size: 15px;
+}
+
+.profile-grid {
+  column-count: 2;
+  column-gap: 12px;
+}
+
+.profile-card {
+  background: #24202d;
+  border: 1px solid #3a3447;
+  border-radius: 18px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  break-inside: avoid;
+}
+
+.profile-thumbnail {
+  background: #312b3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.profile-card-info {
+  padding: 10px;
+}
+
+.profile-card-info p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.profile-card-info span {
+  font-size: 12px;
+  color: #9ca3af;
+}
