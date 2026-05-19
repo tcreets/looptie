@@ -6,52 +6,63 @@ export default function Profile({ items, spaces }) {
     const visibleItems = profileView === "favorites" ? favoriteItems : items;
     return (
       <div style={profilePage}>
-        <div style={profileHeader}>
-          <div style={profileAvatar}>T</div>
-  
-          <div style={profileTitleBlock}>
-            <h1 style={profileTitle}>My Looptie</h1>
-            <p style={profileSubtitle}>Your saved media, spaces, and favorites.</p>
+        <div style={profileStickyTop}>
+          <div style={profileHeader}>
+            <div style={profileAvatar}>T</div>
+            
+            <div style={profileTitleBlock}>
+              <h1 style={profileTitle}>My Looptie</h1>
+              <p style={profileSubtitle}>
+                Your saved media, spaces, and favorites.
+              </p>
+            </div>
+          </div>
+            
+          <div style={profileStats}>
+            <div style={profileStatCard}>
+              <strong style={profileStatNumber}>{items.length}</strong>
+              <span style={profileStatLabel}>Items</span>
+            </div>
+            
+            <div style={profileStatCard}>
+              <strong style={profileStatNumber}>
+                {favoriteItems.length}
+              </strong>
+              <span style={profileStatLabel}>Favorites</span>
+            </div>
+            
+            <div style={profileStatCard}>
+              <strong style={profileStatNumber}>{spaces.length}</strong>
+              <span style={profileStatLabel}>Spaces</span>
+            </div>
+          </div>
+            
+          <div style={profileTabs}>
+            <button
+              style={{
+                ...profileTab,
+                background:
+                  profileView === "all" ? "#7c3aed" : "#18181b",
+              }}
+              onClick={() => setProfileView("all")}
+            >
+              All
+            </button>
+            
+            <button
+              style={{
+                ...profileTab,
+                background:
+                  profileView === "favorites"
+                    ? "#7c3aed"
+                    : "#18181b",
+              }}
+              onClick={() => setProfileView("favorites")}
+            >
+              Favorites
+            </button>
           </div>
         </div>
-  
-        <div style={profileStats}>
-          <div style={profileStatCard}>
-            <strong style={profileStatNumber}>{items.length}</strong>
-            <span style={profileStatLabel}>Items</span>
-          </div>
-
-          <div style={profileStatCard}>
-            <strong style={profileStatNumber}>{favoriteItems.length}</strong>
-            <span style={profileStatLabel}>Favorites</span>
-          </div>
-
-          <div style={profileStatCard}>
-            <strong style={profileStatNumber}>{spaces.length}</strong>
-            <span style={profileStatLabel}>Spaces</span>
-          </div>
-        </div>
-        <div style={profileTabs}>
-        <button
-          style={{
-            ...profileTab,
-            background: profileView === "all" ? "#7c3aed" : "#18181b",
-          }}
-          onClick={() => setProfileView("all")}
-        >
-          All
-        </button>
-        
-        <button
-          style={{
-            ...profileTab,
-            background: profileView === "favorites" ? "#7c3aed" : "#18181b",
-          }}
-          onClick={() => setProfileView("favorites")}
-        >
-          Favorites
-        </button>
-      </div>
         <div style={profileGrid}>
         {visibleItems.map((item) => (
             <div style={profileCardItem} key={item.id}>
@@ -212,4 +223,12 @@ export default function Profile({ items, spaces }) {
     fontSize: "22px",
     zIndex: 2,
     textShadow: "0 2px 10px rgba(0,0,0,.5)",
+  };
+
+  const profileStickyTop = {
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    background: "#050505",
+    paddingBottom: "14px",
   };
