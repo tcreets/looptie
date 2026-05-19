@@ -78,10 +78,9 @@ export default function Profile({ items, spaces }) {
   }
 
   const profilePage = {
-    padding: "20px",
-    paddingBottom: "100px",
-    background: "black",
-    minHeight: "100vh",
+    height: "100%",
+    overflowY: "auto",
+    paddingBottom: "110px",
   };
   
   const profileAvatar = {

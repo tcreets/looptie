@@ -303,13 +303,16 @@ export default function App() {
 const appStyle = {
   background: "#050505",
   color: "white",
-  minHeight: "100vh",
+  height: "100vh",
+  overflow: "hidden",
   display: "flex",
   flexDirection: "column",
-  justifyContent: "space-between",
   fontFamily: "Inter, sans-serif",
 };
 
 const contentStyle = {
-  padding: "24px",
+  flex: 1,
+  overflow: "hidden",
+  padding: "20px",
+  paddingBottom: "88px",
 };

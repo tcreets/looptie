@@ -140,3 +140,11 @@ body {
   font-size: 12px;
   color: #9ca3af;
 }
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}

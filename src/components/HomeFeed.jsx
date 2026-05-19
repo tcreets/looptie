@@ -98,15 +98,15 @@ export default function HomeFeed({
   const feedList = {
     display: "grid",
     gap: "0px",
-    paddingBottom: "90px",
-    height: "calc(100vh - 190px)",
+    paddingBottom: "20px",
+    height: "calc(100vh - 250px)",
     overflowY: "scroll",
     scrollSnapType: "y mandatory",
   };
   
   const feedCard = {
     position: "relative",
-    height: "calc(100vh - 190px)",
+    height: "calc(100vh - 250px)",
     borderRadius: "28px",
     overflow: "hidden",
     border: "1px solid #222",
