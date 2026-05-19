@@ -314,5 +314,4 @@ const contentStyle = {
   flex: 1,
   overflow: "hidden",
   padding: "20px",
-  paddingBottom: "88px",
 };

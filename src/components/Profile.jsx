@@ -89,13 +89,10 @@ export default function Profile({ items, spaces }) {
   }
 
   const profilePage = {
-    height: "100dvh",
+    height: "100%",
     overflowY: "auto",
-    padding: "0 12px 84px",
-    boxSizing: "border-box",
+    paddingBottom: "80px",
     background: "#050505",
-    scrollbarWidth: "none",
-    msOverflowStyle: "none",
   };
 
   const profileAvatar = {
@@ -131,6 +128,7 @@ export default function Profile({ items, spaces }) {
   const profileGrid = {
     columnCount: 2,
     columnGap: "12px",
+    paddingBottom: "76px",
   };
   
   const profileCardItem = {
