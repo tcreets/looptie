@@ -264,8 +264,11 @@ export default function App() {
         )}
 
         {tab === "profile" && (
-          <Profile items={feedItems} spaces={spaces} />
-        )}
+          <Profile
+          items={feedItems}
+          spaces={spaces}
+          setSelectedItem={openItemModal}
+        />)}
 
         {showNewSpaceForm && (
           <CreateSpaceModal

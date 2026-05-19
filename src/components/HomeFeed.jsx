@@ -97,27 +97,27 @@ export default function HomeFeed({
   
   const feedList = {
     display: "grid",
-    gap: "0px",
+    gap: "18px",
     paddingBottom: "20px",
     height: "calc(100vh - 250px)",
     overflowY: "scroll",
-    scrollSnapType: "y mandatory",
   };
   
   const feedCard = {
     position: "relative",
-    height: "calc(100vh - 250px)",
+    minHeight: "520px",
     borderRadius: "28px",
     overflow: "hidden",
     border: "1px solid #222",
-    scrollSnapAlign: "start",
-    marginBottom: "18px",
   };
   
   const imageStyle = {
     width: "100%",
     height: "100%",
-    objectFit: "cover",
+    minHeight: "520px",
+    objectFit: "contain",
+    background: "#000",
+    display: "block",
   };
   
   const overlayStyle = {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Profile({ items, spaces }) {
+export default function Profile({ items, spaces, setSelectedItem }) {
     const favoriteItems = items.filter((item) => item.favorite);
     const [profileView, setProfileView] = useState("all");
     const visibleItems = profileView === "favorites" ? favoriteItems : items;
@@ -11,7 +11,7 @@ export default function Profile({ items, spaces }) {
             <div style={profileAvatar}>T</div>
             
             <div style={profileTitleBlock}>
-              <h1 style={profileTitle}>My Looptie</h1>
+              <h1 style={profileTitle}>Theo's Looptie</h1>
               <p style={profileSubtitle}>
                 Your saved media, spaces, and favorites.
               </p>
@@ -65,7 +65,11 @@ export default function Profile({ items, spaces }) {
         </div>
         <div style={profileGrid}>
         {visibleItems.map((item) => (
-            <div style={profileCardItem} key={item.id}>
+            <div
+            style={profileCardItem}
+            key={item.id}
+            onClick={() => setSelectedItem(item)}
+          >
             <img
               src={item.image}
               alt=""
@@ -91,7 +95,7 @@ export default function Profile({ items, spaces }) {
   const profilePage = {
     height: "100%",
     overflowY: "auto",
-    paddingBottom: "80px",
+    paddingBottom: "20px",
     background: "#050505",
   };
 
@@ -140,7 +144,8 @@ export default function Profile({ items, spaces }) {
     border: "1px solid #27272a",
     borderRadius: "20px",
     overflow: "hidden",
-    position: "relative"
+    position: "relative",
+    cursor: "pointer",
   };
   
   const profileImage = {
