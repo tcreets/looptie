@@ -5,7 +5,7 @@ export default function Profile({ items, spaces }) {
     const [profileView, setProfileView] = useState("all");
     const visibleItems = profileView === "favorites" ? favoriteItems : items;
     return (
-      <div style={profilePage}>
+      <div style={profilePage} className="no-scrollbar">
         <div style={profileStickyTop}>
           <div style={profileHeader}>
             <div style={profileAvatar}>T</div>
@@ -89,11 +89,15 @@ export default function Profile({ items, spaces }) {
   }
 
   const profilePage = {
-    height: "100%",
+    height: "100dvh",
     overflowY: "auto",
-    paddingBottom: "110px",
+    padding: "0 12px 84px",
+    boxSizing: "border-box",
+    background: "#050505",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
   };
-  
+
   const profileAvatar = {
     width: "70px",
     height: "70px",
