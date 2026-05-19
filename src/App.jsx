@@ -127,7 +127,14 @@ export default function App() {
   );
 
   useEffect(() => {
-    localStorage.setItem("cacheFeedItems", JSON.stringify(feedItems));
+    try {
+      localStorage.setItem(
+        "cacheFeedItems",
+        JSON.stringify(feedItems)
+      );
+    } catch (error) {
+      console.error("Storage full:", error);
+    }
   }, [feedItems]);
 
   useEffect(() => {

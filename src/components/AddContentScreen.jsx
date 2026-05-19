@@ -59,7 +59,7 @@ export default function AddContentScreen({
 
           <input
             type="file"
-            accept="image/*,video/*"
+            accept="image/*"
             multiple
             style={{ display: "none" }}
             onChange={(e) => {

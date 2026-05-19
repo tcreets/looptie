@@ -25,7 +25,7 @@ export async function createUploadItems(files, uploadSpace) {
         tags: [],
         favorite: false,
         createdAt: new Date().toISOString(),
-        type: file.type.startsWith("video") ? "video" : "upload",
+        type: file.type.startsWith("video") ? "video" : "image",
       };
     })
   );
