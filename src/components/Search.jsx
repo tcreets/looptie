@@ -56,10 +56,6 @@ export default function Search({
                 </div>
               </div>
             ))}
-  
-            {searchResults.length === 0 && (
-              <p style={{ color: "#aaa" }}>No results found.</p>
-            )}
           </div>
         )}
       </div>
