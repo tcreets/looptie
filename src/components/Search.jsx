@@ -36,6 +36,12 @@ export default function Search({
           </div>
         ) : (
           <div style={searchResultsList}>
+            {searchTerm && searchResults.length === 0 && (
+              <div style={emptyState}>
+                <h3>No results found</h3>
+                <p>Try another word, tag, or space.</p>
+              </div>
+            )}
             {searchResults.map((item) => (
               <div
                 key={item.id}
@@ -137,4 +143,10 @@ export default function Search({
     color: "#b3adbf",
     fontSize: "13px",
     marginTop: "6px",
+  };
+
+  const emptyState = {
+    marginTop: "80px",
+    textAlign: "center",
+    color: "#a1a1aa",
   };

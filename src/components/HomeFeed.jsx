@@ -40,8 +40,16 @@ export default function HomeFeed({
             </button>
           ))}
         </div>
-  
+
         <div ref={feedRef} style={feedList} className="pretty-scroll">
+
+          {filteredFeedItems.length === 0 && (
+            <div style={emptyState}>
+              <h3>No items here yet</h3>
+              <p>Add something to this space to start building your feed.</p>
+            </div>
+          )}
+
           {filteredFeedItems.map((item) => (
             <div
               key={item.id}
@@ -111,7 +119,6 @@ export default function HomeFeed({
     overflow: "hidden",
     border: "1px solid #222",
     scrollSnapAlign: "start",
-    marginBottom: "18px",
   };
   
   const imageStyle = {
@@ -149,4 +156,10 @@ export default function HomeFeed({
     zIndex: 3,
     textShadow: "0 2px 10px rgba(0,0,0,.6)",
     opacity: 0.9,
+  };
+
+  const emptyState = {
+    marginTop: "80px",
+    textAlign: "center",
+    color: "#a1a1aa",
   };

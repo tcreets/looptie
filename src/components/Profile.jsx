@@ -64,6 +64,14 @@ export default function Profile({ items, spaces, setSelectedItem }) {
           </div>
         </div>
         <div style={profileGrid}>
+
+        {visibleItems.length === 0 && (
+          <div style={emptyState}>
+            <h3>No favorites yet</h3>
+            <p>Tap the heart on items you want to keep close.</p>
+          </div>
+        )}
+      
         {visibleItems.map((item) => (
             <div
             style={profileCardItem}
@@ -238,4 +246,11 @@ export default function Profile({ items, spaces, setSelectedItem }) {
     zIndex: 10,
     background: "#050505",
     paddingBottom: "14px",
+  };
+
+  const emptyState = {
+    marginTop: "80px",
+    textAlign: "center",
+    color: "#a1a1aa",
+    columnSpan: "all",
   };
