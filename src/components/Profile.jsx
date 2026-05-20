@@ -95,7 +95,7 @@ export default function Profile({ items, spaces, setSelectedItem }) {
   const profilePage = {
     height: "100%",
     overflowY: "auto",
-    paddingBottom: "20px",
+    paddingBottom: "0px",
     background: "#050505",
   };
 
@@ -132,7 +132,7 @@ export default function Profile({ items, spaces, setSelectedItem }) {
   const profileGrid = {
     columnCount: 2,
     columnGap: "12px",
-    paddingBottom: "76px",
+    paddingBottom: "0px",
   };
   
   const profileCardItem = {
