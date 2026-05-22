@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 
-export default function ProfileSetup({ user, spaces, setProfile }) {
-  const [displayName, setDisplayName] = useState("");
+export default function ProfileSetup({ user, spaces, setSpaces, setProfile }) {
+const [displayName, setDisplayName] = useState("");
   const [firstSpace, setFirstSpace] = useState("");
 
     const saveProfile = async () => {
@@ -16,6 +16,7 @@ export default function ProfileSetup({ user, spaces, setProfile }) {
           .insert([
             {
               name: cleanedSpace,
+              user_id: user.id
             },
           ]);
       
@@ -42,6 +43,7 @@ export default function ProfileSetup({ user, spaces, setProfile }) {
         }
       
         setProfile(data);
+        setSpaces([cleanedSpace]);
       };
   return (
     <div style={page}>

@@ -246,7 +246,8 @@ export default function App() {
     const { error: spaceError } = await supabase
       .from("spaces")
       .delete()
-      .eq("name", spaceName);
+      .eq("name", spaceName)
+      .eq("user_id", user.id);
   
     if (spaceError) {
       console.error("Error deleting space:", spaceError);
@@ -261,12 +262,16 @@ export default function App() {
       prev.filter((space) => space !== spaceName)
     );
   
-    if (activeFeed === spaceName) {
-      setActiveFeed("Motivation");
-    }
-  
-    if (defaultFeed === spaceName) {
-      setDefaultFeed("Motivation");
+    const remainingSpaces = spaces.filter(
+      (space) => space !== spaceName
+    );
+    
+    if (remainingSpaces.length > 0) {
+      setActiveFeed(remainingSpaces[0]);
+      setDefaultFeed(remainingSpaces[0]);
+    } else {
+      setActiveFeed("");
+      setDefaultFeed("");
     }
   
     setSelectedSpace(null);
@@ -283,6 +288,7 @@ export default function App() {
       <ProfileSetup
         user={user}
         spaces={spaces}
+        setSpaces={setSpaces}
         setProfile={setProfile}
       />
     );
