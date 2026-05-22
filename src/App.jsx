@@ -366,6 +366,7 @@ export default function App() {
 
         {showNewSpaceForm && (
           <CreateSpaceModal
+            user={user}
             newSpaceName={newSpaceName}
             setNewSpaceName={setNewSpaceName}
             spaces={spaces}
