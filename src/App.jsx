@@ -84,7 +84,8 @@ export default function App() {
     async function fetchSpaces() {
       const { data, error } = await supabase
         .from("spaces")
-        .select("*");
+        .select("*")
+        .eq("user_id", user.id);
   
       if (error) {
         console.error("Error fetching spaces:", error);
@@ -234,7 +235,8 @@ export default function App() {
     const { error: itemError } = await supabase
       .from("items")
       .delete()
-      .eq("space", spaceName);
+      .eq("space", spaceName)
+      .eq("user_id", user.id);
   
     if (itemError) {
       console.error("Error deleting space items:", itemError);
