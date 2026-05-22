@@ -102,7 +102,7 @@ export default function App() {
     }
   
     fetchSpaces();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     async function fetchItems() {
@@ -137,22 +137,6 @@ export default function App() {
   const filteredFeedItems = feedItems.filter(
     (item) => item.space === activeFeed
   );
-
-  const toggleFavorite = (id) => {
-    setFeedItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, favorite: !item.favorite }
-          : item
-      )
-    );
-  
-    setSelectedItem((prev) =>
-      prev && prev.id === id
-        ? { ...prev, favorite: !prev.favorite }
-        : prev
-    );
-  };
 
   const searchResults = feedItems.filter((item) => {
     const query = searchTerm.trim().toLowerCase();
