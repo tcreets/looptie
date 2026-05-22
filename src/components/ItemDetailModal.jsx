@@ -9,6 +9,7 @@ export default function ItemDetailModal({
     onToggleFavorite,
     itemFavoriteDraft,
     setItemFavoriteDraft,
+    onDelete,
   }) {
 
   if (!selectedItem) return null;
@@ -68,6 +69,14 @@ export default function ItemDetailModal({
               Source, creator, platform, and caption will live here later.
             </p>
         </div>
+
+        <button
+          style={deleteButton}
+          onClick={onDelete}
+        >
+          Delete Item
+        </button>
+
         </div>
       </div>
     </div>
@@ -99,7 +108,7 @@ const itemModalCard = {
 const itemModalClose = {
   position: "absolute",
   top: "14px",
-  right: "14px",
+  left: "14px",
   width: "36px",
   height: "36px",
   borderRadius: "999px",
@@ -197,7 +206,7 @@ const tagSection = {
   const favoriteButton = {
     position: "absolute",
     top: "14px",
-    left: "14px",
+    right: "14px",
     width: "38px",
     height: "38px",
     borderRadius: "999px",
@@ -207,4 +216,16 @@ const tagSection = {
     lineHeight: 1,
     cursor: "pointer",
     zIndex: 5,
+  };
+
+  const deleteButton = {
+    width: "100%",
+    padding: "14px",
+    borderRadius: "16px",
+    border: "1px solid #7f1d1d",
+    background: "#1f0f12",
+    color: "#fca5a5",
+    fontWeight: "bold",
+    cursor: "pointer",
+    marginTop: "32px",
   };

@@ -11,6 +11,7 @@ export default function Spaces({
   setShowNewSpaceForm,
   setUploadSpace,
   setTab,
+  onDeleteSpace,
 }) {
   const selectedSpaceItems = feedItems.filter(
     (item) => item.space === selectedSpace
@@ -56,6 +57,16 @@ export default function Spaces({
                 />
               </button>
 
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteSpace(space);
+                }}
+                style={deleteSpaceCardButton}
+              >
+                ×
+              </button>
+
               <div style={spaceContent}>
                 <h3 style={{ margin: 0 }}>{space}</h3>
                 <p style={spaceItemsText}>
@@ -78,8 +89,11 @@ export default function Spaces({
 
   return (
     <div>
-      <button onClick={() => setSelectedSpace(null)} style={backButton}>
-        ← Back to spaces
+      <button
+        onClick={() => setSelectedSpace(null)}
+        style={backArrowButton}
+      >
+        ←
       </button>
 
       <h1>{selectedSpace}</h1>
@@ -97,13 +111,13 @@ export default function Spaces({
       <div style={spaceDetailGrid}>
         {selectedSpaceItems.map((item) => (
           <div
-            key={item.id}
-            style={spaceDetailCard}
-            onClick={() => setSelectedItem(item)}
-          >
-            <img src={item.image} alt="" style={spaceDetailImage} />
-            {item.creator && (<p style={creatorStyle}>@{item.creator}</p>)}
-          </div>
+          key={item.id}
+          style={spaceDetailCard}
+          onClick={() => setSelectedItem(item)}
+        >
+          <img src={item.image} alt="" style={spaceDetailImage} />
+          {item.creator && (<p style={creatorStyle}>@{item.creator}</p>)}
+        </div>
         ))}
 
         <button
@@ -177,13 +191,19 @@ const subtitleStyle = {
     transform: "translateY(-8px)",
   };
   
-  const backButton = {
-    background: "transparent",
-    color: "#aaa",
-    border: "none",
-    marginBottom: "20px",
+  const backArrowButton = {
+    width: "38px",
+    height: "38px",
+    borderRadius: "999px",
+    border: "1px solid #27272a",
+    background: "#18181b",
+    color: "#d4d4d8",
     cursor: "pointer",
-    fontSize: "15px",
+    fontSize: "20px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "18px",
   };
   
   const spaceDetailGrid = {
@@ -213,12 +233,6 @@ const subtitleStyle = {
     margin: "6px 0 0",
   };
   
-  const spaceDetailQuote = {
-    fontSize: "15px",
-    margin: "0 12px 14px",
-    lineHeight: 1.3,
-  };
-  
   const addToSpaceCard = {
     marginTop: "28px",
     background: "transparent",
@@ -237,3 +251,19 @@ const subtitleStyle = {
     lineHeight: 1.5,
   };
   
+  const deleteSpaceCardButton = {
+    position: "absolute",
+    top: "12px",
+    left: "12px",
+    width: "26px",
+    height: "26px",
+    borderRadius: "999px",
+    border: "none",
+    background: "rgba(0,0,0,.35)",
+    color: "#71717a",
+    fontSize: "18px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };

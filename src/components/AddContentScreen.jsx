@@ -1,7 +1,8 @@
 import React from "react";
-import { createUploadItems } from "../utils/uploadHelpers";
+import { supabase } from "../utils/supabaseClient";
 
 export default function AddContentScreen({
+  user,
   spaces,
   defaultFeed,
   uploadSpace,
@@ -127,9 +128,57 @@ export default function AddContentScreen({
           onClick={async () => {
             if (!selectedFiles.length) return;
           
-            const newUploads = await createUploadItems(selectedFiles, uploadSpace);
+            const uploadedItems = [];
           
-            setFeedItems([...newUploads, ...feedItems]);
+            for (const file of selectedFiles) {
+              const fileExt = file.name.split(".").pop();
+              const fileName = `${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
+              const filePath = `${uploadSpace}/${fileName}`;
+          
+              const { error: uploadError } = await supabase.storage
+                .from("looptie-uploads")
+                .upload(filePath, file);
+          
+                if (uploadError) {
+                    console.error("Upload error details:", uploadError.message, uploadError);
+                    alert(`Upload failed: ${uploadError.message}`);
+                    return;
+                  }
+          
+              const { data: publicUrlData } = supabase.storage
+                .from("looptie-uploads")
+                .getPublicUrl(filePath);
+          
+                uploadedItems.push({
+                    user_id: user.id,
+                    space: uploadSpace,
+                    image_url: publicUrlData.publicUrl,
+                    creator: null,
+                    note: null,
+                    favorite: false,
+                  });
+            }
+          
+            const { data, error } = await supabase
+              .from("items")
+              .insert(uploadedItems)
+              .select();
+          
+            if (error) {
+              console.error("Error saving uploads:", error);
+              return;
+            }
+          
+            const formattedItems = data.map((item) => ({
+              id: item.id,
+              space: item.space,
+              creator: item.creator,
+              image: item.image_url,
+              note: item.note,
+              favorite: item.favorite,
+            }));
+          
+            setFeedItems([...formattedItems, ...feedItems]);
             setSelectedFiles([]);
             setUploadSpace(defaultFeed);
             setActiveFeed(uploadSpace);

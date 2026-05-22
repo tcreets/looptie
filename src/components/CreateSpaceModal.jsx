@@ -1,4 +1,5 @@
 import React from "react";
+import { supabase } from "../utils/supabaseClient";
 
 export default function CreateSpaceModal({
   newSpaceName,
@@ -23,16 +24,26 @@ export default function CreateSpaceModal({
 
         <button
           style={modalPrimaryButton}
-          onClick={() => {
+          onClick={async () => {
             const cleanedName = newSpaceName.trim();
-
-            if (cleanedName !== "") {
-              setSpaces([...spaces, cleanedName]);
-              setSelectedSpace(cleanedName);
-              setNewSpaceName("");
-              setShowNewSpaceForm(false);
-              setTab("spaces");
+          
+            if (cleanedName === "") return;
+          
+            const { data, error } = await supabase
+              .from("spaces")
+              .insert([{ name: cleanedName }])
+              .select();
+          
+            if (error) {
+              console.error("Error creating space:", error);
+              return;
             }
+          
+            setSpaces([...spaces, cleanedName]);
+            setSelectedSpace(cleanedName);
+            setNewSpaceName("");
+            setShowNewSpaceForm(false);
+            setTab("spaces");
           }}
         >
           Create Space

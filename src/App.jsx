@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import "./App.css";
+import { supabase } from "./utils/supabaseClient";
 
+import AuthScreen from "./components/AuthScreen";
 import Profile from "./components/Profile";
 import SearchScreen from "./components/Search";
 import Spaces from "./components/Spaces";
@@ -9,25 +11,17 @@ import ItemDetailModal from "./components/ItemDetailModal";
 import BottomNav from "./components/BottomNav";
 import CreateSpaceModal from "./components/CreateSpaceModal";
 import AddContentScreen from "./components/AddContentScreen";
+import ProfileSetup from "./components/ProfileSetup";
+import SettingsScreen from "./components/SettingsScreen";
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [tab, setTab] = useState("home");
-
-  const savedSpaces = JSON.parse(localStorage.getItem("cacheSpaces"));
-  const savedDefaultFeed = localStorage.getItem("cacheDefaultFeed");
-
-  const [spaces, setSpaces] = useState(
-    savedSpaces || ["Motivation", "Gym", "Faith", "Calm", "Business", "Books"]
-  );
-
-  const [defaultFeed, setDefaultFeed] = useState(
-    savedDefaultFeed || "Motivation"
-  );
-
-  const [activeFeed, setActiveFeed] = useState(
-    savedDefaultFeed || "Motivation"
-  );
-
+  const [spaces, setSpaces] = useState([]);
+  const [defaultFeed, setDefaultFeed] = useState("");
+  const [activeFeed, setActiveFeed] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showNewSpaceForm, setShowNewSpaceForm] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
@@ -37,113 +31,108 @@ export default function App() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [itemNoteDraft, setItemNoteDraft] = useState("");
   const [itemFavoriteDraft, setItemFavoriteDraft] = useState(false);
-
+  const [feedItems, setFeedItems] = useState([]);
   const feedRef = useRef(null);
-
-  const defaultFeedItems = [
-    {
-      id: 1,
-      space: "Motivation",
-      creator: "mindset.archive",
-      image:
-        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 2,
-      space: "Gym",
-      creator: "gym.archive",
-      image:
-        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 3,
-      space: "Faith",
-      creator: "daily.light",
-      image:
-        "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 4,
-      space: "Calm",
-      creator: "calm.archive",
-      image:
-        "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 5,
-      space: "Business",
-      creator: "builder.archive",
-      image:
-        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 6,
-      space: "Gym",
-      creator: "gym.archive",
-      image:
-        "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 7,
-      space: "Gym",
-      creator: "lift.notes",
-      image:
-        "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 8,
-      space: "Motivation",
-      creator: "mindset.archive",
-      image:
-        "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 9,
-      space: "Faith",
-      creator: "daily.light",
-      image:
-        "https://images.unsplash.com/photo-1470115636492-6d2b56f9146d?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 10,
-      space: "Calm",
-      creator: "calm.archive",
-      image:
-        "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 11,
-      space: "Books",
-      creator: "reader.archive",
-      image:
-        "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80",
-    },
-  ];
-
-  const savedFeedItems = JSON.parse(localStorage.getItem("cacheFeedItems"));
-
-  const [feedItems, setFeedItems] = useState(
-    savedFeedItems || defaultFeedItems
-  );
-
+  
   useEffect(() => {
-    try {
-      localStorage.setItem(
-        "cacheFeedItems",
-        JSON.stringify(feedItems)
-      );
-    } catch (error) {
-      console.error("Storage full:", error);
+    async function getUser() {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+      setAuthLoading(false);
     }
-  }, [feedItems]);
+  
+    getUser();
+  
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+  
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem("cacheSpaces", JSON.stringify(spaces));
-  }, [spaces]);
+    async function fetchProfile() {
+      if (!user) return;
+  
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+  
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return;
+      }
+  
+      setProfile(data);
+      if (data?.default_space) {
+        setDefaultFeed(data.default_space);
+        setActiveFeed(data.default_space);
+        setUploadSpace(data.default_space);
+      }
+    }
+  
+    fetchProfile();
+  }, [user]);
 
   useEffect(() => {
-    localStorage.setItem("cacheDefaultFeed", defaultFeed);
-  }, [defaultFeed]);
+    async function fetchSpaces() {
+      const { data, error } = await supabase
+        .from("spaces")
+        .select("*");
+  
+      if (error) {
+        console.error("Error fetching spaces:", error);
+        return;
+      }
+  
+      if (data && data.length > 0) {
+        const spaceNames = data.map((space) => space.name);
+        setSpaces(spaceNames);
+  
+        if (!spaceNames.includes(activeFeed)) {
+          setActiveFeed(spaceNames[0]);
+        }
+      }
+    }
+  
+    fetchSpaces();
+  }, []);
+
+  useEffect(() => {
+    async function fetchItems() {
+      if (!user) return;
+  
+      const { data, error } = await supabase
+        .from("items")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+  
+      if (error) {
+        console.error("Error fetching items:", error);
+        return;
+      }
+  
+      const formattedItems = data.map((item) => ({
+        id: item.id,
+        space: item.space,
+        creator: item.creator,
+        image: item.image_url,
+        note: item.note,
+        favorite: item.favorite,
+      }));
+  
+      setFeedItems(formattedItems);
+    }
+  
+    fetchItems();
+  }, [user]);
 
   const filteredFeedItems = feedItems.filter(
     (item) => item.space === activeFeed
@@ -197,8 +186,21 @@ export default function App() {
   setItemFavoriteDraft(false);
   };
 
-  const saveItemMemo = () => {
+  const saveItemMemo = async () => {
     if (!selectedItem) return;
+  
+    const { error } = await supabase
+      .from("items")
+      .update({
+        note: itemNoteDraft,
+        favorite: itemFavoriteDraft,
+      })
+      .eq("id", selectedItem.id);
+  
+    if (error) {
+      console.error("Error saving item:", error);
+      return;
+    }
   
     const updatedItems = feedItems.map((item) =>
       item.id === selectedItem.id
@@ -209,6 +211,96 @@ export default function App() {
     setFeedItems(updatedItems);
     closeItemModal();
   };
+
+  const deleteItem = async () => {
+    if (!selectedItem) return;
+  
+    const confirmDelete = window.confirm(
+      "Delete this item from Looptie?"
+    );
+  
+    if (!confirmDelete) return;
+  
+    const { error } = await supabase
+      .from("items")
+      .delete()
+      .eq("id", selectedItem.id);
+  
+    if (error) {
+      console.error("Error deleting item:", error);
+      return;
+    }
+  
+    const deletedId = selectedItem.id;
+  
+    closeItemModal();
+  
+    setFeedItems((prev) =>
+      prev.filter((item) => item.id !== deletedId)
+    );
+  };
+
+  const deleteSpace = async (spaceName) => {
+    const confirmDelete = window.confirm(
+      `Delete "${spaceName}" and all items inside it?`
+    );
+  
+    if (!confirmDelete) return;
+  
+    const { error: itemError } = await supabase
+      .from("items")
+      .delete()
+      .eq("space", spaceName);
+  
+    if (itemError) {
+      console.error("Error deleting space items:", itemError);
+      return;
+    }
+  
+    const { error: spaceError } = await supabase
+      .from("spaces")
+      .delete()
+      .eq("name", spaceName);
+  
+    if (spaceError) {
+      console.error("Error deleting space:", spaceError);
+      return;
+    }
+  
+    setFeedItems((prev) =>
+      prev.filter((item) => item.space !== spaceName)
+    );
+  
+    setSpaces((prev) =>
+      prev.filter((space) => space !== spaceName)
+    );
+  
+    if (activeFeed === spaceName) {
+      setActiveFeed("Motivation");
+    }
+  
+    if (defaultFeed === spaceName) {
+      setDefaultFeed("Motivation");
+    }
+  
+    setSelectedSpace(null);
+  };
+
+  if (authLoading) return null;
+
+  if (!user) {
+    return <AuthScreen setUser={setUser} />;
+  }
+
+  if (user && !profile) {
+    return (
+      <ProfileSetup
+        user={user}
+        spaces={spaces}
+        setProfile={setProfile}
+      />
+    );
+  }
 
   return (
     <div style={appStyle}>
@@ -236,6 +328,7 @@ export default function App() {
           setShowNewSpaceForm={setShowNewSpaceForm}
           setUploadSpace={setUploadSpace}
           setTab={setTab}
+          onDeleteSpace={deleteSpace}
         />
         )}
 
@@ -250,6 +343,7 @@ export default function App() {
 
         {tab === "add" && (
           <AddContentScreen
+            user={user}
             spaces={spaces}
             defaultFeed={defaultFeed}
             uploadSpace={uploadSpace}
@@ -268,7 +362,21 @@ export default function App() {
           items={feedItems}
           spaces={spaces}
           setSelectedItem={openItemModal}
+          setTab={setTab}
+          profile={profile}
         />)}
+
+        {tab === "settings" && (
+          <SettingsScreen
+          profile={profile}
+          spaces={spaces}
+          defaultFeed={defaultFeed}
+          setDefaultFeed={setDefaultFeed}
+          setActiveFeed={setActiveFeed}
+          setProfile={setProfile}
+          setTab={setTab}
+        />
+        )}
 
         {showNewSpaceForm && (
           <CreateSpaceModal
@@ -290,6 +398,7 @@ export default function App() {
           setItemFavoriteDraft={setItemFavoriteDraft}
           onClose={closeItemModal}
           onSave={saveItemMemo}
+          onDelete={deleteItem}
         />
       </div>
 

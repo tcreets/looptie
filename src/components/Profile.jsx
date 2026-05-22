@@ -1,6 +1,14 @@
 import { useState } from "react";
+import { supabase } from "../utils/supabaseClient";
+import { Settings } from "lucide-react";
 
-export default function Profile({ items, spaces, setSelectedItem }) {
+export default function Profile({ 
+  items,
+  spaces,
+  setSelectedItem,
+  setTab,
+  profile,
+}) {
     const favoriteItems = items.filter((item) => item.favorite);
     const [profileView, setProfileView] = useState("all");
     const visibleItems = profileView === "favorites" ? favoriteItems : items;
@@ -11,13 +19,18 @@ export default function Profile({ items, spaces, setSelectedItem }) {
             <div style={profileAvatar}>T</div>
             
             <div style={profileTitleBlock}>
-              <h1 style={profileTitle}>Theo's Looptie</h1>
+              <h1 style={profileTitle}>{profile?.display_name || "Your"}'s Looptie</h1>
               <p style={profileSubtitle}>
                 Your saved media, spaces, and favorites.
               </p>
             </div>
+            <button
+              style={settingsButton}
+              onClick={() => setTab("settings")}
+            >
+              <Settings size={20} />
+            </button>
           </div>
-            
           <div style={profileStats}>
             <div style={profileStatCard}>
               <strong style={profileStatNumber}>{items.length}</strong>
@@ -199,6 +212,7 @@ export default function Profile({ items, spaces, setSelectedItem }) {
     alignItems: "center",
     gap: "14px",
     marginBottom: "18px",
+    justifyContent: "space-between",
   };
 
   const profileStatNumber = {
@@ -253,4 +267,18 @@ export default function Profile({ items, spaces, setSelectedItem }) {
     textAlign: "center",
     color: "#a1a1aa",
     columnSpan: "all",
+  };
+
+  const settingsButton = {
+    marginLeft: "auto",
+    width: "38px",
+    height: "38px",
+    borderRadius: "999px",
+    border: "1px solid #27272a",
+    background: "#18181b",
+    color: "#d4d4d8",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   };
