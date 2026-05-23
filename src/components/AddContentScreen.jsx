@@ -71,25 +71,6 @@ export default function AddContentScreen({
           />
         </label>
 
-        {selectedFiles.length > 0 && (
-          <div style={uploadPreviewGrid}>
-            {selectedFiles.map((file, index) => {
-              const previewUrl = URL.createObjectURL(file);
-              const isVideo = file.type.startsWith("video");
-
-              return (
-                <div key={index} style={uploadPreviewCard}>
-                  {isVideo ? (
-                    <video src={previewUrl} style={uploadPreviewMedia} muted />
-                  ) : (
-                    <img src={previewUrl} alt="" style={uploadPreviewMedia} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
         <div style={{ position: "relative" }}>
           <select
             value={uploadSpace}
@@ -125,6 +106,7 @@ export default function AddContentScreen({
 
         <button
           style={modalPrimaryButton}
+          disabled={!selectedFiles.length}
           onClick={async () => {
             if (!selectedFiles.length) return;
           
@@ -185,8 +167,29 @@ export default function AddContentScreen({
             setTab("home");
           }}
         >
-          Save to Cache
+          {selectedFiles.length > 0
+            ? `Save ${selectedFiles.length} item${selectedFiles.length > 1 ? "s" : ""} to Looptie`
+            : "Select files first"}
         </button>
+
+        {selectedFiles.length > 0 && (
+          <div style={uploadPreviewGrid}>
+            {selectedFiles.map((file, index) => {
+              const previewUrl = URL.createObjectURL(file);
+              const isVideo = file.type.startsWith("video");
+
+              return (
+                <div key={index} style={uploadPreviewCard}>
+                  {isVideo ? (
+                    <video src={previewUrl} style={uploadPreviewMedia} muted />
+                  ) : (
+                    <img src={previewUrl} alt="" style={uploadPreviewMedia} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
