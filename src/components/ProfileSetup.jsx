@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 
-export default function ProfileSetup({ user, spaces, setSpaces, setProfile }) {
+export default function ProfileSetup({ 
+    user, 
+    setSpaces, 
+    setProfile,
+    setDefaultFeed,
+    setActiveFeed,
+    setUploadSpace,
+ }) {
 const [displayName, setDisplayName] = useState("");
   const [firstSpace, setFirstSpace] = useState("");
 
@@ -44,6 +51,11 @@ const [displayName, setDisplayName] = useState("");
       
         setProfile(data);
         setSpaces([cleanedSpace]);
+        setDefaultFeed(cleanedSpace);
+        setActiveFeed(cleanedSpace);
+        setUploadSpace(cleanedSpace);
+        setTab("spaces");
+        setProfile(data);
       };
   return (
     <div style={page}>

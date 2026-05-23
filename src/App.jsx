@@ -1,6 +1,5 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import "./App.css";
-import { supabase } from "./utils/supabaseClient";
 
 import AuthScreen from "./components/AuthScreen";
 import Profile from "./components/Profile";
@@ -13,283 +12,102 @@ import CreateSpaceModal from "./components/CreateSpaceModal";
 import AddContentScreen from "./components/AddContentScreen";
 import ProfileSetup from "./components/ProfileSetup";
 import SettingsScreen from "./components/SettingsScreen";
+import { useSpaces } from "./hooks/useSpaces";
+import { useProfile } from "./hooks/useProfile";
+import { useItems } from "./hooks/useItems";
+import { useItemModal } from "./hooks/useItemModal";
+import { useSearch } from "./hooks/useSearch";
+import { useAuth } from "./hooks/useAuth";
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [tab, setTab] = useState("home");
-  const [spaces, setSpaces] = useState([]);
-  const [defaultFeed, setDefaultFeed] = useState("");
-  const [activeFeed, setActiveFeed] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [tab, setTab] = useState("home")
   const [showNewSpaceForm, setShowNewSpaceForm] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
   const [selectedSpace, setSelectedSpace] = useState(null);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [uploadSpace, setUploadSpace] = useState(defaultFeed);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [itemNoteDraft, setItemNoteDraft] = useState("");
-  const [itemFavoriteDraft, setItemFavoriteDraft] = useState(false);
-  const [feedItems, setFeedItems] = useState([]);
   const feedRef = useRef(null);
-  
-  useEffect(() => {
-    async function getUser() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-      setAuthLoading(false);
-    }
-  
-    getUser();
-  
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
-      }
-    );
-  
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
 
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!user) return;
-  
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-  
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return;
-      }
-  
-      setProfile(data);
-      if (data?.default_space) {
-        setDefaultFeed(data.default_space);
-        setActiveFeed(data.default_space);
-        setUploadSpace(data.default_space);
-      }
-    }
-  
-    fetchProfile();
-  }, [user]);
+  const {
+    user,
+    setUser,
+    authLoading,
+  } = useAuth();
+ 
+  const {
+    spaces,
+    setSpaces,
+    defaultFeed,
+    setDefaultFeed,
+    activeFeed,
+    setActiveFeed,
+    uploadSpace,
+    setUploadSpace,
+    deleteSpace,
+  } = useSpaces(user);
 
-  useEffect(() => {
-    async function fetchSpaces() {
-      const { data, error } = await supabase
-        .from("spaces")
-        .select("*")
-        .eq("user_id", user.id);
-  
-      if (error) {
-        console.error("Error fetching spaces:", error);
-        return;
-      }
-  
-      if (data && data.length > 0) {
-        const spaceNames = data.map((space) => space.name);
-        setSpaces(spaceNames);
-  
-        if (!spaceNames.includes(activeFeed)) {
-          setActiveFeed(spaceNames[0]);
-        }
-      }
-    }
-  
-    fetchSpaces();
-  }, [user]);
+  const {
+    profile,
+    setProfile,
+    profileLoading,
+  } = useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace);
 
-  useEffect(() => {
-    async function fetchItems() {
-      if (!user) return;
-  
-      const { data, error } = await supabase
-        .from("items")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-  
-      if (error) {
-        console.error("Error fetching items:", error);
-        return;
-      }
-  
-      const formattedItems = data.map((item) => ({
-        id: item.id,
-        space: item.space,
-        creator: item.creator,
-        image: item.image_url,
-        note: item.note,
-        favorite: item.favorite,
-      }));
-  
-      setFeedItems(formattedItems);
-    }
-  
-    fetchItems();
-  }, [user]);
+  const {
+    feedItems,
+    setFeedItems,
+    saveItemMemo,
+    deleteItem,
+  } = useItems(user);
 
+  const {
+    selectedItem,
+    itemNoteDraft,
+    setItemNoteDraft,
+    itemFavoriteDraft,
+    setItemFavoriteDraft,
+    openItemModal,
+    closeItemModal,
+  } = useItemModal();
+
+  const {
+    searchTerm,
+    setSearchTerm,
+    searchResults,
+  } = useSearch(feedItems);
+
+  
   const filteredFeedItems = feedItems.filter(
     (item) => item.space === activeFeed
   );
-
-  const searchResults = feedItems.filter((item) => {
-    const query = searchTerm.trim().toLowerCase();
-  
-    if (!query) return false;
-  
-    const tagsText = Array.isArray(item.tags)
-      ? item.tags.join(" ")
-      : "";
-  
-    const searchableText = `
-      ${item.space || ""}
-      ${item.creator || ""}
-      ${item.caption || ""}
-      ${item.note || ""}
-      ${tagsText}
-    `.toLowerCase();
-
-    return searchableText.includes(query);
-  });
-
-  const openItemModal = (item) => {
-    setSelectedItem(item);
-    setItemNoteDraft(item.note || "");
-    setItemFavoriteDraft(!!item.favorite);
-  };
-
-  const closeItemModal = () => {
-  setSelectedItem(null);
-  setItemNoteDraft("");
-  setItemFavoriteDraft(false);
-  };
-
-  const saveItemMemo = async () => {
-    if (!selectedItem) return;
-  
-    const { error } = await supabase
-      .from("items")
-      .update({
-        note: itemNoteDraft,
-        favorite: itemFavoriteDraft,
-      })
-      .eq("id", selectedItem.id);
-  
-    if (error) {
-      console.error("Error saving item:", error);
-      return;
-    }
-  
-    const updatedItems = feedItems.map((item) =>
-      item.id === selectedItem.id
-        ? { ...item, note: itemNoteDraft, favorite: itemFavoriteDraft }
-        : item
-    );
-  
-    setFeedItems(updatedItems);
-    closeItemModal();
-  };
-
-  const deleteItem = async () => {
-    if (!selectedItem) return;
-  
-    const confirmDelete = window.confirm(
-      "Delete this item from Looptie?"
-    );
-  
-    if (!confirmDelete) return;
-  
-    const { error } = await supabase
-      .from("items")
-      .delete()
-      .eq("id", selectedItem.id);
-  
-    if (error) {
-      console.error("Error deleting item:", error);
-      return;
-    }
-  
-    const deletedId = selectedItem.id;
-  
-    closeItemModal();
-  
-    setFeedItems((prev) =>
-      prev.filter((item) => item.id !== deletedId)
-    );
-  };
-
-  const deleteSpace = async (spaceName) => {
-    const confirmDelete = window.confirm(
-      `Delete "${spaceName}" and all items inside it?`
-    );
-  
-    if (!confirmDelete) return;
-  
-    const { error: itemError } = await supabase
-      .from("items")
-      .delete()
-      .eq("space", spaceName)
-      .eq("user_id", user.id);
-  
-    if (itemError) {
-      console.error("Error deleting space items:", itemError);
-      return;
-    }
-  
-    const { error: spaceError } = await supabase
-      .from("spaces")
-      .delete()
-      .eq("name", spaceName)
-      .eq("user_id", user.id);
-  
-    if (spaceError) {
-      console.error("Error deleting space:", spaceError);
-      return;
-    }
-  
-    setFeedItems((prev) =>
-      prev.filter((item) => item.space !== spaceName)
-    );
-  
-    setSpaces((prev) =>
-      prev.filter((space) => space !== spaceName)
-    );
-  
-    const remainingSpaces = spaces.filter(
-      (space) => space !== spaceName
-    );
-    
-    if (remainingSpaces.length > 0) {
-      setActiveFeed(remainingSpaces[0]);
-      setDefaultFeed(remainingSpaces[0]);
-    } else {
-      setActiveFeed("");
-      setDefaultFeed("");
-    }
-  
-    setSelectedSpace(null);
-  };
 
   if (authLoading) return null;
 
   if (!user) {
     return <AuthScreen setUser={setUser} />;
   }
-
-  if (user && !profile) {
+  
+  if (profileLoading) {
+    return (
+      <div style={appStyle}>
+        <p style={{ color: "#a1a1aa", margin: "auto" }}>
+          Loading your Looptie...
+        </p>
+      </div>
+    );
+  }
+  
+  if (!profile) {
     return (
       <ProfileSetup
         user={user}
         spaces={spaces}
         setSpaces={setSpaces}
         setProfile={setProfile}
+        setDefaultFeed={setDefaultFeed}
+        setActiveFeed={setActiveFeed}
+        setUploadSpace={setUploadSpace}
+        setSelectedSpace={setSelectedSpace}
+        setTab={setTab}
+
       />
     );
   }
@@ -320,7 +138,9 @@ export default function App() {
           setShowNewSpaceForm={setShowNewSpaceForm}
           setUploadSpace={setUploadSpace}
           setTab={setTab}
-          onDeleteSpace={deleteSpace}
+          onDeleteSpace={(spaceName) =>
+            deleteSpace(spaceName, feedItems, setFeedItems, setSelectedSpace)
+          }
         />
         )}
 
@@ -390,8 +210,20 @@ export default function App() {
           itemFavoriteDraft={itemFavoriteDraft}
           setItemFavoriteDraft={setItemFavoriteDraft}
           onClose={closeItemModal}
-          onSave={saveItemMemo}
-          onDelete={deleteItem}
+          onSave={() =>
+            saveItemMemo({
+              selectedItem,
+              itemNoteDraft,
+              itemFavoriteDraft,
+              closeItemModal,
+            })
+          }
+          onDelete={() =>
+            deleteItem({
+              selectedItem,
+              closeItemModal,
+            })
+          }
         />
       </div>
 
