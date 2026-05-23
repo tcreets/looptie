@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 
 export default function AddContentScreen({
@@ -14,6 +14,10 @@ export default function AddContentScreen({
   setActiveFeed,
   setTab,
 }) {
+
+  const [previewFile, setPreviewFile] = React.useState(null);
+
+
   return (
     <div>
       <p style={subtitleStyle}>Add to Cache</p>
@@ -179,7 +183,11 @@ export default function AddContentScreen({
               const isVideo = file.type.startsWith("video");
 
               return (
-                <div key={index} style={uploadPreviewCard}>
+                <div
+                  key={index}
+                  style={uploadPreviewCard}
+                  onClick={() => setPreviewFile(file)}
+                >
                   {isVideo ? (
                     <video src={previewUrl} style={uploadPreviewMedia} muted />
                   ) : (
@@ -189,11 +197,34 @@ export default function AddContentScreen({
               );
             })}
           </div>
-        )}
-      </div>
-    </div>
-  );
-}
+               )}
+
+               {previewFile && (
+                 <div
+                   style={previewOverlay}
+                   onClick={() => setPreviewFile(null)}
+                 >
+                   {previewFile.type.startsWith("video") ? (
+                     <video
+                       src={URL.createObjectURL(previewFile)}
+                       controls
+                       autoPlay
+                       style={previewModalMedia}
+                     />
+                   ) : (
+                     <img
+                       src={URL.createObjectURL(previewFile)}
+                       alt=""
+                       style={previewModalMedia}
+                     />
+                   )}
+                 </div>
+               )}
+       
+             </div>
+           </div>
+         );
+       }
 
 const subtitleStyle = {
   color: "#9ca3af",
@@ -240,21 +271,41 @@ const modalPrimaryButton = {
 };
 
 const uploadPreviewGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, 1fr)",
-  gap: "10px",
-};
+    display: "flex",
+    gap: "8px",
+    overflowX: "auto",
+    paddingBottom: "8px",
+  };
 
 const uploadPreviewCard = {
-  borderRadius: "16px",
+  width: "72px",
+  height: "72px",
+  flex: "0 0 auto",
+  borderRadius: "14px",
   overflow: "hidden",
   border: "1px solid #3a3447",
   background: "#16161d",
-  aspectRatio: "1 / 1",
 };
 
 const uploadPreviewMedia = {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-};
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  };
+
+  const previewOverlay = {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,.9)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    padding: "20px",
+  };
+  
+  const previewModalMedia = {
+    maxWidth: "100%",
+    maxHeight: "90vh",
+    borderRadius: "18px",
+  };
