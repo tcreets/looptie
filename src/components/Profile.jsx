@@ -93,6 +93,7 @@ export default function Profile({
           >
             <img
               src={item.image}
+              loading="lazy"
               alt=""
               style={profileImage}
             />
