@@ -56,7 +56,12 @@ export default function HomeFeed({
               style={feedCard}
               onClick={() => setSelectedItem(item)}
             >
-              <img src={item.image} alt="" style={imageStyle} />
+              <img
+                src={item.image}
+                loading="lazy"
+                alt=""
+                style={imageStyle}
+              />
               <div style={overlayStyle} />
 
               {item.favorite && (
