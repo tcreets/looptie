@@ -39,13 +39,23 @@ export function useItems(user) {
     fetchItems();
   }, [user]);
 
+  const getStoragePathFromUrl = (url) => {
+    if (!url) return null;
+
+    const marker = "/storage/v1/object/public/looptie-uploads/";
+
+    if (!url.includes(marker)) return null;
+
+    return url.split(marker)[1];
+  };
+
   const saveItemMemo = async ({
     selectedItem,
     itemNoteDraft,
     itemFavoriteDraft,
     closeItemModal,
   }) => {
-    if (!selectedItem) return;
+    if (!selectedItem || !user) return;
 
     const { error } = await supabase
       .from("items")
@@ -73,10 +83,23 @@ export function useItems(user) {
   };
 
   const deleteItem = async ({ selectedItem, closeItemModal }) => {
-    if (!selectedItem) return;
+    if (!selectedItem || !user) return;
 
     const confirmDelete = window.confirm("Delete this item from Looptie?");
     if (!confirmDelete) return;
+
+    const storagePath = getStoragePathFromUrl(selectedItem.image);
+
+    if (storagePath) {
+      const { error: storageError } = await supabase.storage
+        .from("looptie-uploads")
+        .remove([storagePath]);
+
+      if (storageError) {
+        console.error("Error deleting storage file:", storageError);
+        return;
+      }
+    }
 
     const { error } = await supabase
       .from("items")
