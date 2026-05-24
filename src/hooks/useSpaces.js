@@ -3,7 +3,7 @@ import { supabase } from "../utils/supabaseClient";
 
 export function useSpaces(user) {
   const [spaces, setSpaces] = useState([]);
-  const [defaultFeed, setDefaultFeed] = useState("");
+  const [defaultFeed, setDefaultFeedState] = useState("");
   const [activeFeed, setActiveFeed] = useState("");
   const [uploadSpace, setUploadSpace] = useState("");
 
@@ -24,14 +24,45 @@ export function useSpaces(user) {
       const spaceNames = data.map((space) => space.name);
       setSpaces(spaceNames);
 
-      if (spaceNames.length > 0 && !activeFeed) {
-        setActiveFeed(spaceNames[0]);
-        setUploadSpace(spaceNames[0]);
-      }
+      const defaultSpace = data.find((space) => space.is_default);
+      const startingSpace = defaultSpace?.name || spaceNames[0] || "";
+
+      setDefaultFeedState(startingSpace);
+      setActiveFeed(startingSpace);
+      setUploadSpace(startingSpace);
     }
 
     fetchSpaces();
   }, [user]);
+
+  const setDefaultFeed = async (spaceName) => {
+    if (!user || !spaceName) return;
+
+    const { error: resetError } = await supabase
+      .from("spaces")
+      .update({ is_default: false })
+      .eq("user_id", user.id);
+
+    if (resetError) {
+      console.error("Error resetting default spaces:", resetError);
+      return;
+    }
+
+    const { error: defaultError } = await supabase
+      .from("spaces")
+      .update({ is_default: true })
+      .eq("name", spaceName)
+      .eq("user_id", user.id);
+
+    if (defaultError) {
+      console.error("Error setting default space:", defaultError);
+      return;
+    }
+
+    setDefaultFeedState(spaceName);
+    setActiveFeed(spaceName);
+    setUploadSpace(spaceName);
+  };
 
   const deleteSpace = async (
     spaceName,
@@ -47,20 +78,14 @@ export function useSpaces(user) {
 
     if (!confirmDelete) return;
 
-    const itemsInSpace = feedItems.filter(
-      (item) => item.space === spaceName
-    );
+    const itemsInSpace = feedItems.filter((item) => item.space === spaceName);
 
     const filePaths = itemsInSpace
       .map((item) => item.image)
       .filter(Boolean)
       .map((url) => {
-        const marker =
-          "/storage/v1/object/public/looptie-uploads/";
-
-        return url.includes(marker)
-          ? url.split(marker)[1]
-          : null;
+        const marker = "/storage/v1/object/public/looptie-uploads/";
+        return url.includes(marker) ? url.split(marker)[1] : null;
       })
       .filter(Boolean);
 
@@ -70,10 +95,7 @@ export function useSpaces(user) {
         .remove(filePaths);
 
       if (storageError) {
-        console.error(
-          "Error deleting storage files:",
-          storageError
-        );
+        console.error("Error deleting storage files:", storageError);
         return;
       }
     }
@@ -85,10 +107,7 @@ export function useSpaces(user) {
       .eq("user_id", user.id);
 
     if (itemError) {
-      console.error(
-        "Error deleting space items:",
-        itemError
-      );
+      console.error("Error deleting space items:", itemError);
       return;
     }
 
@@ -103,24 +122,23 @@ export function useSpaces(user) {
       return;
     }
 
-    setFeedItems((prev) =>
-      prev.filter((item) => item.space !== spaceName)
-    );
+    setFeedItems((prev) => prev.filter((item) => item.space !== spaceName));
 
-    const remainingSpaces = spaces.filter(
-      (space) => space !== spaceName
-    );
-
+    const remainingSpaces = spaces.filter((space) => space !== spaceName);
     setSpaces(remainingSpaces);
 
-    if (remainingSpaces.length > 0) {
-      setActiveFeed(remainingSpaces[0]);
-      setDefaultFeed(remainingSpaces[0]);
-      setUploadSpace(remainingSpaces[0]);
+    const deletedWasDefault = defaultFeed === spaceName;
+    const nextSpace = remainingSpaces[0] || "";
+
+    if (deletedWasDefault && nextSpace) {
+      await setDefaultFeed(nextSpace);
     } else {
-      setActiveFeed("");
-      setDefaultFeed("");
-      setUploadSpace("");
+      setActiveFeed(nextSpace);
+      setUploadSpace(nextSpace);
+
+      if (!nextSpace) {
+        setDefaultFeedState("");
+      }
     }
 
     setSelectedSpace(null);
