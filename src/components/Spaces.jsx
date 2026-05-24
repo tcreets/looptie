@@ -123,6 +123,10 @@ export default function Spaces({
             alt=""
             style={spaceDetailImage}
           />
+        
+        {item.favorite && (
+        <div style={spaceFavoriteIndicator}>♥</div>
+        )}
 
         {item.creator && (<p style={creatorStyle}>@{item.creator}</p>)}
         </div>
@@ -135,7 +139,10 @@ export default function Spaces({
             setTab("add");
           }}
         >
-          + Add to {selectedSpace}
+          <>
+            <span>Add to {selectedSpace}</span>
+            <div style={addItemPlus}>+</div>
+          </>
         </button>
       </div>
     </div>
@@ -228,6 +235,7 @@ const subtitleStyle = {
     cursor: "pointer",
     breakInside: "avoid",
     marginBottom: "16px",
+    position: "relative",
   };
   
   const spaceDetailImage = {
@@ -243,14 +251,40 @@ const subtitleStyle = {
   };
   
   const addToSpaceCard = {
-    marginTop: "28px",
-    background: "transparent",
-    border: "1px dashed #3f3f46",
-    borderRadius: "24px",
+    width: "100%",
     minHeight: "220px",
-    color: "#b3adbf",
-    fontSize: "16px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "18px",
+    background: "transparent",
+    border: "1px dashed #52525b",
+    borderRadius: "28px",
+    color: "white",
+    fontSize: "18px",
+    fontWeight: "600",
     cursor: "pointer",
+    padding: "24px",
+    textAlign: "center",
+    breakInside: "avoid",
+    marginBottom: "16px",
+    boxSizing: "border-box",
+  };
+
+  const addItemPlus = {
+    width: "42px",
+    height: "42px",
+    borderRadius: "999px",
+    background: "#18181b",
+    color: "#7c3aed",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "30px",
+    fontWeight: "700",
+    lineHeight: 1,
+    transform: "translateY(-2px)",
   };
 
   const emptyStateText = {
@@ -290,4 +324,15 @@ const subtitleStyle = {
     zIndex: 10,
     background: "#050505",
     paddingBottom: "12px",
+  };
+
+  const spaceFavoriteIndicator = {
+    position: "absolute",
+    top: "10px",
+    left: "10px",
+    color: "#ef4444",
+    fontSize: "24px",
+    zIndex: 20,
+    textShadow: "0 2px 10px rgba(0,0,0,.7)",
+    pointerEvents: "none",
   };
