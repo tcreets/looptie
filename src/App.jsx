@@ -38,6 +38,7 @@ export default function App() {
     setSpaces,
     defaultFeed,
     setDefaultFeed,
+    saveDefaultFeed,
     activeFeed,
     setActiveFeed,
     uploadSpace,
@@ -130,7 +131,7 @@ export default function App() {
           <Spaces
           spaces={spaces}
           defaultFeed={defaultFeed}
-          setDefaultFeed={setDefaultFeed}
+          setDefaultFeed={saveDefaultFeed}
           selectedSpace={selectedSpace}
           setSelectedSpace={setSelectedSpace}
           feedItems={feedItems}
