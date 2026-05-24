@@ -88,19 +88,21 @@ export default function Spaces({
   }
 
   return (
-    <div>
-      <button
-        onClick={() => setSelectedSpace(null)}
-        style={backArrowButton}
-      >
-        ←
-      </button>
-
-      <h1>{selectedSpace}</h1>
-
-      <p style={subtitleStyle}>
-        {selectedSpaceItems.length} items in this space
-      </p>
+    <div style={spaceDetailScreen} className="no-scrollbar">
+      <div style={stickySpaceHeader}>
+        <button
+          onClick={() => setSelectedSpace(null)}
+          style={backArrowButton}
+        >
+          ←
+        </button>
+        
+        <h1>{selectedSpace}</h1>
+        
+        <p style={subtitleStyle}>
+          {selectedSpaceItems.length} items in this space
+        </p>
+      </div>
 
       {selectedSpaceItems.length === 0 && (
           <p style={emptyStateText}>
@@ -115,8 +117,14 @@ export default function Spaces({
           style={spaceDetailCard}
           onClick={() => setSelectedItem(item)}
         >
-          <img src={item.image} alt="" style={spaceDetailImage} />
-          {item.creator && (<p style={creatorStyle}>@{item.creator}</p>)}
+          <img
+            src={item.image}
+            loading="lazy"
+            alt=""
+            style={spaceDetailImage}
+          />
+
+        {item.creator && (<p style={creatorStyle}>@{item.creator}</p>)}
         </div>
         ))}
 
@@ -207,10 +215,9 @@ const subtitleStyle = {
   };
   
   const spaceDetailGrid = {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "16px",
-    paddingBottom: "90px",
+    columnCount: 2,
+    columnGap: "16px",
+    paddingBottom: "160px",
   };
   
   const spaceDetailCard = {
@@ -219,14 +226,16 @@ const subtitleStyle = {
     borderRadius: "22px",
     overflow: "hidden",
     cursor: "pointer",
+    breakInside: "avoid",
+    marginBottom: "16px",
   };
   
   const spaceDetailImage = {
     width: "100%",
-    height: "160px",
-    objectFit: "cover",
+    height: "auto",
+    display: "block",
   };
-  
+
   const creatorStyle = {
     color: "#b3adbf",
     fontSize: "13px",
@@ -266,4 +275,19 @@ const subtitleStyle = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+  };
+
+  const spaceDetailScreen = {
+    height: "100%",
+    overflowY: "auto",
+    WebkitOverflowScrolling: "touch",
+    paddingBottom: "120px",
+  };
+
+  const stickySpaceHeader = {
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    background: "#050505",
+    paddingBottom: "12px",
   };
