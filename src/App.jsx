@@ -57,6 +57,7 @@ export default function App() {
     setFeedItems,
     saveItemMemo,
     deleteItem,
+    deleteAllUserItemsAndStorage,
   } = useItems(user);
 
   const {
@@ -188,6 +189,8 @@ export default function App() {
           setActiveFeed={setActiveFeed}
           setProfile={setProfile}
           setTab={setTab}
+          user={user}
+          deleteAllUserItemsAndStorage={deleteAllUserItemsAndStorage}
         />
         )}
 

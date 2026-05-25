@@ -9,6 +9,8 @@ export default function SettingsScreen({
   setActiveFeed,
   setProfile,
   setTab,
+  user,
+  deleteAllUserItemsAndStorage,
 }) {
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
   const [selectedDefault, setSelectedDefault] = useState(defaultFeed || "");
@@ -35,47 +37,49 @@ export default function SettingsScreen({
     alert("Settings saved.");
   };
 
-  const deleteAccount = async () => {
-    const confirmed = window.confirm(
-      "Are you sure? This will permanently delete your account, spaces, items, and uploaded files."
+  const handleDeleteAccount = async () => {
+    const confirmDelete = window.confirm(
+      "Are you sure? This will permanently delete your account and all Looptie data."
     );
   
-    if (!confirmed) return;
+    if (!confirmDelete) return;
   
-    const { data: items, error: itemsError } = await supabase
-      .from("items")
-      .select("image_url")
-      .eq("user_id", profile.user_id);
+    const itemsResult = await deleteAllUserItemsAndStorage();
   
-    if (itemsError) {
-      alert(itemsError.message);
+    if (itemsResult?.error) {
+      alert(itemsResult.error);
       return;
     }
   
-    const filePaths = items
-      .map((item) => item.image_url)
-      .filter(Boolean)
-      .map((url) => {
-        const marker = "/storage/v1/object/public/uploads/";
-        return url.includes(marker) ? url.split(marker)[1] : null;
-      })
-      .filter(Boolean);
+    const { error: spacesError } = await supabase
+      .from("spaces")
+      .delete()
+      .eq("user_id", user.id);
   
-    if (filePaths.length > 0) {
-      const { error: removeError } = await supabase.storage
-        .from("uploads")
-        .remove(filePaths);
-  
-      if (removeError) {
-        alert(removeError.message);
-        return;
-      }
+    if (spacesError) {
+      alert(spacesError.message);
+      return;
     }
   
-    const { error } = await supabase.rpc("delete_my_account");
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("user_id", user.id);
   
-    if (error) {
-      alert(error.message);
+    if (profileError) {
+      alert(profileError.message);
+      return;
+    }
+  
+    const { error: functionError } = await supabase.functions.invoke(
+      "delete-account",
+      {
+        method: "POST",
+      }
+    );
+  
+    if (functionError) {
+      alert(functionError.message);
       return;
     }
   
@@ -125,7 +129,7 @@ export default function SettingsScreen({
         Log Out
       </button>
 
-      <button style={deleteButton} onClick={deleteAccount}>
+      <button style={deleteButton} onClick={handleDeleteAccount}>
         Delete Account
       </button>
     </div>
