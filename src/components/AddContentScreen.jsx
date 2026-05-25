@@ -119,7 +119,9 @@ export default function AddContentScreen({
             for (const file of selectedFiles) {
               const fileExt = file.name.split(".").pop();
               const fileName = `${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
-              const filePath = `${uploadSpace}/${fileName}`;
+              const safeSpace = uploadSpace.replaceAll("/", "-");
+              const filePath =
+                `${user.id}/${safeSpace}/${fileName}`;
           
               const { error: uploadError } = await supabase.storage
                 .from("looptie-uploads")
@@ -139,6 +141,7 @@ export default function AddContentScreen({
                     user_id: user.id,
                     space: uploadSpace,
                     image_url: publicUrlData.publicUrl,
+                    storage_path: filePath,
                     creator: null,
                     note: null,
                     favorite: false,
@@ -156,13 +159,14 @@ export default function AddContentScreen({
             }
           
             const formattedItems = data.map((item) => ({
-              id: item.id,
-              space: item.space,
-              creator: item.creator,
-              image: item.image_url,
-              note: item.note,
-              favorite: item.favorite,
-            }));
+                id: item.id,
+                space: item.space,
+                creator: item.creator,
+                image: item.image_url,
+                storagePath: item.storage_path,
+                note: item.note,
+                favorite: item.favorite,
+              }));
           
             setFeedItems([...formattedItems, ...feedItems]);
             setSelectedFiles([]);
