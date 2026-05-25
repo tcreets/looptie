@@ -46,7 +46,7 @@ export function useItems(user) {
 
     if (!url.includes(marker)) return null;
 
-    return url.split(marker)[1];
+    return decodeURIComponent(url.split(marker)[1]);
   };
 
   const saveItemMemo = async ({
