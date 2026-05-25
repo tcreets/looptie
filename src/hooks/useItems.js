@@ -27,6 +27,7 @@ export function useItems(user) {
         space: item.space,
         creator: item.creator,
         image: item.image_url,
+        storage_path: item.storage_path,
         note: item.note,
         favorite: item.favorite,
         tags: item.tags,
@@ -38,16 +39,6 @@ export function useItems(user) {
 
     fetchItems();
   }, [user]);
-
-  const getStoragePathFromUrl = (url) => {
-    if (!url) return null;
-
-    const marker = "/storage/v1/object/public/looptie-uploads/";
-
-    if (!url.includes(marker)) return null;
-
-    return decodeURIComponent(url.split(marker)[1]);
-  };
 
   const saveItemMemo = async ({
     selectedItem,
@@ -88,7 +79,7 @@ export function useItems(user) {
     const confirmDelete = window.confirm("Delete this item from Looptie?");
     if (!confirmDelete) return;
 
-    const storagePath = getStoragePathFromUrl(selectedItem.image);
+    const storagePath = selectedItem.storage_path;
 
     if (storagePath) {
       const { error: storageError } = await supabase.storage
@@ -119,10 +110,54 @@ export function useItems(user) {
     setFeedItems((prev) => prev.filter((item) => item.id !== deletedId));
   };
 
+  const deleteAllUserItemsAndStorage = async () => {
+    if (!user) return { error: "No user found." };
+  
+    const { data: items, error: fetchError } = await supabase
+      .from("items")
+      .select("id, storage_path")
+      .eq("user_id", user.id);
+  
+    if (fetchError) {
+      console.error("Error fetching user items:", fetchError);
+      return { error: fetchError.message };
+    }
+  
+    const storagePaths = items
+      .map((item) => item.storage_path)
+      .filter(Boolean);
+  
+    if (storagePaths.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from("looptie-uploads")
+        .remove(storagePaths);
+  
+      if (storageError) {
+        console.error("Error deleting user storage:", storageError);
+        return { error: storageError.message };
+      }
+    }
+  
+    const { error: itemsError } = await supabase
+      .from("items")
+      .delete()
+      .eq("user_id", user.id);
+  
+    if (itemsError) {
+      console.error("Error deleting user items:", itemsError);
+      return { error: itemsError.message };
+    }
+  
+    setFeedItems([]);
+  
+    return { error: null };
+  };
+
   return {
     feedItems,
     setFeedItems,
     saveItemMemo,
     deleteItem,
+    deleteAllUserItemsAndStorage,
   };
 }

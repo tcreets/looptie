@@ -11,7 +11,7 @@ export default function HomeFeed({
     };
   
     return (
-      <div>
+      <div style={homeStyle}>
         <p style={subtitleStyle}>Choose the state you want to enter.</p>
   
         <div
@@ -111,15 +111,15 @@ export default function HomeFeed({
   const feedList = {
     display: "grid",
     gap: "18px",
-    paddingBottom: "0px",
-    height: "calc(100vh - 250px)",
-    overflowY: "scroll",
+    paddingBottom: "16px",
+    height: "calc(100vh - 210px)",
+    overflowY: "auto",
     scrollSnapType: "y mandatory",
   };
   
   const feedCard = {
     position: "relative",
-    height: "calc(100vh - 250px)",
+    height: "calc(100vh - 210px)",
     borderRadius: "28px",
     overflow: "hidden",
     border: "1px solid #222",
@@ -129,10 +129,9 @@ export default function HomeFeed({
   const imageStyle = {
     width: "100%",
     height: "100%",
-    objectFit: "contain",
+    objectFit: "cover",
     objectPosition: "center",
     display: "block",
-    background: "#050505",
   };
   
   const overlayStyle = {
@@ -168,4 +167,11 @@ export default function HomeFeed({
     marginTop: "80px",
     textAlign: "center",
     color: "#a1a1aa",
+  };
+
+  const homeStyle = {
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    minHeight: 0,
   };

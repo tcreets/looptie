@@ -20,7 +20,7 @@ import { useSearch } from "./hooks/useSearch";
 import { useAuth } from "./hooks/useAuth";
 
 export default function App() {
-  const [tab, setTab] = useState("home")
+  const [tab, setTab] = useState("home");
   const [showNewSpaceForm, setShowNewSpaceForm] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
   const [selectedSpace, setSelectedSpace] = useState(null);
@@ -204,28 +204,30 @@ export default function App() {
           />
         )}
 
-        <ItemDetailModal
-          selectedItem={selectedItem}
-          itemNoteDraft={itemNoteDraft}
-          setItemNoteDraft={setItemNoteDraft}
-          itemFavoriteDraft={itemFavoriteDraft}
-          setItemFavoriteDraft={setItemFavoriteDraft}
-          onClose={closeItemModal}
-          onSave={() =>
-            saveItemMemo({
-              selectedItem,
-              itemNoteDraft,
-              itemFavoriteDraft,
-              closeItemModal,
-            })
-          }
-          onDelete={() =>
-            deleteItem({
-              selectedItem,
-              closeItemModal,
-            })
-          }
-        />
+        {selectedItem && (
+          <ItemDetailModal
+            selectedItem={selectedItem}
+            itemNoteDraft={itemNoteDraft}
+            setItemNoteDraft={setItemNoteDraft}
+            onClose={closeItemModal}
+            itemFavoriteDraft={itemFavoriteDraft}
+            setItemFavoriteDraft={setItemFavoriteDraft}
+            onSave={() =>
+              saveItemMemo({
+                selectedItem,
+                itemNoteDraft,
+                itemFavoriteDraft,
+                closeItemModal,
+              })
+            }
+            onDelete={() =>
+              deleteItem({
+                selectedItem,
+                closeItemModal,
+              })
+            }
+          />
+        )}
       </div>
 
       <BottomNav
