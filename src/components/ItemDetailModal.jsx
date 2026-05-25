@@ -32,7 +32,14 @@ export default function ItemDetailModal({
         </button>
 
         {selectedItem.media_type === "video" ? (
-          <video src={selectedItem.image} controls style={itemModalMedia} />
+          <video
+          src={selectedItem.image}
+          controls
+          autoPlay
+          muted
+          playsInline
+          style={itemModalMedia}
+        />
         ) : (
           <img src={selectedItem.image} alt="" style={itemModalMedia} />
         )}

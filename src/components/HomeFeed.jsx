@@ -58,11 +58,13 @@ export default function HomeFeed({
             >
               {item.media_type === "video" ? (
                 <video
-                  src={item.image}
-                  style={imageStyle}
-                  controls
-                  playsInline
-                />
+                src={item.image}
+                style={imageStyle}
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
               ) : (
                 <img
                   src={item.image}
