@@ -64,7 +64,7 @@ export default function AddContentScreen({
 
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             multiple
             style={{ display: "none" }}
             onChange={(e) => {
@@ -118,6 +118,9 @@ export default function AddContentScreen({
           
             for (const file of selectedFiles) {
               const fileExt = file.name.split(".").pop();
+              const mediaType = file.type.startsWith("video/")
+              ? "video"
+              : "image";
               const fileName = `${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
               const safeSpace = uploadSpace.replaceAll("/", "-");
               const filePath =
@@ -140,6 +143,7 @@ export default function AddContentScreen({
                 uploadedItems.push({
                     user_id: user.id,
                     space: uploadSpace,
+                    media_type: mediaType,
                     image_url: publicUrlData.publicUrl,
                     storage_path: filePath,
                     creator: null,
@@ -166,6 +170,7 @@ export default function AddContentScreen({
                 storagePath: item.storage_path,
                 note: item.note,
                 favorite: item.favorite,
+                media_type: item.media_type,
               }));
           
             setFeedItems([...formattedItems, ...feedItems]);

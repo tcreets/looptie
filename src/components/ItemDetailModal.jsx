@@ -31,7 +31,7 @@ export default function ItemDetailModal({
           {itemFavoriteDraft ? "♥" : "♡"}
         </button>
 
-        {selectedItem.type === "video" ? (
+        {selectedItem.media_type === "video" ? (
           <video src={selectedItem.image} controls style={itemModalMedia} />
         ) : (
           <img src={selectedItem.image} alt="" style={itemModalMedia} />

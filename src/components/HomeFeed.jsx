@@ -56,12 +56,22 @@ export default function HomeFeed({
               style={feedCard}
               onClick={() => setSelectedItem(item)}
             >
-              <img
-                src={item.image}
-                loading="lazy"
-                alt=""
-                style={imageStyle}
-              />
+              {item.media_type === "video" ? (
+                <video
+                  src={item.image}
+                  style={imageStyle}
+                  controls
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={item.image}
+                  loading="lazy"
+                  alt=""
+                  style={imageStyle}
+                />
+              )}
+
               <div style={overlayStyle} />
 
               {item.favorite && (
@@ -175,3 +185,5 @@ export default function HomeFeed({
     flexDirection: "column",
     minHeight: 0,
   };
+
+  
