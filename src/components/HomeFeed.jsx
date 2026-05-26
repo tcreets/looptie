@@ -66,6 +66,8 @@ export default function HomeFeed({
                 muted
                 loop
                 playsInline
+                preload="auto"
+                controls={false}
               />
               ) : (
                 <img
