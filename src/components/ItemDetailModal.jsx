@@ -37,6 +37,7 @@ export default function ItemDetailModal({
             controls
             autoPlay
             playsInline
+            muted={false}
             style={itemModalMedia}
           />
         ) : (

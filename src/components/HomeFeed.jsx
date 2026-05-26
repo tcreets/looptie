@@ -68,6 +68,15 @@ export default function HomeFeed({
                 playsInline
                 preload="auto"
                 controls={false}
+                onClick={(e) => {
+                  e.stopPropagation();
+              
+                  if (e.currentTarget.paused) {
+                    e.currentTarget.play();
+                  } else {
+                    e.currentTarget.pause();
+                  }
+                }}
               />
               ) : (
                 <img
