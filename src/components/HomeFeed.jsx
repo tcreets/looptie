@@ -63,16 +63,19 @@ export default function HomeFeed({
             
             {item.media_type === "video" ? (
               <video
-                src={item.image}
-                style={imageStyle}
-                autoPlay
-                muted={mutedVideos[item.id] !== false}
-                loop
-                playsInline
-                preload="auto"
-                controls={false}
-                id={`video-${item.id}`}
-              />
+              src={item.image}
+              style={imageStyle}
+              autoPlay
+              muted={mutedVideos[item.id] !== false}
+              loop
+              playsInline
+              preload="auto"
+              controls={false}
+              id={`video-${item.id}`}
+              onLoadedData={(e) => {
+                e.currentTarget.play().catch(() => {});
+              }}
+            />
             ) : (
               <img
                 src={item.image}
@@ -93,25 +96,29 @@ export default function HomeFeed({
               <button
                 type="button"
                 style={floatingIconButton}
-                onClick={() => {
-                  const video = document.getElementById(`video-${item.id}`);            
-
-                  if (!video) return;           
-
-                  if (video.paused) {
-                    video.play();           
-
-                    setPausedVideos((prev) => ({
-                      ...prev,
-                      [item.id]: false,
-                    }));
-                  } else {
-                    video.pause();            
-
-                    setPausedVideos((prev) => ({
-                      ...prev,
-                      [item.id]: true,
-                    }));
+                onClick={async () => {
+                  const video = document.getElementById(`video-${item.id}`);
+                
+                  if (!video) return;
+                
+                  try {
+                    if (video.paused) {
+                      await video.play();
+                    
+                      setPausedVideos((prev) => ({
+                        ...prev,
+                        [item.id]: false,
+                      }));
+                    } else {
+                      video.pause();
+                    
+                      setPausedVideos((prev) => ({
+                        ...prev,
+                        [item.id]: true,
+                      }));
+                    }
+                  } catch (err) {
+                    console.error("Video play error:", err);
                   }
                 }}
               >
@@ -125,12 +132,23 @@ export default function HomeFeed({
               <button
                 type="button"
                 style={floatingIconButton}
-                onClick={() =>
+                onClick={() => {
+                  const video = document.getElementById(`video-${item.id}`);
+                
+                  if (!video) return;
+                
+                  const shouldUnmute = mutedVideos[item.id] !== false;
+                
+                  video.muted = !shouldUnmute;
+                  video.volume = shouldUnmute ? 1 : 0;
+                
+                  video.play().catch(() => {});
+                
                   setMutedVideos((prev) => ({
                     ...prev,
-                    [item.id]: prev[item.id] === false ? true : false,
-                  }))
-                }
+                    [item.id]: shouldUnmute ? false : true,
+                  }));
+                }}
               >
                 {mutedVideos[item.id] === false ? (
                   <Volume2 size={30} strokeWidth={2.5} />
