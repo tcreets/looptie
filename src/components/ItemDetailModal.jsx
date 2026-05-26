@@ -1,4 +1,5 @@
 import React from "react";
+import { ArrowLeft } from "lucide-react";
 
 export default function ItemDetailModal({
     selectedItem,
@@ -18,7 +19,7 @@ export default function ItemDetailModal({
     <div style={itemModalOverlay}>
       <div style={itemModalCard} className="pretty-scroll">
         <button onClick={onClose} style={itemModalClose}>
-          ×
+          <ArrowLeft size={22} strokeWidth={2.5} />
         </button>
         <button
           type="button"
@@ -113,25 +114,26 @@ const itemModalCard = {
 
 const itemModalClose = {
   position: "absolute",
-  top: "14px",
+  top: "18px",
   left: "14px",
-  width: "36px",
-  height: "36px",
-  borderRadius: "999px",
+  width: "32px",
+  height: "32px",
   border: "none",
-  background: "rgba(0,0,0,.55)",
+  background: "transparent",
   color: "white",
-  fontSize: "24px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
   cursor: "pointer",
-  zIndex: 2,
+  zIndex: 10,
+  padding: 0,
 };
 
 const itemModalMedia = {
   width: "100%",
-  maxHeight: "420px",
+  height: "100vh",
   objectFit: "cover",
-  borderTopLeftRadius: "28px",
-  borderTopRightRadius: "28px",
+  display: "block",
 };
 
 const itemModalContent = {
@@ -147,7 +149,7 @@ const itemModalSpace = {
 
 const itemModalNote = {
   width: "100%",
-  minHeight: "110px",
+  minHeight: "190px",
   boxSizing: "border-box",
   padding: "14px",
   borderRadius: "16px",
@@ -155,6 +157,8 @@ const itemModalNote = {
   background: "#1d1b27",
   color: "white",
   fontSize: "15px",
+  lineHeight: 1.5,
+  paddingBottom: "24px",
   resize: "none",
   outline: "none",
   fontFamily: "inherit",

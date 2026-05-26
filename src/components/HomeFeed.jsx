@@ -245,6 +245,8 @@ export default function HomeFeed({
     height: "calc(100vh - 210px)",
     overflowY: "auto",
     scrollSnapType: "y mandatory",
+    scrollBehavior: "smooth",
+    WebkitOverflowScrolling: "touch",
   };
   
   const feedCard = {
@@ -254,6 +256,7 @@ export default function HomeFeed({
     overflow: "hidden",
     border: "1px solid #222",
     scrollSnapAlign: "start",
+    scrollSnapStop: "always",
   };
   
   const imageStyle = {
