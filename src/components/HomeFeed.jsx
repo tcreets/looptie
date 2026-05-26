@@ -1,4 +1,5 @@
-import { SquarePen } from "lucide-react";
+import { useState } from "react";
+import { Volume2, VolumeX, Pause, Play, SquarePen } from "lucide-react";
 
 export default function HomeFeed({
     spaces,
@@ -11,6 +12,8 @@ export default function HomeFeed({
     const handlePillWheel = (e) => {
       e.currentTarget.scrollLeft += e.deltaY;
     };
+    const [mutedVideos, setMutedVideos] = useState({});
+    const [pausedVideos, setPausedVideos] = useState({});
   
     return (
       <div style={homeStyle}>
@@ -58,34 +61,26 @@ export default function HomeFeed({
               style={feedCard}
             >
             
-              {item.media_type === "video" ? (
-                <video
+            {item.media_type === "video" ? (
+              <video
                 src={item.image}
                 style={imageStyle}
                 autoPlay
-                muted
+                muted={mutedVideos[item.id] !== false}
                 loop
                 playsInline
                 preload="auto"
                 controls={false}
-                onClick={(e) => {
-                  e.stopPropagation();
-              
-                  if (e.currentTarget.paused) {
-                    e.currentTarget.play();
-                  } else {
-                    e.currentTarget.pause();
-                  }
-                }}
+                id={`video-${item.id}`}
               />
-              ) : (
-                <img
-                  src={item.image}
-                  loading="lazy"
-                  alt=""
-                  style={imageStyle}
-                />
-              )}
+            ) : (
+              <img
+                src={item.image}
+                loading="lazy"
+                alt=""
+                style={imageStyle}
+              />
+            )}
 
               <div style={overlayStyle} />
 
@@ -94,18 +89,64 @@ export default function HomeFeed({
                   ♥
                 </div>
               )}
+              <div style={floatingActions}>
+              <button
+                type="button"
+                style={floatingIconButton}
+                onClick={() => {
+                  const video = document.getElementById(`video-${item.id}`);            
+
+                  if (!video) return;           
+
+                  if (video.paused) {
+                    video.play();           
+
+                    setPausedVideos((prev) => ({
+                      ...prev,
+                      [item.id]: false,
+                    }));
+                  } else {
+                    video.pause();            
+
+                    setPausedVideos((prev) => ({
+                      ...prev,
+                      [item.id]: true,
+                    }));
+                  }
+                }}
+              >
+                {pausedVideos[item.id] ? (
+                  <Play size={30} strokeWidth={2.5} />
+                ) : (
+                  <Pause size={30} strokeWidth={2.5} />
+                )}
+              </button>           
 
               <button
                 type="button"
-                style={notesFloatingButton}
+                style={floatingIconButton}
+                onClick={() =>
+                  setMutedVideos((prev) => ({
+                    ...prev,
+                    [item.id]: prev[item.id] === false ? true : false,
+                  }))
+                }
+              >
+                {mutedVideos[item.id] === false ? (
+                  <Volume2 size={30} strokeWidth={2.5} />
+                ) : (
+                  <VolumeX size={30} strokeWidth={2.5} />
+                )}
+              </button>           
+
+              <button
+                type="button"
+                style={floatingIconButton}
                 onClick={() => setSelectedItem(item)}
               >
-                <SquarePen size={28} strokeWidth={2.2} />
+                <SquarePen size={32} strokeWidth={2.8} />
               </button>
-
-              <div style={cardContent}>
-              {item.creator && (<p style={creatorStyle}>@{item.creator}</p>)}
-              </div>
+            </div>
             </div>
           ))}
         </div>
@@ -172,6 +213,7 @@ export default function HomeFeed({
     inset: 0,
     background:
       "linear-gradient(to top, rgba(0,0,0,.9), rgba(0,0,0,.1))",
+    pointerEvents: "none",
   };
   
   const cardContent = {
@@ -209,14 +251,23 @@ export default function HomeFeed({
     minHeight: 0,
   };
 
-  const notesFloatingButton = {
+  const floatingActions = {
     position: "absolute",
     right: "20px",
     bottom: "32px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "22px",
+    zIndex: 10,
+  };
+  
+  const floatingIconButton = {
     border: "none",
     background: "transparent",
     color: "white",
-    zIndex: 10,
     cursor: "pointer",
     padding: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   };
