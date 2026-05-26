@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 export default function ItemDetailModal({
     selectedItem,
@@ -11,8 +11,6 @@ export default function ItemDetailModal({
     setItemFavoriteDraft,
     onDelete,
   }) {
-
-  const [showNotes, setShowNotes] = useState(false);
 
   if (!selectedItem) return null;
   
@@ -35,29 +33,18 @@ export default function ItemDetailModal({
 
         {selectedItem.media_type === "video" ? (
           <video
-          src={selectedItem.image}
-          controls
-          autoPlay
-          playsInline
-          style={itemModalMedia}
-        />
+            src={selectedItem.image}
+            controls
+            autoPlay
+            playsInline
+            style={itemModalMedia}
+          />
         ) : (
           <img src={selectedItem.image} alt="" style={itemModalMedia} />
         )}
 
-        <button
-          type="button"
-          style={notesButton}
-          onClick={() => setShowNotes((prev) => !prev)}
-        >
-          {showNotes ? "Hide Notes" : "Notes"}
-        </button>
-
         <div style={itemModalContent}>
           <p style={itemModalSpace}>{selectedItem.space}</p>
-
-          {showNotes && (
-            <>
             <textarea
               data-gramm="false"
               placeholder="Add a memo, note, or comment..."
@@ -72,8 +59,6 @@ export default function ItemDetailModal({
             >
               Save Memo
             </button>
-          </>
-        )}
 
         <div style={tagSection}>
           {(selectedItem.tags || []).map((tag) => (
@@ -248,16 +233,4 @@ const tagSection = {
     fontWeight: "bold",
     cursor: "pointer",
     marginTop: "32px",
-  };
-
-  const notesButton = {
-    width: "calc(100% - 40px)",
-    margin: "16px 20px 0",
-    padding: "12px",
-    borderRadius: "14px",
-    border: "1px solid #3a3447",
-    background: "#18151f",
-    color: "#c4b5fd",
-    fontWeight: "bold",
-    cursor: "pointer",
   };

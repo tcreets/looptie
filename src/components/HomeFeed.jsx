@@ -1,3 +1,5 @@
+import { SquarePen } from "lucide-react";
+
 export default function HomeFeed({
     spaces,
     activeFeed,
@@ -54,8 +56,8 @@ export default function HomeFeed({
             <div
               key={item.id}
               style={feedCard}
-              onClick={() => setSelectedItem(item)}
             >
+            
               {item.media_type === "video" ? (
                 <video
                 src={item.image}
@@ -81,6 +83,14 @@ export default function HomeFeed({
                   ♥
                 </div>
               )}
+
+              <button
+                type="button"
+                style={notesFloatingButton}
+                onClick={() => setSelectedItem(item)}
+              >
+                <SquarePen size={28} strokeWidth={2.2} />
+              </button>
 
               <div style={cardContent}>
               {item.creator && (<p style={creatorStyle}>@{item.creator}</p>)}
@@ -188,4 +198,14 @@ export default function HomeFeed({
     minHeight: 0,
   };
 
-  
+  const notesFloatingButton = {
+    position: "absolute",
+    right: "20px",
+    bottom: "32px",
+    border: "none",
+    background: "transparent",
+    color: "white",
+    zIndex: 10,
+    cursor: "pointer",
+    padding: 0,
+  };
