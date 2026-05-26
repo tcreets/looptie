@@ -65,12 +65,12 @@ export default function HomeFeed({
             {item.media_type === "video" ? (
               <video
               ref={(el) => {
-                videoRefs.current[item.id] = el;
+                if (el) videoRefs.current[item.id] = el;
               }}
               src={item.image}
               style={imageStyle}
               autoPlay
-              muted={mutedVideos[item.id] !== false}
+              muted
               loop
               playsInline
               preload="auto"
@@ -95,15 +95,14 @@ export default function HomeFeed({
               <button
                 type="button"
                 style={floatingIconButton}
-                onPointerUp={async (e) => {
-                  e.preventDefault();
+                onClick={async (e) => {
                   e.stopPropagation();
                 
                   const video = videoRefs.current[item.id];
                   if (!video) return;
                 
                   if (video.paused) {
-                    await video.play().catch(console.error);
+                    await video.play();
                     setPausedVideos((prev) => ({ ...prev, [item.id]: false }));
                   } else {
                     video.pause();
@@ -116,37 +115,36 @@ export default function HomeFeed({
                 ) : (
                   <Pause size={30} strokeWidth={2.5} />
                 )}
-              </button>          
+              </button>         
 
               <button
                 type="button"
                 style={floatingIconButton}
-                onPointerUp={(e) => {
-                  e.preventDefault();
+                onClick={async (e) => {
                   e.stopPropagation();
                 
                   const video = videoRefs.current[item.id];
                   if (!video) return;
                 
-                  const shouldUnmute = mutedVideos[item.id] !== false;
+                  const isCurrentlyMuted = video.muted;
                 
-                  video.muted = !shouldUnmute;
-                  video.volume = shouldUnmute ? 1 : 0;
+                  video.muted = !isCurrentlyMuted;
+                  video.volume = isCurrentlyMuted ? 1 : 0;
                 
-                  video.play().catch(console.error);
+                  await video.play();
                 
                   setMutedVideos((prev) => ({
                     ...prev,
-                    [item.id]: shouldUnmute ? false : true,
+                    [item.id]: !isCurrentlyMuted,
                   }));
                 }}
-              >
+                >
                 {mutedVideos[item.id] === false ? (
                   <Volume2 size={30} strokeWidth={2.5} />
                 ) : (
                   <VolumeX size={30} strokeWidth={2.5} />
                 )}
-              </button>           
+              </button>        
 
               <button
                 type="button"
