@@ -63,6 +63,7 @@ export default function HomeFeed({
             
             {item.media_type === "video" ? (
               <video
+              id={`video-${item.id}`}
               src={item.image}
               style={imageStyle}
               autoPlay
@@ -70,11 +71,6 @@ export default function HomeFeed({
               loop
               playsInline
               preload="auto"
-              controls={false}
-              id={`video-${item.id}`}
-              onLoadedData={(e) => {
-                e.currentTarget.play().catch(() => {});
-              }}
             />
             ) : (
               <img
@@ -224,17 +220,6 @@ export default function HomeFeed({
     background:
       "linear-gradient(to top, rgba(0,0,0,.9), rgba(0,0,0,.1))",
     pointerEvents: "none",
-  };
-  
-  const cardContent = {
-    position: "absolute",
-    bottom: "24px",
-    left: "24px",
-    right: "24px",
-  };
-
-  const creatorStyle = {
-    color: "#d4d4d8",
   };
 
   const favoriteIndicator = {
