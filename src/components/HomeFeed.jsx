@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Volume2, VolumeX, Pause, Play, SquarePen } from "lucide-react";
 
 export default function HomeFeed({
@@ -14,7 +14,8 @@ export default function HomeFeed({
     };
     const [mutedVideos, setMutedVideos] = useState({});
     const [pausedVideos, setPausedVideos] = useState({});
-  
+    const videoRefs = useRef({});
+
     return (
       <div style={homeStyle}>
         <p style={subtitleStyle}>Choose the state you want to enter.</p>
@@ -63,7 +64,9 @@ export default function HomeFeed({
             
             {item.media_type === "video" ? (
               <video
-              id={`video-${item.id}`}
+              ref={(el) => {
+                videoRefs.current[item.id] = el;
+              }}
               src={item.image}
               style={imageStyle}
               autoPlay
@@ -96,7 +99,7 @@ export default function HomeFeed({
                   e.preventDefault();
                   e.stopPropagation();
                 
-                  const video = document.getElementById(`video-${item.id}`);
+                  const video = videoRefs.current[item.id];
                   if (!video) return;
                 
                   if (video.paused) {
@@ -122,7 +125,7 @@ export default function HomeFeed({
                   e.preventDefault();
                   e.stopPropagation();
                 
-                  const video = document.getElementById(`video-${item.id}`);
+                  const video = videoRefs.current[item.id];
                   if (!video) return;
                 
                   const shouldUnmute = mutedVideos[item.id] !== false;
