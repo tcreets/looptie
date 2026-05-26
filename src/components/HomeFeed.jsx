@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX, Pause, Play, SquarePen } from "lucide-react";
 
 export default function HomeFeed({
@@ -15,6 +15,50 @@ export default function HomeFeed({
     const [mutedVideos, setMutedVideos] = useState({});
     const [pausedVideos, setPausedVideos] = useState({});
     const videoRefs = useRef({});
+    const handleVideoFocus = (currentItemId) => {
+      Object.entries(videoRefs.current).forEach(([id, video]) => {
+        if (!video) return;
+    
+        if (id === String(currentItemId)) {
+          video.play().catch(console.error);
+          setPausedVideos((prev) => ({ ...prev, [currentItemId]: false }));
+        } else {
+          video.pause();
+          video.currentTime = 0;
+        }
+      });
+    };
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const itemId = entry.target.dataset.itemId;
+            const video = videoRefs.current[itemId];
+    
+            if (!video) return;
+    
+            if (entry.isIntersecting) {
+              video.play().catch(console.error);
+              setPausedVideos((prev) => ({ ...prev, [itemId]: false }));
+            } else {
+              video.pause();
+              video.currentTime = 0;
+              setPausedVideos((prev) => ({ ...prev, [itemId]: true }));
+            }
+          });
+        },
+        {
+          root: feedRef.current,
+          threshold: 0.7,
+        }
+      );
+    
+      Object.values(videoRefs.current).forEach((video) => {
+        if (video) observer.observe(video);
+      });
+    
+      return () => observer.disconnect();
+    }, [filteredFeedItems, feedRef]);
 
     return (
       <div style={homeStyle}>
@@ -58,12 +102,17 @@ export default function HomeFeed({
 
           {filteredFeedItems.map((item) => (
             <div
-              key={item.id}
-              style={feedCard}
+            key={item.id}
+            style={feedCard}
+            onPointerEnter={() => {
+              if (item.media_type === "video") {
+                handleVideoFocus(item.id);
+              }
+            }}
             >
-            
             {item.media_type === "video" ? (
               <video
+              data-item-id={item.id}
               ref={(el) => {
                 if (el) videoRefs.current[item.id] = el;
               }}
