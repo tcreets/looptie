@@ -96,29 +96,19 @@ export default function HomeFeed({
               <button
                 type="button"
                 style={floatingIconButton}
-                onClick={async () => {
-                  const video = document.getElementById(`video-${item.id}`);
+                onPointerUp={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                 
+                  const video = document.getElementById(`video-${item.id}`);
                   if (!video) return;
                 
-                  try {
-                    if (video.paused) {
-                      await video.play();
-                    
-                      setPausedVideos((prev) => ({
-                        ...prev,
-                        [item.id]: false,
-                      }));
-                    } else {
-                      video.pause();
-                    
-                      setPausedVideos((prev) => ({
-                        ...prev,
-                        [item.id]: true,
-                      }));
-                    }
-                  } catch (err) {
-                    console.error("Video play error:", err);
+                  if (video.paused) {
+                    await video.play().catch(console.error);
+                    setPausedVideos((prev) => ({ ...prev, [item.id]: false }));
+                  } else {
+                    video.pause();
+                    setPausedVideos((prev) => ({ ...prev, [item.id]: true }));
                   }
                 }}
               >
@@ -127,14 +117,16 @@ export default function HomeFeed({
                 ) : (
                   <Pause size={30} strokeWidth={2.5} />
                 )}
-              </button>           
+              </button>          
 
               <button
                 type="button"
                 style={floatingIconButton}
-                onClick={() => {
-                  const video = document.getElementById(`video-${item.id}`);
+                onPointerUp={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                 
+                  const video = document.getElementById(`video-${item.id}`);
                   if (!video) return;
                 
                   const shouldUnmute = mutedVideos[item.id] !== false;
@@ -142,7 +134,7 @@ export default function HomeFeed({
                   video.muted = !shouldUnmute;
                   video.volume = shouldUnmute ? 1 : 0;
                 
-                  video.play().catch(() => {});
+                  video.play().catch(console.error);
                 
                   setMutedVideos((prev) => ({
                     ...prev,
@@ -284,8 +276,9 @@ export default function HomeFeed({
     background: "transparent",
     color: "white",
     cursor: "pointer",
-    padding: 0,
+    padding: "8px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    touchAction: "manipulation",
   };
