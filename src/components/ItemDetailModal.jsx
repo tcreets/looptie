@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function ItemDetailModal({
     selectedItem,
@@ -12,8 +12,10 @@ export default function ItemDetailModal({
     onDelete,
   }) {
 
-  if (!selectedItem) return null;
+  const [showNotes, setShowNotes] = useState(false);
 
+  if (!selectedItem) return null;
+  
   return (
     <div style={itemModalOverlay}>
       <div style={itemModalCard} className="pretty-scroll">
@@ -36,7 +38,6 @@ export default function ItemDetailModal({
           src={selectedItem.image}
           controls
           autoPlay
-          muted
           playsInline
           style={itemModalMedia}
         />
@@ -44,16 +45,35 @@ export default function ItemDetailModal({
           <img src={selectedItem.image} alt="" style={itemModalMedia} />
         )}
 
+        <button
+          type="button"
+          style={notesButton}
+          onClick={() => setShowNotes((prev) => !prev)}
+        >
+          {showNotes ? "Hide Notes" : "Notes"}
+        </button>
+
         <div style={itemModalContent}>
           <p style={itemModalSpace}>{selectedItem.space}</p>
 
-          <textarea
-            data-gramm="false"
-            placeholder="Add a memo, note, or comment..."
-            value={itemNoteDraft}
-            onChange={(e) => setItemNoteDraft(e.target.value)}
-            style={itemModalNote}
-          />
+          {showNotes && (
+            <>
+            <textarea
+              data-gramm="false"
+              placeholder="Add a memo, note, or comment..."
+              value={itemNoteDraft}
+              onChange={(e) => setItemNoteDraft(e.target.value)}
+              style={itemModalNote}
+            />
+
+            <button
+              style={{ ...modalPrimaryButton, marginTop: "12px" }}
+              onClick={onSave}
+            >
+              Save Memo
+            </button>
+          </>
+        )}
 
         <div style={tagSection}>
           {(selectedItem.tags || []).map((tag) => (
@@ -62,13 +82,6 @@ export default function ItemDetailModal({
             </span>
           ))}
         </div>
-
-        <button
-          style={{ ...modalPrimaryButton, marginTop: "12px" }}
-          onClick={onSave}
-        >
-          Save Memo
-        </button>
 
         <div style={itemMetadataBox}>
             <p style={itemMetadataLabel}>Metadata</p>
@@ -235,4 +248,16 @@ const tagSection = {
     fontWeight: "bold",
     cursor: "pointer",
     marginTop: "32px",
+  };
+
+  const notesButton = {
+    width: "calc(100% - 40px)",
+    margin: "16px 20px 0",
+    padding: "12px",
+    borderRadius: "14px",
+    border: "1px solid #3a3447",
+    background: "#18151f",
+    color: "#c4b5fd",
+    fontWeight: "bold",
+    cursor: "pointer",
   };
