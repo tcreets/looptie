@@ -36,15 +36,11 @@ export function useSpaces(user) {
 
   const saveDefaultFeed = async (spaceName) => {
     if (!user || !spaceName) return;
-
-    setDefaultFeed(spaceName);
-    setActiveFeed(spaceName);
-    setUploadSpace(spaceName);
-
+  
     const { error: resetError } = await supabase
-      .from("spaces")
-      .update({ is_default: false })
-      .eq("user_id", user.id);
+    .from("spaces")
+    .update({ is_default: false })
+    .eq("user_id", user.id);
 
     if (resetError) {
       console.error("Error resetting default spaces:", resetError);
@@ -54,12 +50,27 @@ export function useSpaces(user) {
     const { error: defaultError } = await supabase
       .from("spaces")
       .update({ is_default: true })
-      .eq("name", spaceName)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .eq("name", spaceName);
 
     if (defaultError) {
       console.error("Error setting default space:", defaultError);
+      return;
     }
+
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ default_space: spaceName })
+      .eq("user_id", user.id);
+
+    if (profileError) {
+      console.error("Error updating profile default space:", profileError);
+      return;
+    }
+  
+    setDefaultFeed(spaceName);
+    setActiveFeed(spaceName);
+    setUploadSpace(spaceName);
   };
 
   const deleteSpace = async (
@@ -144,7 +155,6 @@ export function useSpaces(user) {
 
     if (remainingSpaces.length > 0) {
       setActiveFeed(remainingSpaces[0]);
-      setDefaultFeed(remainingSpaces[0]);
       setUploadSpace(remainingSpaces[0]);
     } else {
       setActiveFeed("");
