@@ -13,9 +13,12 @@ export default function AuthScreen({ setUser }) {
             email,
             password,
           })
-        : await supabase.auth.signUp({
+          : await supabase.auth.signUp({
             email,
             password,
+            options: {
+              emailRedirectTo: window.location.origin,
+            },
           });
   
     console.log("AUTH DATA:", data);
