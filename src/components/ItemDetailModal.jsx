@@ -73,14 +73,6 @@ export default function ItemDetailModal({
             </span>
           ))}
         </div>
-
-        <div style={itemMetadataBox}>
-            <p style={itemMetadataLabel}>Metadata</p>
-            <p style={itemMetadataText}>
-              Source, creator, platform, and caption will live here later.
-            </p>
-        </div>
-
         <button
           style={deleteButton}
           onClick={onDelete}
