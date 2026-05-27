@@ -60,7 +60,7 @@ export default function ItemDetailModal({
             />
 
             <button
-              style={{ ...modalPrimaryButton, marginTop: "12px" }}
+              style={{ ...modalPrimaryButton, marginTop: "24px" }}
               onClick={onSave}
             >
               Save Memo
@@ -212,5 +212,5 @@ const tagSection = {
     color: "#fca5a5",
     fontWeight: "bold",
     cursor: "pointer",
-    marginTop: "32px",
+    marginTop: "24px",
   };
