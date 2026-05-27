@@ -16,7 +16,9 @@ export default function Profile({
       <div style={profilePage} className="no-scrollbar">
         <div style={profileStickyTop}>
           <div style={profileHeader}>
-            <div style={profileAvatar}>T</div>
+          <div style={profileAvatar}>
+            {profile?.display_name?.charAt(0)?.toUpperCase() || "?"}
+          </div>
             
             <div style={profileTitleBlock}>
               <h1 style={profileTitle}>{profile?.display_name || "Your"}'s Looptie</h1>
@@ -126,12 +128,12 @@ export default function Profile({
     height: "70px",
     borderRadius: "999px",
     background: "#8b5cf6",
-    color: "black",
+    color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: "28px",
-    fontWeight: "bold",
+    fontWeight: "700",
   };
   
   const profileStats = {
