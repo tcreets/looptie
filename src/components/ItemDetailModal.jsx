@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Heart } from "lucide-react";
 
 export default function ItemDetailModal({
     selectedItem,
@@ -29,7 +29,11 @@ export default function ItemDetailModal({
             color: itemFavoriteDraft ? "#ef4444" : "white",
           }}
         >
-          {itemFavoriteDraft ? "♥" : "♡"}
+          <Heart
+            size={28}
+            fill={itemFavoriteDraft ? "#ef4444" : "transparent"}
+            color={itemFavoriteDraft ? "#ef4444" : "white"}
+          />
         </button>
 
         {selectedItem.media_type === "video" ? (
@@ -219,13 +223,14 @@ const tagSection = {
     right: "14px",
     width: "38px",
     height: "38px",
-    borderRadius: "999px",
     border: "none",
     background: "transparent",
-    fontSize: "30px",
-    lineHeight: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
     zIndex: 5,
+    padding: 0,
   };
 
   const deleteButton = {

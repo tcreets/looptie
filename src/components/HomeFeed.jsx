@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX, Pause, Play, SquarePen } from "lucide-react";
+import { Volume2, VolumeX, Pause, Play, SquarePen, Heart } from "lucide-react";
 
 export default function HomeFeed({
   spaces,
@@ -110,7 +110,7 @@ export default function HomeFeed({
 
             <div style={overlayStyle} />
 
-            {item.favorite && <div style={favoriteIndicator}>♥</div>}
+            {item.favorite && <div style={favoriteIndicator}><Heart fill="#ef4444" color="#ef4444" size={28}/></div>}
 
             <div style={floatingActions}>
               {item.media_type === "video" && (

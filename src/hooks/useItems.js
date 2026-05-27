@@ -32,6 +32,7 @@ export function useItems(user) {
         favorite: item.favorite,
         tags: item.tags,
         caption: item.caption,
+        media_type: item.media_type,
       }));
 
       setFeedItems(formattedItems);
