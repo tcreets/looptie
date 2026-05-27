@@ -1,9 +1,10 @@
 export default function Search({
-    searchTerm,
-    setSearchTerm,
-    searchResults,
-    setSelectedItem,
-  }) {
+  searchTerm,
+  setSearchTerm,
+  searchResults,
+  setSelectedItem,
+  spaces,
+}) {
     return (
       <div>
         <p style={subtitleStyle}>Search your Cache</p>
@@ -21,17 +22,15 @@ export default function Search({
             <h3 style={{ marginBottom: "16px" }}>Suggested</h3>
   
             <div style={searchTags}>
-              {["books", "gym", "faith", "business", "calm", "discipline"].map(
-                (tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => setSearchTerm(tag)}
-                    style={tagPill}
-                  >
-                    {tag}
-                  </button>
-                )
-              )}
+              {spaces.map((space) => (
+                <button
+                  key={space}
+                  onClick={() => setSearchTerm(space)}
+                  style={tagPill}
+                >
+                  {space}
+                </button>
+              ))}
             </div>
           </div>
         ) : (

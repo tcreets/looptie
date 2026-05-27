@@ -148,11 +148,12 @@ export default function App() {
 
         {tab === "search" && (
           <SearchScreen
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            searchResults={searchResults}
-            setSelectedItem={openItemModal}
-          />
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          searchResults={searchResults}
+          setSelectedItem={openItemModal}
+          spaces={spaces}
+        />
         )}
 
         {tab === "add" && (

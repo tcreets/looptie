@@ -9,7 +9,7 @@ export function useSearch(feedItems) {
     if (!query) return false;
 
     const tagsText = Array.isArray(item.tags)
-      ? item.tags.join(" ")
+      ? item.tags.join(" ").toLowerCase()
       : "";
 
     const searchableText = `
@@ -18,7 +18,9 @@ export function useSearch(feedItems) {
       ${item.caption || ""}
       ${item.note || ""}
       ${tagsText}
-    `.toLowerCase();
+    `
+      .toLowerCase()
+      .replace(/\s+/g, " ");
 
     return searchableText.includes(query);
   });
