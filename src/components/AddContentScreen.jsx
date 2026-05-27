@@ -134,12 +134,23 @@ export default function AddContentScreen({
               );
 
               const fileExt = file.name.split(".").pop();
+
               const mediaType = file.type.startsWith("video/")
-              ? "video"
-              : "image";
-              const fileName = `${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
-              const safeSpace = uploadSpace.replaceAll("/", "-");
-              const filePath =
+                ? "video"
+                : "image";
+                            
+              const cleanOriginalName = file.name
+                .replace(/\.[^/.]+$/, "")
+                .replace(/\s+/g, "-")
+                .replace(/[^a-zA-Z0-9-_]/g, "");
+                            
+              const fileName =
+                `${Date.now()}-${cleanOriginalName}.${fileExt}`;
+                            
+              const safeSpace = uploadSpace
+                .replace(/\s+/g, "-")
+                .replace(/[^a-zA-Z0-9-_]/g, "");
+                const filePath =
                 `${user.id}/${safeSpace}/${fileName}`;
           
               const { error: uploadError } = await supabase.storage
