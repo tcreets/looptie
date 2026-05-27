@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import "./App.css";
 
 import AuthScreen from "./components/AuthScreen";
+import Onboarding from "./components/Onboarding";
 import Profile from "./components/Profile";
 import SearchScreen from "./components/Search";
 import Spaces from "./components/Spaces";
@@ -114,6 +115,18 @@ export default function App() {
     );
   }
 
+  if (user && profile && !profile.has_completed_onboarding) {
+    return (
+      <Onboarding
+        user={user}
+        setProfile={setProfile}
+        onComplete={() => {
+          setTab("home");
+        }}
+      />
+    );
+  }
+  
   return (
     <div style={appStyle}>
       <div style={contentStyle}>
