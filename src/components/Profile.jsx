@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-import { Settings } from "lucide-react";
+import { Settings, Heart } from "lucide-react";
 
 export default function Profile({ 
   items,
@@ -100,7 +100,7 @@ export default function Profile({
           
             {item.favorite && (
               <div style={profileFavoriteBadge}>
-                ♥
+               <Heart fill="#ef4444" color="#ef4444" size={24}/>
               </div>
             )}
           
