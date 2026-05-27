@@ -16,6 +16,8 @@ export default function AddContentScreen({
 }) {
 
   const [previewFile, setPreviewFile] = React.useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
 
 
   return (
@@ -69,7 +71,14 @@ export default function AddContentScreen({
             style={{ display: "none" }}
             onChange={(e) => {
               const files = Array.from(e.target.files);
+
               if (!files.length) return;
+
+              if (files.length > 10) {
+                alert("Please upload up to 10 items at a time.");
+                return;
+              }
+
               setSelectedFiles(files);
             }}
           />
@@ -110,13 +119,20 @@ export default function AddContentScreen({
 
         <button
           style={modalPrimaryButton}
-          disabled={!selectedFiles.length}
+          disabled={!selectedFiles.length || isUploading}
           onClick={async () => {
             if (!selectedFiles.length) return;
-          
+            setIsUploading(true);
+        
             const uploadedItems = [];
           
-            for (const file of selectedFiles) {
+            for (let i = 0; i < selectedFiles.length; i++) {
+              const file = selectedFiles[i];
+            
+              setUploadProgress(
+                `Uploading ${i + 1} of ${selectedFiles.length}...`
+              );
+
               const fileExt = file.name.split(".").pop();
               const mediaType = file.type.startsWith("video/")
               ? "video"
@@ -173,6 +189,8 @@ export default function AddContentScreen({
                 media_type: item.media_type,
               }));
           
+            setIsUploading(false);
+            setUploadProgress("");
             setFeedItems([...formattedItems, ...feedItems]);
             setSelectedFiles([]);
             setUploadSpace(defaultFeed);
@@ -180,7 +198,9 @@ export default function AddContentScreen({
             setTab("home");
           }}
         >
-          {selectedFiles.length > 0
+          {isUploading
+            ? uploadProgress
+            : selectedFiles.length > 0
             ? `Save ${selectedFiles.length} item${selectedFiles.length > 1 ? "s" : ""} to Looptie`
             : "Select files first"}
         </button>
