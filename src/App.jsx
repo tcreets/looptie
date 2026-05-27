@@ -11,7 +11,6 @@ import ItemDetailModal from "./components/ItemDetailModal";
 import BottomNav from "./components/BottomNav";
 import CreateSpaceModal from "./components/CreateSpaceModal";
 import AddContentScreen from "./components/AddContentScreen";
-import ProfileSetup from "./components/ProfileSetup";
 import SettingsScreen from "./components/SettingsScreen";
 import { useSpaces } from "./hooks/useSpaces";
 import { useProfile } from "./hooks/useProfile";
@@ -97,36 +96,22 @@ export default function App() {
       </div>
     );
   }
-  
-  if (!profile) {
-    return (
-      <ProfileSetup
-        user={user}
-        spaces={spaces}
-        setSpaces={setSpaces}
-        setProfile={setProfile}
-        setDefaultFeed={setDefaultFeed}
-        setActiveFeed={setActiveFeed}
-        setUploadSpace={setUploadSpace}
-        setSelectedSpace={setSelectedSpace}
-        setTab={setTab}
-
-      />
-    );
-  }
 
   if (user && profile && !profile.has_completed_onboarding) {
     return (
       <Onboarding
         user={user}
         setProfile={setProfile}
-        onComplete={() => {
+        onComplete={(newSpace) => {
+          setSpaces([newSpace]);
+          setDefaultFeed(newSpace.name);
+          setActiveFeed(newSpace.name);
           setTab("home");
         }}
       />
     );
   }
-  
+
   return (
     <div style={appStyle}>
       <div style={contentStyle}>

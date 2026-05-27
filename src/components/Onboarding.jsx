@@ -4,6 +4,7 @@ import { supabase } from "../utils/supabaseClient";
 export default function Onboarding({ user, setProfile, onComplete }) {
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState("");
+  const [spaceName, setSpaceName] = useState("");
   const [saving, setSaving] = useState(false);
 
   const screens = [
@@ -13,33 +14,19 @@ export default function Onboarding({ user, setProfile, onComplete }) {
       subtext: "Like playlists for your mind.",
       button: "Start",
     },
-  
     {
       title: "Your feed evolves with you.",
       body: "Save thoughts, videos, reminders, inspiration, and moments worth revisiting.",
-      subtext:
-        "Looptie helps you collect what matters and come back to it later.",
+      subtext: "Looptie helps you collect what matters and come back to it later.",
       button: "Continue",
     },
-  
     {
       title: "Spaces keep your feeds organized.",
       body: "Create separate feeds for different parts of your life.",
-  
-      list: [
-        "Motivation",
-        "Writing",
-        "Wellness",
-        "Ideas",
-        "Memories",
-        "Books",
-      ],
-  
-      subtext:
-        "You can create spaces for anything you want to revisit.",
+      list: ["Motivation", "Writing", "Wellness", "Ideas", "Memories", "Books"],
+      subtext: "You can create spaces for anything you want to revisit.",
       button: "Continue",
     },
-  
     {
       title: "People use Looptie to...",
       list: [
@@ -53,17 +40,45 @@ export default function Onboarding({ user, setProfile, onComplete }) {
     },
   ];
 
-  const saveName = async () => {
+  const finishOnboarding = async () => {
     if (!user) return;
+
+    const cleanName = displayName.trim();
+    const cleanSpace = spaceName.trim();
+
+    if (!cleanName) {
+      alert("Add a display name first.");
+      return;
+    }
+
+    if (!cleanSpace) {
+      alert("Name your first space first.");
+      return;
+    }
 
     setSaving(true);
 
-    const cleanName = displayName.trim();
+    const { data: newSpace, error: spaceError } = await supabase
+      .from("spaces")
+      .insert({
+        user_id: user.id,
+        name: cleanSpace,
+        is_default: true,
+      })
+      .select()
+      .single();
 
-    const { data, error } = await supabase
+    if (spaceError) {
+      setSaving(false);
+      alert(spaceError.message);
+      return;
+    }
+
+    const { data: updatedProfile, error: profileError } = await supabase
       .from("profiles")
       .update({
         display_name: cleanName,
+        default_space: newSpace.name,
         has_completed_onboarding: true,
       })
       .eq("user_id", user.id)
@@ -72,16 +87,16 @@ export default function Onboarding({ user, setProfile, onComplete }) {
 
     setSaving(false);
 
-    if (error) {
-      alert(error.message);
+    if (profileError) {
+      alert(profileError.message);
       return;
     }
 
-    setProfile(data);
-    onComplete();
+    setProfile(updatedProfile);
+    onComplete(newSpace);
   };
 
-  const isNameStep = step === 4;
+  const isSetupStep = step === 4;
 
   return (
     <div style={page}>
@@ -98,7 +113,7 @@ export default function Onboarding({ user, setProfile, onComplete }) {
           ))}
         </div>
 
-        {!isNameStep ? (
+        {!isSetupStep ? (
           <>
             <h1 style={title}>{screens[step].title}</h1>
 
@@ -123,19 +138,29 @@ export default function Onboarding({ user, setProfile, onComplete }) {
           </>
         ) : (
           <>
-            <h1 style={title}>What should Looptie call you?</h1>
+            <h1 style={title}>Set up your first space</h1>
 
-            <p style={body}>This is just your display name inside your space.</p>
+            <p style={body}>
+              This is where your first feed will live. You can always create
+              more later.
+            </p>
 
             <input
               style={input}
-              placeholder="Your Name"
+              placeholder="What should Looptie call you?"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
             />
 
-            <button style={button} onClick={saveName} disabled={saving}>
-              {saving ? "Saving..." : "Enter Looptie"}
+            <input
+              style={input}
+              placeholder="Name your first space, like Motivation"
+              value={spaceName}
+              onChange={(e) => setSpaceName(e.target.value)}
+            />
+
+            <button style={button} onClick={finishOnboarding} disabled={saving}>
+              {saving ? "Creating..." : "Enter Looptie"}
             </button>
           </>
         )}
@@ -227,7 +252,7 @@ const input = {
   color: "white",
   fontSize: "16px",
   outline: "none",
-  marginBottom: "24px",
+  marginBottom: "16px",
   boxSizing: "border-box",
 };
 
@@ -241,4 +266,5 @@ const button = {
   fontSize: "16px",
   fontWeight: "700",
   cursor: "pointer",
+  marginTop: "8px",
 };
