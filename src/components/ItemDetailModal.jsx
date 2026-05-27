@@ -171,28 +171,6 @@ const modalPrimaryButton = {
   cursor: "pointer",
 };
 
-const itemMetadataBox = {
-  marginTop: "16px",
-  padding: "14px",
-  borderRadius: "16px",
-  background: "#18151f",
-  border: "1px solid #2d2b38",
-};
-
-const itemMetadataLabel = {
-  margin: 0,
-  color: "#b3adbf",
-  fontSize: "13px",
-  fontWeight: "700",
-};
-
-const itemMetadataText = {
-  margin: "6px 0 0",
-  color: "#8f879e",
-  fontSize: "13px",
-  lineHeight: 1.4,
-};
-
 const tagSection = {
     display: "flex",
     flexWrap: "wrap",
