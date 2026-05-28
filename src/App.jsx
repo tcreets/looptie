@@ -26,6 +26,7 @@ export default function App() {
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const feedRef = useRef(null);
+  const [showCreateSpaceModal, setShowCreateSpaceModal] = useState(false);
 
   const {
     user,
@@ -158,6 +159,7 @@ export default function App() {
           <AddContentScreen
             user={user}
             spaces={spaces}
+            setSpaces={setSpaces}
             defaultFeed={defaultFeed}
             uploadSpace={uploadSpace}
             setUploadSpace={setUploadSpace}
