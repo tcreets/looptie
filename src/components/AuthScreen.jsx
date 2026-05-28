@@ -29,11 +29,19 @@ export default function AuthScreen({ setUser }) {
       return;
     }
 
-    if (data.user) {
-        setUser(data.user);
+    if (mode === "signup") {
+        alert(
+          "The email you signed up with should receive a confirmation email. Check your inbox or spam folder and confirm your account before logging in."
+        );
+      
+        setMode("login");
+        return;
       }
-  
-    alert(mode === "login" ? "Logged in!" : "Signed up!");
+
+      if (data.user) {
+        setUser(data.user);
+        alert("Logged in!");
+      };
   };
 
   return (
@@ -83,6 +91,13 @@ export default function AuthScreen({ setUser }) {
             });
           
             if (error) {
+              if (error.message.toLowerCase().includes("email not confirmed")) {
+                alert(
+                  "Your account hasn't been confirmed yet. Check the inbox or spam folder for the email you signed up with."
+                );
+                return;
+              }
+            
               alert(error.message);
               return;
             }
