@@ -25,7 +25,6 @@ export function useItems(user) {
       const formattedItems = data.map((item) => ({
         id: item.id,
         space: item.space,
-        creator: item.creator,
         image: item.image_url,
         storage_path: item.storage_path,
         note: item.note,
@@ -80,7 +79,7 @@ export function useItems(user) {
     const confirmDelete = window.confirm("Delete this item from Looptie?");
     if (!confirmDelete) return;
 
-    const storagePath = selectedItem.storage_path;
+    const storagePath = selectedItem.storage_path || selectedItem.storagePath;
 
     if (storagePath) {
       const { error: storageError } = await supabase.storage

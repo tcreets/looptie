@@ -20,6 +20,7 @@ export default function AddContentScreen({
   const [uploadProgress, setUploadProgress] = useState("");
   const [showCreateSpaceModal, setShowCreateSpaceModal] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   return (
     <div>
@@ -211,6 +212,7 @@ export default function AddContentScreen({
               .from("items")
               .insert(uploadedItems)
               .select();
+              console.log("Inserted items:", data);
 
             if (error) {
               console.error("Error saving uploads:", error);
@@ -234,17 +236,28 @@ export default function AddContentScreen({
             setUploadProgress("");
             setFeedItems([...formattedItems, ...feedItems]);
             setSelectedFiles([]);
-            setActiveFeed(selectedSpaceName);
-            setTab("home");
+            setActiveFeed(uploadSpace);
+
+            setShowSuccess(true);
+
+            setTimeout(() => {
+              setShowSuccess(false);
+              setTab("home");
+            }, 1200);
           }}
         >
-          {isUploading
-            ? uploadProgress
-            : selectedFiles.length > 0
-            ? `Save ${selectedFiles.length} item${
-                selectedFiles.length > 1 ? "s" : ""
-              } to Looptie`
-            : "Select files first"}
+          {isUploading ? (
+            <>
+              <span style={spinner}></span>
+              {uploadProgress}
+            </>
+          ) : (
+            selectedFiles.length > 0
+              ? `Save ${selectedFiles.length} item${
+                  selectedFiles.length > 1 ? "s" : ""
+                } to Looptie`
+              : "Select files first"
+          )}
         </button>
 
         {selectedFiles.length > 0 && (
@@ -345,6 +358,13 @@ export default function AddContentScreen({
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+      {showSuccess && (
+        <div style={successOverlay}>
+          <div style={successCard}>
+            ✓ Saved to Looptie
           </div>
         </div>
       )}
@@ -476,4 +496,35 @@ const spaceCancelButton = {
   color: "#d4d4d8",
   fontWeight: "bold",
   cursor: "pointer",
+};
+
+const successOverlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,.35)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  zIndex: 3000,
+};
+
+const successCard = {
+  background: "#18181b",
+  border: "1px solid #3f3f46",
+  borderRadius: "20px",
+  padding: "24px 32px",
+  color: "white",
+  fontSize: "18px",
+  fontWeight: "600",
+};
+
+const spinner = {
+  width: "14px",
+  height: "14px",
+  border: "2px solid rgba(255,255,255,.3)",
+  borderTop: "2px solid white",
+  borderRadius: "50%",
+  display: "inline-block",
+  marginRight: "8px",
+  animation: "spin 1s linear infinite",
 };
