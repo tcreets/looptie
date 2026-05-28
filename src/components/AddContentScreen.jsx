@@ -105,11 +105,15 @@ export default function AddContentScreen({
           >
             <option value="">Select a Space</option>
 
-            {spaces.map((space) => (
-              <option key={space} value={space}>
-                {space}
-              </option>
-            ))}
+            {spaces.map((space) => {
+              const spaceName = typeof space === "string" ? space : space.name;
+
+              return (
+                <option key={spaceName} value={spaceName}>
+                  {spaceName}
+                </option>
+              );
+            })}
 
             <option value="__new__">+ Create New Space</option>
           </select>
@@ -135,7 +139,10 @@ export default function AddContentScreen({
           onClick={async () => {
             if (!selectedFiles.length) return;
 
-            if (!uploadSpace) {
+            const selectedSpaceName =
+              typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
+
+            if (!selectedSpaceName) {
               alert("Choose or create a space before saving.");
               return;
             }
@@ -164,7 +171,7 @@ export default function AddContentScreen({
 
               const fileName = `${Date.now()}-${cleanOriginalName}.${fileExt}`;
 
-              const safeSpace = uploadSpace
+              const safeSpace = selectedSpaceName
                 .replace(/\s+/g, "-")
                 .replace(/[^a-zA-Z0-9-_]/g, "");
 
@@ -191,11 +198,10 @@ export default function AddContentScreen({
 
               uploadedItems.push({
                 user_id: user.id,
-                space: uploadSpace,
+                space: selectedSpaceName,
                 media_type: mediaType,
                 image_url: publicUrlData.publicUrl,
                 storage_path: filePath,
-                creator: null,
                 note: null,
                 favorite: false,
               });
@@ -208,14 +214,15 @@ export default function AddContentScreen({
 
             if (error) {
               console.error("Error saving uploads:", error);
+              alert("Error saving upload: " + error.message);
               setIsUploading(false);
+              setUploadProgress("");
               return;
             }
 
             const formattedItems = data.map((item) => ({
               id: item.id,
               space: item.space,
-              creator: item.creator,
               image: item.image_url,
               storagePath: item.storage_path,
               note: item.note,
@@ -227,7 +234,7 @@ export default function AddContentScreen({
             setUploadProgress("");
             setFeedItems([...formattedItems, ...feedItems]);
             setSelectedFiles([]);
-            setActiveFeed(uploadSpace);
+            setActiveFeed(selectedSpaceName);
             setTab("home");
           }}
         >
@@ -304,8 +311,16 @@ export default function AddContentScreen({
 
                 if (!trimmedName) return;
 
-                const updatedSpaces = [...spaces, trimmedName];
-
+                const updatedSpaces = [
+                  ...spaces,
+                  typeof spaces[0] === "string"
+                    ? trimmedName
+                    : {
+                        name: trimmedName,
+                        user_id: user.id,
+                        is_default: false,
+                      },
+                ];
                 setSpaces(updatedSpaces);
                 setUploadSpace(trimmedName);
 
