@@ -58,6 +58,17 @@ export default function Onboarding({ user, setProfile, onComplete }) {
 
     setSaving(true);
 
+    const { error: resetDefaultsError } = await supabase
+      .from("spaces")
+      .update({ is_default: false })
+      .eq("user_id", user.id);
+      
+    if (resetDefaultsError) {
+      setSaving(false);
+      alert(resetDefaultsError.message);
+      return;
+    }
+
     const { data: newSpace, error: spaceError } = await supabase
       .from("spaces")
       .insert({
@@ -67,7 +78,7 @@ export default function Onboarding({ user, setProfile, onComplete }) {
       })
       .select()
       .single();
-
+    
     if (spaceError) {
       setSaving(false);
       alert(spaceError.message);
