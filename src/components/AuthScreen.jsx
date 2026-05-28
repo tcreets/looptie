@@ -39,8 +39,9 @@ export default function AuthScreen({ setUser }) {
   return (
     <div style={authPage}>
       <h1>Welcome to Looptie</h1>
-      <p style={subtitle}>Save what pulls you back into the right state.</p>
-
+      <p style={subtitle}>
+        Your private space for inspiration, memories, routines, and the things you actually want to revisit.
+      </p>
       <input
         style={input}
         value={email}
@@ -56,16 +57,51 @@ export default function AuthScreen({ setUser }) {
         type="password"
       />
 
-      <button style={primaryButton} onClick={handleAuth}>
-        {mode === "login" ? "Log In" : "Sign Up"}
+      <button
+        style={{
+          ...primaryButton,
+          opacity: !email.trim() || !password.trim() ? 0.45 : 1,
+          cursor: !email.trim() || !password.trim() ? "not-allowed" : "pointer",
+        }}
+        disabled={!email.trim() || !password.trim()}
+        onClick={handleAuth}
+      >
+        {mode === "login" ? "Log In" : "Create Account"}
       </button>
+
+      {mode === "login" && (
+        <button
+          style={forgotButton}
+          onClick={async () => {
+            if (!email.trim()) {
+              alert("Enter your email first.");
+              return;
+            }
+          
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+              redirectTo: window.location.origin,
+            });
+          
+            if (error) {
+              alert(error.message);
+              return;
+            }
+          
+            alert(
+              "If an account exists for this email, a password reset link has been sent."
+            );
+          }}
+        >
+          Forgot Password?
+        </button>
+      )}
 
       <button
         style={switchButton}
         onClick={() => setMode(mode === "login" ? "signup" : "login")}
       >
         {mode === "login"
-          ? "Need an account? Sign up"
+          ? "Need an account? Create one"
           : "Already have an account? Log in"}
       </button>
     </div>
@@ -117,4 +153,16 @@ const switchButton = {
   background: "transparent",
   color: "#a78bfa",
   cursor: "pointer",
+};
+
+const forgotButton = {
+  marginTop: "12px",
+  marginBottom: "4px",
+  border: "none",
+  background: "transparent",
+  color: "#a1a1aa",
+  fontSize: "14px",
+  cursor: "pointer",
+  textAlign: "left",
+  padding: 0,
 };
