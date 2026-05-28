@@ -27,6 +27,32 @@ export function useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace) 
         return;
       }
 
+      if (!data) {
+        const { data: newProfile, error: insertError } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              user_id: user.id,
+              display_name: "",
+              default_space: null,
+              has_completed_onboarding: false,
+            },
+          ])
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+          alert("Profile creation failed: " + insertError.message);
+          setProfileLoading(false);
+          return;
+        }
+
+        setProfile(newProfile);
+        setProfileLoading(false);
+        return;
+      }
+
       setProfile(data);
 
       if (data?.default_space) {
