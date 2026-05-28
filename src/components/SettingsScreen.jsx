@@ -16,24 +16,53 @@ export default function SettingsScreen({
   const [selectedDefault, setSelectedDefault] = useState(defaultFeed || "");
 
   const saveSettings = async () => {
+    const cleanName = displayName.trim();
+    
+    if (!selectedDefault) {
+      alert("Choose a default space.");
+      return;
+    }
+  
     const { data, error } = await supabase
       .from("profiles")
       .update({
-        display_name: displayName.trim(),
+        display_name: cleanName,
         default_space: selectedDefault,
       })
-      .eq("id", profile.id)
+      .eq("user_id", user.id)
       .select()
       .single();
-
+    
     if (error) {
       alert(error.message);
       return;
     }
-
+  
+    const { error: spacesError } = await supabase
+      .from("spaces")
+      .update({ is_default: false })
+      .eq("user_id", user.id);
+  
+    if (spacesError) {
+      alert(spacesError.message);
+      return;
+    }
+  
+    const { error: defaultSpaceError } = await supabase
+      .from("spaces")
+      .update({ is_default: true })
+      .eq("user_id", user.id)
+      .eq("name", selectedDefault);
+  
+    if (defaultSpaceError) {
+      alert(defaultSpaceError.message);
+      return;
+    }
+  
     setProfile(data);
-    setDefaultFeed(data.default_space);
-    setActiveFeed(data.default_space);
+    setDefaultFeed(selectedDefault);
+    setActiveFeed(selectedDefault);
+  
     alert("Settings saved.");
   };
 
