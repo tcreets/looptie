@@ -259,6 +259,9 @@ export default function AddContentScreen({
               : "Select files first"
           )}
         </button>
+        <p style={uploadLimitText}>
+          Up to 10 items per upload
+        </p>
 
         {selectedFiles.length > 0 && (
           <div style={uploadPreviewGrid}>
@@ -527,4 +530,11 @@ const spinner = {
   display: "inline-block",
   marginRight: "8px",
   animation: "spin 1s linear infinite",
+};
+
+const uploadLimitText = {
+  color: "#71717a",
+  fontSize: "13px",
+  textAlign: "center",
+  marginTop: "8px",
 };
