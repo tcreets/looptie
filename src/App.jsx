@@ -57,6 +57,7 @@ export default function App() {
     feedItems,
     setFeedItems,
     saveItemMemo,
+    toggleFavorite,
     deleteItem,
     deleteAllUserItemsAndStorage,
   } = useItems(user);
@@ -78,8 +79,10 @@ export default function App() {
   } = useSearch(feedItems);
 
   
+  const currentFeed = activeFeed || defaultFeed;
+
   const filteredFeedItems = feedItems.filter(
-    (item) => item.space === activeFeed
+    (item) => item.space === currentFeed
   );
 
   if (authLoading) return null;
@@ -120,7 +123,7 @@ export default function App() {
         {tab === "home" && (
           <HomeFeed
             spaces={spaces}
-            activeFeed={activeFeed}
+            activeFeed={currentFeed}
             setActiveFeed={setActiveFeed}
             feedRef={feedRef}
             filteredFeedItems={filteredFeedItems}
@@ -217,6 +220,13 @@ export default function App() {
             onClose={closeItemModal}
             itemFavoriteDraft={itemFavoriteDraft}
             setItemFavoriteDraft={setItemFavoriteDraft}
+            onToggleFavorite={async () => {
+              const nextFavorite = !itemFavoriteDraft;
+                      
+              setItemFavoriteDraft(nextFavorite);
+                      
+              await toggleFavorite(selectedItem, nextFavorite);
+            }}
             onSave={() =>
               saveItemMemo({
                 selectedItem,

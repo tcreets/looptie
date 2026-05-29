@@ -33,10 +33,10 @@ export function useSpaces(user) {
       const defaultSpace =
         data?.find((space) => space.is_default) || data?.[0];
 
-      if (defaultSpace && !activeFeed) {
-        setDefaultFeed(defaultSpace.name);
-        setActiveFeed(defaultSpace.name);
-        setUploadSpace(defaultSpace.name);
+      if (defaultSpace) {
+       setDefaultFeed(defaultSpace.name);
+       setActiveFeed((prev) => prev || defaultSpace.name);
+       setUploadSpace((prev) => prev || defaultSpace.name);
       }
     }
 

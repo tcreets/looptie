@@ -153,10 +153,35 @@ export function useItems(user) {
     return { error: null };
   };
 
+  const toggleFavorite = async (selectedItem, nextFavorite) => {
+  if (!selectedItem || !user) return;
+
+  const { error } = await supabase
+    .from("items")
+    .update({ favorite: nextFavorite })
+    .eq("id", selectedItem.id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error updating favorite:", error);
+    alert(error.message);
+    return;
+  }
+
+  setFeedItems((prev) =>
+    prev.map((item) =>
+      item.id === selectedItem.id
+        ? { ...item, favorite: nextFavorite }
+        : item
+    )
+  );
+};
+
   return {
     feedItems,
     setFeedItems,
     saveItemMemo,
+    toggleFavorite,
     deleteItem,
     deleteAllUserItemsAndStorage,
   };

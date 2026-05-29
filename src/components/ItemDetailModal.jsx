@@ -23,7 +23,7 @@ export default function ItemDetailModal({
         </button>
         <button
           type="button"
-          onClick={() => setItemFavoriteDraft((prev) => !prev)}
+          onClick={onToggleFavorite}
           style={{
             ...favoriteButton,
             color: itemFavoriteDraft ? "#ef4444" : "white",
