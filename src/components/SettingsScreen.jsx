@@ -17,12 +17,12 @@ export default function SettingsScreen({
 
   const saveSettings = async () => {
     const cleanName = displayName.trim();
-    
+
     if (!selectedDefault) {
       alert("Choose a default space.");
       return;
     }
-  
+
     const { data, error } = await supabase
       .from("profiles")
       .update({
@@ -32,37 +32,37 @@ export default function SettingsScreen({
       .eq("user_id", user.id)
       .select()
       .single();
-    
+
     if (error) {
       alert(error.message);
       return;
     }
-  
+
     const { error: spacesError } = await supabase
       .from("spaces")
       .update({ is_default: false })
       .eq("user_id", user.id);
-  
+
     if (spacesError) {
       alert(spacesError.message);
       return;
     }
-  
+
     const { error: defaultSpaceError } = await supabase
       .from("spaces")
       .update({ is_default: true })
       .eq("user_id", user.id)
       .eq("name", selectedDefault);
-  
+
     if (defaultSpaceError) {
       alert(defaultSpaceError.message);
       return;
     }
-  
+
     setProfile(data);
     setDefaultFeed(selectedDefault);
     setActiveFeed(selectedDefault);
-  
+
     alert("Settings saved.");
   };
 
@@ -131,6 +131,17 @@ export default function SettingsScreen({
         onChange={(e) => setDisplayName(e.target.value)}
       />
 
+      <label style={label}>Email</label>
+      <input
+        style={{
+          ...input,
+          opacity: 0.7,
+          cursor: "not-allowed",
+        }}
+        value={profile?.email || ""}
+        disabled
+      />
+
       <label style={label}>Default space</label>
       <select
         style={input}
@@ -138,8 +149,8 @@ export default function SettingsScreen({
         onChange={(e) => setSelectedDefault(e.target.value)}
       >
         {spaces.map((space) => (
-          <option key={space} value={space}>
-            {space}
+          <option key={space.id} value={space.name}>
+            {space.name}
           </option>
         ))}
       </select>

@@ -30,9 +30,10 @@ export function useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace) 
       if (!data) {
         const { data: newProfile, error: insertError } = await supabase
           .from("profiles")
-          .insert([
+          .upsert([
             {
               user_id: user.id,
+              email: user.email,
               display_name: "",
               default_space: null,
               has_completed_onboarding: false,

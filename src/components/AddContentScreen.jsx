@@ -319,29 +319,29 @@ export default function AddContentScreen({
 
             <button
               style={modalPrimaryButton}
-              onClick={() => {
+              onClick={async () => {
                 const trimmedName = newSpaceName.trim();
-
+                            
                 if (!trimmedName) return;
-
-                const updatedSpaces = [
-                  ...spaces,
-                  typeof spaces[0] === "string"
-                    ? trimmedName
-                    : {
-                        name: trimmedName,
-                        user_id: user.id,
-                        is_default: false,
-                      },
-                ];
-                setSpaces(updatedSpaces);
-                setUploadSpace(trimmedName);
-
-                localStorage.setItem(
-                  `spaces-${user.id}`,
-                  JSON.stringify(updatedSpaces)
-                );
-
+                            
+                const { data: newSpace, error } = await supabase
+                  .from("spaces")
+                  .insert({
+                    user_id: user.id,
+                    name: trimmedName,
+                    is_default: false,
+                  })
+                  .select()
+                  .single();
+                
+                if (error) {
+                  alert(error.message);
+                  return;
+                }
+              
+                setSpaces((prev) => [...prev, newSpace]);
+                setUploadSpace(newSpace.name);
+              
                 setNewSpaceName("");
                 setShowCreateSpaceModal(false);
               }}

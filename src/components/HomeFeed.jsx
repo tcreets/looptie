@@ -60,22 +60,24 @@ export default function HomeFeed({
       >
         {spaces.map((feed) => (
           <button
-            key={feed}
+            key={feed.id}
             onClick={() => {
               feedRef.current?.scrollTo({
                 top: 0,
                 behavior: "auto",
               });
-
-              setActiveFeed(feed);
+            
+              setActiveFeed(feed.name);
             }}
             style={{
               ...feedButtonStyle,
-              background: activeFeed === feed ? "#7c3aed" : "#18181b",
-              color: activeFeed === feed ? "black" : "white",
+              background:
+                activeFeed === feed.name ? "#7c3aed" : "#18181b",
+              color:
+                activeFeed === feed.name ? "black" : "white",
             }}
           >
-            {feed}
+            {feed.name}
           </button>
         ))}
       </div>

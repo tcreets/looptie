@@ -104,9 +104,10 @@ export default function App() {
         user={user}
         setProfile={setProfile}
         onComplete={(newSpace) => {
-          setSpaces([newSpace]);
+          setSpaces([newSpace.name]);
           setDefaultFeed(newSpace.name);
           setActiveFeed(newSpace.name);
+          setUploadSpace(newSpace.name);
           setTab("home");
         }}
       />

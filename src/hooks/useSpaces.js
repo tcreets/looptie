@@ -9,25 +9,34 @@ export function useSpaces(user) {
 
   useEffect(() => {
     async function fetchSpaces() {
-      if (!user) return;
+      if (!user) {
+        setSpaces([]);
+        setDefaultFeed("");
+        setActiveFeed("");
+        setUploadSpace("");
+        return;
+      }
 
       const { data, error } = await supabase
         .from("spaces")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
 
       if (error) {
         console.error("Error fetching spaces:", error);
         return;
       }
 
-      const spaceNames = data.map((space) => space.name);
-      setSpaces(spaceNames);
+      setSpaces(data || []);
 
-      if (spaceNames.length > 0 && !activeFeed) {
-        setDefaultFeed(spaceNames[0]);
-        setActiveFeed(spaceNames[0]);
-        setUploadSpace(spaceNames[0]);
+      const defaultSpace =
+        data?.find((space) => space.is_default) || data?.[0];
+
+      if (defaultSpace && !activeFeed) {
+        setDefaultFeed(defaultSpace.name);
+        setActiveFeed(defaultSpace.name);
+        setUploadSpace(defaultSpace.name);
       }
     }
 
@@ -36,11 +45,11 @@ export function useSpaces(user) {
 
   const saveDefaultFeed = async (spaceName) => {
     if (!user || !spaceName) return;
-  
+
     const { error: resetError } = await supabase
-    .from("spaces")
-    .update({ is_default: false })
-    .eq("user_id", user.id);
+      .from("spaces")
+      .update({ is_default: false })
+      .eq("user_id", user.id);
 
     if (resetError) {
       console.error("Error resetting default spaces:", resetError);
@@ -67,7 +76,14 @@ export function useSpaces(user) {
       console.error("Error updating profile default space:", profileError);
       return;
     }
-  
+
+    setSpaces((prev) =>
+      prev.map((space) => ({
+        ...space,
+        is_default: space.name === spaceName,
+      }))
+    );
+
     setDefaultFeed(spaceName);
     setActiveFeed(spaceName);
     setUploadSpace(spaceName);
@@ -87,21 +103,10 @@ export function useSpaces(user) {
 
     if (!confirmDelete) return;
 
-    const itemsInSpace = feedItems.filter(
-      (item) => item.space === spaceName
-    );
+    const itemsInSpace = feedItems.filter((item) => item.space === spaceName);
 
     const filePaths = itemsInSpace
-      .map((item) => item.image)
-      .filter(Boolean)
-      .map((url) => {
-        const marker =
-          "/storage/v1/object/public/looptie-uploads/";
-
-        return url.includes(marker)
-          ? decodeURIComponent(url.split(marker)[1])
-          : null;
-      })
+      .map((item) => item.storage_path || item.storagePath)
       .filter(Boolean);
 
     if (filePaths.length > 0) {
@@ -110,10 +115,8 @@ export function useSpaces(user) {
         .remove(filePaths);
 
       if (storageError) {
-        console.error(
-          "Error deleting storage files:",
-          storageError
-        );
+        console.error("Error deleting storage files:", storageError);
+        alert(storageError.message);
         return;
       }
     }
@@ -125,10 +128,8 @@ export function useSpaces(user) {
       .eq("user_id", user.id);
 
     if (itemError) {
-      console.error(
-        "Error deleting space items:",
-        itemError
-      );
+      console.error("Error deleting space items:", itemError);
+      alert(itemError.message);
       return;
     }
 
@@ -140,22 +141,23 @@ export function useSpaces(user) {
 
     if (spaceError) {
       console.error("Error deleting space:", spaceError);
+      alert(spaceError.message);
       return;
     }
 
-    setFeedItems((prev) =>
-      prev.filter((item) => item.space !== spaceName)
-    );
+    setFeedItems((prev) => prev.filter((item) => item.space !== spaceName));
 
-    const remainingSpaces = spaces.filter(
-      (space) => space !== spaceName
-    );
+    const remainingSpaces = spaces.filter((space) => space.name !== spaceName);
 
     setSpaces(remainingSpaces);
 
     if (remainingSpaces.length > 0) {
-      setActiveFeed(remainingSpaces[0]);
-      setUploadSpace(remainingSpaces[0]);
+      const fallbackSpace =
+        remainingSpaces.find((space) => space.is_default) || remainingSpaces[0];
+
+      setActiveFeed(fallbackSpace.name);
+      setDefaultFeed(fallbackSpace.name);
+      setUploadSpace(fallbackSpace.name);
     } else {
       setActiveFeed("");
       setDefaultFeed("");

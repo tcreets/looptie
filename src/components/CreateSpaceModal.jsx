@@ -29,7 +29,6 @@ export default function CreateSpaceModal({
             if (!user) return;
 
             const cleanedName = newSpaceName.trim();
-
             if (cleanedName === "") return;
 
             const { data, error } = await supabase
@@ -38,17 +37,20 @@ export default function CreateSpaceModal({
                 {
                   name: cleanedName,
                   user_id: user.id,
+                  is_default: false,
                 },
               ])
-              .select();
+              .select()
+              .single();
 
             if (error) {
               console.error("Error creating space:", error);
+              alert(error.message);
               return;
             }
 
-            setSpaces([...spaces, cleanedName]);
-            setSelectedSpace(cleanedName);
+            setSpaces((prev) => [...prev, data]);
+            setSelectedSpace(data.name);
             setNewSpaceName("");
             setShowNewSpaceForm(false);
             setTab("spaces");
