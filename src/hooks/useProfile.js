@@ -30,7 +30,7 @@ export function useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace) 
       if (!data) {
         const { data: newProfile, error: insertError } = await supabase
           .from("profiles")
-          .upsert([
+          .upsert(
             {
               user_id: user.id,
               email: user.email,
@@ -38,7 +38,8 @@ export function useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace) 
               default_space: null,
               has_completed_onboarding: false,
             },
-          ])
+            { onConflict: "user_id" }
+          )
           .select()
           .single();
 
@@ -52,6 +53,30 @@ export function useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace) 
         setProfile(newProfile);
         setProfileLoading(false);
         return;
+      }
+
+      if (data && !data.email && user.email) {
+        const { data: updatedProfile, error: emailUpdateError } = await supabase
+          .from("profiles")
+          .update({ email: user.email })
+          .eq("user_id", user.id)
+          .select()
+          .single();
+
+        if (emailUpdateError) {
+          console.error("Error updating profile email:", emailUpdateError);
+        } else {
+          setProfile(updatedProfile);
+
+          if (updatedProfile?.default_space) {
+            setDefaultFeed(updatedProfile.default_space);
+            setActiveFeed(updatedProfile.default_space);
+            setUploadSpace(updatedProfile.default_space);
+          }
+
+          setProfileLoading(false);
+          return;
+        }
       }
 
       setProfile(data);
