@@ -78,8 +78,11 @@ export default function AddContentScreen({
               if (!files.length) return;
 
               if (files.length > 10) {
-                alert("Please upload up to 10 items at a time.");
-                return;
+                const continueUpload = window.confirm(
+                  `You've selected ${files.length} items. Uploading large batches may take longer. Continue?`
+                );
+              
+                if (!continueUpload) return;
               }
 
               setSelectedFiles(files);
@@ -162,20 +165,8 @@ export default function AddContentScreen({
                 sizeMB: (file.size / 1024 / 1024).toFixed(2),
               });
 
-              const fileSizeMB = file.size / 1024 / 1024;
-
-              if (fileSizeMB > 250) {
-                alert(
-                  `${file.name} is ${fileSizeMB.toFixed(
-                    1
-                  )} MB. Please upload files under 250 MB.`
-                );
-                setIsUploading(false);
-                return;
-              }
-
               setUploadProgress(
-                `Uploading ${i + 1} of ${selectedFiles.length}...`
+                `Saving to Looptie... (${i + 1} of ${selectedFiles.length})`
               );
 
               const fileExt = file.name.split(".").pop();
@@ -289,7 +280,7 @@ export default function AddContentScreen({
           )}
         </button>
         <p style={uploadLimitText}>
-          Up to 10 items per upload
+          Save what matters. Larger videos may take a little longer.
         </p>
 
         {selectedFiles.length > 0 && (
