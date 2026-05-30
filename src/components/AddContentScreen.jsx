@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { X } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 
 export default function AddContentScreen({
@@ -303,6 +304,19 @@ export default function AddContentScreen({
                   style={uploadPreviewCard}
                   onClick={() => setPreviewFile(file)}
                 >
+                  <button
+                    type="button"
+                    style={removePreviewButton}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFiles((prev) =>
+                        prev.filter((_, fileIndex) => fileIndex !== index)
+                      );
+                    }}
+                  >
+                    <X size={14} strokeWidth={3} />
+                  </button>
+
                   {isVideo ? (
                     <video src={previewUrl} style={uploadPreviewMedia} muted />
                   ) : (
@@ -462,6 +476,7 @@ const uploadPreviewCard = {
   overflow: "hidden",
   border: "1px solid #3a3447",
   background: "#16161d",
+  position: "relative",
 };
 
 const uploadPreviewMedia = {
@@ -565,4 +580,27 @@ const uploadLimitText = {
   fontSize: "13px",
   textAlign: "center",
   marginTop: "8px",
+};
+
+const removePreviewButton = {
+  position: "absolute",
+
+  top: "0px",
+  right: "0px",
+
+  width: "24px",
+  height: "24px",
+  borderRadius: "999px",
+  border: "2px solid #24202d",
+
+  background: "#18181b",
+  color: "white",
+  cursor: "pointer",
+  zIndex: 2,
+
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+
+  padding: 0,
 };
