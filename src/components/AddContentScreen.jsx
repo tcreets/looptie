@@ -155,6 +155,18 @@ export default function AddContentScreen({
             for (let i = 0; i < selectedFiles.length; i++) {
               const file = selectedFiles[i];
 
+              const fileSizeMB = file.size / 1024 / 1024;
+
+              if (fileSizeMB > 100) {
+                alert(
+                  `${file.name} is ${fileSizeMB.toFixed(
+                    1
+                  )} MB. Please upload files under 100 MB.`
+                );
+                setIsUploading(false);
+                return;
+              }
+
               setUploadProgress(
                 `Uploading ${i + 1} of ${selectedFiles.length}...`
               );
@@ -177,6 +189,14 @@ export default function AddContentScreen({
                 .replace(/[^a-zA-Z0-9-_]/g, "");
 
               const filePath = `${user.id}/${safeSpace}/${fileName}`;
+              
+              console.log(
+                "Uploading:",
+                file.name,
+                "Size:",
+                (file.size / 1024 / 1024).toFixed(2),
+                "MB"
+              );
 
               const { error: uploadError } = await supabase.storage
                 .from("looptie-uploads")
