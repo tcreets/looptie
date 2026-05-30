@@ -6,7 +6,7 @@ export default function Search({
   spaces,
 }) {
   return (
-    <div>
+    <div style={searchPage} className="pretty-scroll">
       <p style={subtitleStyle}>Search your Cache</p>
 
       <input
@@ -145,4 +145,11 @@ const emptyState = {
   marginTop: "80px",
   textAlign: "center",
   color: "#a1a1aa",
+};
+
+const searchPage = {
+  height: "100%",
+  overflowY: "auto",
+  paddingBottom: "120px",
+  WebkitOverflowScrolling: "touch",
 };

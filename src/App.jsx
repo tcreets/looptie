@@ -107,7 +107,7 @@ export default function App() {
         user={user}
         setProfile={setProfile}
         onComplete={(newSpace) => {
-          setSpaces([newSpace.name]);
+          setSpaces([newSpace]);
           setDefaultFeed(newSpace.name);
           setActiveFeed(newSpace.name);
           setUploadSpace(newSpace.name);

@@ -230,6 +230,7 @@ export default function AddContentScreen({
               note: item.note,
               favorite: item.favorite,
               media_type: item.media_type,
+              created_at: item.created_at,
             }));
 
             setIsUploading(false);

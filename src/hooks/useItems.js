@@ -32,6 +32,7 @@ export function useItems(user) {
         tags: item.tags,
         caption: item.caption,
         media_type: item.media_type,
+        created_at: item.created_at,
       }));
 
       setFeedItems(formattedItems);

@@ -51,6 +51,17 @@ export default function ItemDetailModal({
 
         <div style={itemModalContent}>
           <p style={itemModalSpace}>{selectedItem.space}</p>
+          <p style={itemModalTimestamp}>
+            Added{" "}
+            {new Date(selectedItem.created_at).toLocaleDateString(
+              "en-US",
+              {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              }
+            )}
+          </p>
             <textarea
               data-gramm="false"
               placeholder="Add a memo, note, or comment..."
@@ -214,3 +225,9 @@ const tagSection = {
     cursor: "pointer",
     marginTop: "24px",
   };
+
+  const itemModalTimestamp = {
+  color: "#71717a",
+  fontSize: "13px",
+  margin: "0 0 18px",
+};
