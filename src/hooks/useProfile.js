@@ -23,6 +23,7 @@ export function useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace) 
 
       if (error) {
         console.error("Error fetching profile:", error);
+        alert("Profile fetch failed: " + error.message);
         setProfileLoading(false);
         return;
       }
@@ -65,6 +66,7 @@ export function useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace) 
 
         if (emailUpdateError) {
           console.error("Error updating profile email:", emailUpdateError);
+          alert("Email update failed: " + emailUpdateError.message);
         } else {
           setProfile(updatedProfile);
 

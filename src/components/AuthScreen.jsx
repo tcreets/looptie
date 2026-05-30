@@ -25,7 +25,8 @@ export default function AuthScreen({ setUser }) {
     console.log("AUTH ERROR:", error);
   
     if (error) {
-      alert(error.message);
+      console.error("AUTH ERROR:", error);
+      alert("Auth failed: " + error.message);
       return;
     }
 
