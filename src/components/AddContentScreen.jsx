@@ -155,13 +155,19 @@ export default function AddContentScreen({
             for (let i = 0; i < selectedFiles.length; i++) {
               const file = selectedFiles[i];
 
+              console.log("FILE CHECK:", {
+                name: file.name,
+                type: file.type,
+                sizeMB: (file.size / 1024 / 1024).toFixed(2),
+              });
+
               const fileSizeMB = file.size / 1024 / 1024;
 
-              if (fileSizeMB > 100) {
+              if (fileSizeMB > 250) {
                 alert(
                   `${file.name} is ${fileSizeMB.toFixed(
                     1
-                  )} MB. Please upload files under 100 MB.`
+                  )} MB. Please upload files under 250 MB.`
                 );
                 setIsUploading(false);
                 return;
@@ -203,13 +209,14 @@ export default function AddContentScreen({
                 .upload(filePath, file);
 
               if (uploadError) {
-                console.error(
-                  "Upload error details:",
-                  uploadError.message,
-                  uploadError
+                console.error("UPLOAD ERROR FULL:", uploadError);
+                alert(
+                  `Upload failed for ${file.name}\n\nSize: ${(file.size / 1024 / 1024).toFixed(
+                    2
+                  )} MB\n\nError: ${uploadError.message}`
                 );
-                alert(`Upload failed: ${uploadError.message}`);
                 setIsUploading(false);
+                setUploadProgress("");
                 return;
               }
 
