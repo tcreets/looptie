@@ -18,7 +18,7 @@ export default function AddContentScreen({
 }) {
   const [previewFile, setPreviewFile] = React.useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isCreatingSpace, setIsCreatingSpace] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [showCreateSpaceModal, setShowCreateSpaceModal] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
@@ -26,7 +26,7 @@ export default function AddContentScreen({
 
   return (
     <div>
-      <p style={subtitleStyle}>Add to Cache</p>
+      <p style={subtitleStyle}>Add to Looptie</p>
 
       <div style={addGrid}>
         <label style={addCard}>
