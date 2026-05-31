@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 
 export default function CreateSpaceModal({
@@ -11,11 +11,17 @@ export default function CreateSpaceModal({
   setShowNewSpaceForm,
   setTab,
 }) {
+
+  const [isCreating, setIsCreating] = useState(false);
+
   return (
     <div style={modalOverlay}>
       <div style={modalCard}>
-        <h2>Create New Space</h2>
+        <h2 style={modalTitle}>Create New Space</h2>
 
+        <p style={modalSubtitle}>
+         Create a space for the things you want to revisit.
+       </p>
         <input
           value={newSpaceName}
           onChange={(e) => setNewSpaceName(e.target.value)}
@@ -24,13 +30,31 @@ export default function CreateSpaceModal({
         />
 
         <button
-          style={modalPrimaryButton}
+          style={{
+            ...modalPrimaryButton,
+            opacity: isCreating ? 0.5 : 1,
+            cursor: isCreating ? "not-allowed" : "pointer",
+          }}
+          disabled={isCreating}
           onClick={async () => {
+            if (isCreating) return;
             if (!user) return;
-
+          
             const cleanedName = newSpaceName.trim();
             if (cleanedName === "") return;
-
+          
+            const duplicateSpace = spaces.some((space) => {
+              const spaceName = typeof space === "string" ? space : space.name;
+              return spaceName.toLowerCase() === cleanedName.toLowerCase();
+            });
+          
+            if (duplicateSpace) {
+              alert("You already have a space with that name.");
+              return;
+            }
+          
+            setIsCreating(true);
+          
             const { data, error } = await supabase
               .from("spaces")
               .insert([
@@ -42,21 +66,23 @@ export default function CreateSpaceModal({
               ])
               .select()
               .single();
-
+            
             if (error) {
               console.error("Error creating space:", error);
               alert(error.message);
+              setIsCreating(false);
               return;
             }
-
+          
             setSpaces((prev) => [...prev, data]);
             setSelectedSpace(data.name);
             setNewSpaceName("");
             setShowNewSpaceForm(false);
             setTab("spaces");
+            setIsCreating(false);
           }}
         >
-          Create Space
+          {isCreating ? "Creating..." : "Create Space"}
         </button>
 
         <button
@@ -102,7 +128,6 @@ const modalInput = {
   background: "#050505",
   color: "white",
   fontSize: "16px",
-  marginTop: "16px",
   marginBottom: "16px",
 };
 
@@ -126,4 +151,17 @@ const modalSecondaryButton = {
   color: "#aaa",
   marginTop: "10px",
   cursor: "pointer",
+};
+
+const modalTitle = {
+  color: "white",
+  fontSize: "24px",
+  fontWeight: "700",
+  marginBottom: "16px",
+};
+
+const modalSubtitle = {
+  color: "#a1a1aa",
+  fontSize: "14px",
+  marginBottom: "12px",
 };

@@ -18,6 +18,7 @@ export default function AddContentScreen({
 }) {
   const [previewFile, setPreviewFile] = React.useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [showCreateSpaceModal, setShowCreateSpaceModal] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
@@ -354,12 +355,31 @@ export default function AddContentScreen({
             />
 
             <button
-              style={modalPrimaryButton}
+              style={{
+                ...modalPrimaryButton,
+                opacity: isCreatingSpace ? 0.5 : 1,
+                cursor: isCreatingSpace ? "not-allowed" : "pointer",
+              }}
+              disabled={isCreatingSpace}
               onClick={async () => {
+                if (isCreatingSpace) return;
+              
                 const trimmedName = newSpaceName.trim();
-                            
+              
                 if (!trimmedName) return;
-                            
+              
+                const duplicateSpace = spaces.some((space) => {
+                  const spaceName = typeof space === "string" ? space : space.name;
+                  return spaceName.toLowerCase() === trimmedName.toLowerCase();
+                });
+              
+                if (duplicateSpace) {
+                  alert("You already have a space with that name.");
+                  return;
+                }
+              
+                setIsCreatingSpace(true);
+              
                 const { data: newSpace, error } = await supabase
                   .from("spaces")
                   .insert({
@@ -372,6 +392,7 @@ export default function AddContentScreen({
                 
                 if (error) {
                   alert(error.message);
+                  setIsCreatingSpace(false);
                   return;
                 }
               
@@ -380,9 +401,10 @@ export default function AddContentScreen({
               
                 setNewSpaceName("");
                 setShowCreateSpaceModal(false);
+                setIsCreatingSpace(false);
               }}
             >
-              Create Space
+              {isCreatingSpace ? "Creating..." : "Create Space"}
             </button>
 
             <button

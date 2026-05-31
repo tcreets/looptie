@@ -167,6 +167,98 @@ export function useSpaces(user) {
     setSelectedSpace(null);
   };
 
+  const renameSpace = async ({
+  spaceId,
+  oldName,
+  newName,
+  feedItems,
+  setFeedItems,
+  setSelectedSpace,
+}) => {
+  if (!user || !spaceId) return false;
+
+  const cleanName = newName.trim();
+
+  if (!cleanName) {
+    alert("Space name cannot be blank.");
+    return false;
+  }
+
+  const duplicateSpace = spaces.some(
+    (space) =>
+      space.id !== spaceId &&
+      space.name.toLowerCase() === cleanName.toLowerCase()
+  );
+
+  if (duplicateSpace) {
+    alert("You already have a space with that name.");
+    return false;
+  }
+
+  const { data: updatedSpace, error: spaceError } = await supabase
+    .from("spaces")
+    .update({ name: cleanName })
+    .eq("id", spaceId)
+    .select()
+    .single();
+
+  if (spaceError) {
+    console.error("Error renaming space:", spaceError);
+    alert("Rename failed: " + spaceError.message);
+    return false;
+  }
+
+  if (!updatedSpace) {
+    alert("Rename failed. No space was updated.");
+    return false;
+  }
+
+  const { error: itemsError } = await supabase
+    .from("items")
+    .update({ space: cleanName })
+    .eq("space", oldName)
+    .eq("user_id", user.id);
+
+  if (itemsError) {
+    console.error("Error updating renamed space items:", itemsError);
+    alert("Items were not updated: " + itemsError.message);
+    return false;
+  }
+
+  setSpaces((prev) =>
+    prev.map((space) =>
+      space.id === spaceId ? updatedSpace : space
+    )
+  );
+
+  setFeedItems((prev) =>
+    prev.map((item) =>
+      item.space === oldName ? { ...item, space: cleanName } : item
+    )
+  );
+
+  if (defaultFeed === oldName) {
+    setDefaultFeed(cleanName);
+
+    await supabase
+      .from("profiles")
+      .update({ default_space: cleanName })
+      .eq("user_id", user.id);
+  }
+
+  if (activeFeed === oldName) {
+    setActiveFeed(cleanName);
+  }
+
+  if (uploadSpace === oldName) {
+    setUploadSpace(cleanName);
+  }
+
+  setSelectedSpace(null);
+
+  return true;
+};
+
   return {
     spaces,
     setSpaces,
@@ -178,5 +270,6 @@ export function useSpaces(user) {
     uploadSpace,
     setUploadSpace,
     deleteSpace,
+    renameSpace,
   };
 }

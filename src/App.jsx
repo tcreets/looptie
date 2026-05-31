@@ -45,6 +45,7 @@ export default function App() {
     uploadSpace,
     setUploadSpace,
     deleteSpace,
+    renameSpace,
   } = useSpaces(user);
 
   const {
@@ -139,10 +140,12 @@ export default function App() {
           selectedSpace={selectedSpace}
           setSelectedSpace={setSelectedSpace}
           feedItems={feedItems}
+          setFeedItems={setFeedItems}
           setSelectedItem={openItemModal}
           setShowNewSpaceForm={setShowNewSpaceForm}
           setUploadSpace={setUploadSpace}
           setTab={setTab}
+          renameSpace={renameSpace}
           onDeleteSpace={(spaceName) =>
             deleteSpace(spaceName, feedItems, setFeedItems, setSelectedSpace)
           }

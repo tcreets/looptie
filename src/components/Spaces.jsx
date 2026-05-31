@@ -1,4 +1,5 @@
-import { Plus, Star } from "lucide-react";
+import { useState } from "react";
+import { Plus, Star, MoreVertical } from "lucide-react";
 
 export default function Spaces({
   spaces,
@@ -7,16 +8,21 @@ export default function Spaces({
   selectedSpace,
   setSelectedSpace,
   feedItems,
+  setFeedItems,
   setSelectedItem,
   setShowNewSpaceForm,
   setUploadSpace,
   setTab,
   onDeleteSpace,
+  renameSpace,
 }) {
+  const [openMenuSpaceId, setOpenMenuSpaceId] = useState(null);
+  const [renamingSpace, setRenamingSpace] = useState(null);
+  const [renameDraft, setRenameDraft] = useState("");
+
   const selectedSpaceItems = feedItems.filter(
     (item) => item.space === selectedSpace
   );
-  console.log("SPACES PROP:", spaces);
 
   if (selectedSpace === null) {
     return (
@@ -42,32 +48,53 @@ export default function Spaces({
                   e.stopPropagation();
                   setDefaultFeed(space.name);
                 }}
-                style={{
-                  position: "absolute",
-                  top: "14px",
-                  right: "14px",
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color:
-                    defaultFeed === space.name ? "#7c3aed" : "#71717a",
-                }}
+                style={starButton}
               >
                 <Star
                   size={20}
                   fill={defaultFeed === space.name ? "#7c3aed" : "transparent"}
+                  color={defaultFeed === space.name ? "#7c3aed" : "#71717a"}
                 />
               </button>
 
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDeleteSpace(space.name);
+                  setOpenMenuSpaceId(
+                    openMenuSpaceId === space.id ? null : space.id
+                  );
                 }}
-                style={deleteSpaceCardButton}
+                style={menuButton}
               >
-                ×
+                <MoreVertical size={18} />
               </button>
+
+              {openMenuSpaceId === space.id && (
+                <div style={spaceMenu}>
+                  <button
+                    style={spaceMenuItem}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRenamingSpace(space);
+                      setRenameDraft(space.name);
+                      setOpenMenuSpaceId(null);
+                    }}
+                  >
+                    Rename
+                  </button>
+
+                  <button
+                    style={{ ...spaceMenuItem, color: "#fca5a5" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuSpaceId(null);
+                      onDeleteSpace(space.name);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
 
               <div style={spaceContent}>
                 <h3 style={{ margin: 0 }}>{space.name}</h3>
@@ -86,6 +113,56 @@ export default function Spaces({
             </div>
           </div>
         </div>
+
+        {renamingSpace && (
+          <div style={modalOverlay}>
+            <div style={modalCard}>
+              <h2 style={modalTitle}>Rename Space</h2>
+
+              <p style={modalSubtitle}>
+                Update the name for this space.
+              </p>
+
+              <input
+                style={modalInput}
+                value={renameDraft}
+                onChange={(e) => setRenameDraft(e.target.value)}
+                autoFocus
+              />
+
+              <button
+                style={modalPrimaryButton}
+                onClick={async () => {
+                  const success = await renameSpace({
+                    spaceId: renamingSpace.id,
+                    oldName: renamingSpace.name,
+                    newName: renameDraft,
+                    feedItems,
+                    setFeedItems,
+                    setSelectedSpace,
+                  });
+                  
+                  if (!success) return;
+                  
+                  setRenamingSpace(null);
+                  setRenameDraft("");
+                }}
+              >
+                Save Name
+              </button>
+
+              <button
+                style={modalSecondaryButton}
+                onClick={() => {
+                  setRenamingSpace(null);
+                  setRenameDraft("");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -118,19 +195,9 @@ export default function Spaces({
             onClick={() => setSelectedItem(item)}
           >
             {item.media_type === "video" ? (
-              <video
-                src={item.image}
-                style={spaceDetailImage}
-                muted
-                playsInline
-              />
+              <video src={item.image} style={spaceDetailImage} muted playsInline />
             ) : (
-              <img
-                src={item.image}
-                loading="lazy"
-                alt=""
-                style={spaceDetailImage}
-              />
+              <img src={item.image} loading="lazy" alt="" style={spaceDetailImage} />
             )}
 
             {item.favorite && <div style={spaceFavoriteIndicator}>♥</div>}
@@ -179,6 +246,47 @@ const spaceCard = {
   position: "relative",
 };
 
+const starButton = {
+  position: "absolute",
+  top: "14px",
+  right: "14px",
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+};
+
+const menuButton = {
+  position: "absolute",
+  top: "14px",
+  left: "14px",
+  background: "transparent",
+  border: "none",
+  color: "#a1a1aa",
+  cursor: "pointer",
+};
+
+const spaceMenu = {
+  position: "absolute",
+  top: "42px",
+  left: "14px",
+  background: "#111116",
+  border: "1px solid #27272a",
+  borderRadius: "14px",
+  padding: "6px",
+  zIndex: 20,
+};
+
+const spaceMenuItem = {
+  display: "block",
+  width: "100%",
+  padding: "10px 14px",
+  border: "none",
+  background: "transparent",
+  color: "white",
+  textAlign: "left",
+  cursor: "pointer",
+};
+
 const spaceContent = {
   display: "flex",
   flexDirection: "column",
@@ -209,6 +317,73 @@ const newSpacePlus = {
   alignItems: "center",
   justifyContent: "center",
   transform: "translateY(-8px)",
+};
+
+const modalOverlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,.75)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "24px",
+  zIndex: 1000,
+};
+
+const modalCard = {
+  width: "100%",
+  maxWidth: "360px",
+  background: "#18181b",
+  border: "1px solid #27272a",
+  borderRadius: "28px",
+  padding: "24px",
+};
+
+const modalTitle = {
+  color: "white",
+  fontSize: "24px",
+  fontWeight: "700",
+  marginBottom: "8px",
+};
+
+const modalSubtitle = {
+  color: "#a1a1aa",
+  fontSize: "14px",
+  marginBottom: "12px",
+};
+
+const modalInput = {
+  width: "100%",
+  boxSizing: "border-box",
+  padding: "16px",
+  borderRadius: "16px",
+  border: "1px solid #3f3f46",
+  background: "#050505",
+  color: "white",
+  fontSize: "16px",
+  marginBottom: "16px",
+};
+
+const modalPrimaryButton = {
+  width: "100%",
+  padding: "14px",
+  borderRadius: "16px",
+  border: "none",
+  background: "#7c3aed",
+  color: "white",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
+
+const modalSecondaryButton = {
+  width: "100%",
+  padding: "14px",
+  borderRadius: "16px",
+  border: "none",
+  background: "transparent",
+  color: "#aaa",
+  marginTop: "10px",
+  cursor: "pointer",
 };
 
 const backArrowButton = {
@@ -291,23 +466,6 @@ const emptyStateText = {
   fontSize: "18px",
   fontWeight: "600",
   lineHeight: 1.5,
-};
-
-const deleteSpaceCardButton = {
-  position: "absolute",
-  top: "12px",
-  left: "12px",
-  width: "26px",
-  height: "26px",
-  borderRadius: "999px",
-  border: "none",
-  background: "rgba(0,0,0,.35)",
-  color: "#71717a",
-  fontSize: "18px",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
 };
 
 const spaceDetailScreen = {
