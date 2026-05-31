@@ -6,9 +6,11 @@ export function useSpaces(user) {
   const [defaultFeed, setDefaultFeed] = useState("");
   const [activeFeed, setActiveFeed] = useState("");
   const [uploadSpace, setUploadSpace] = useState("");
+  const [spacesLoading, setSpacesLoading] = useState(false);
 
   useEffect(() => {
     async function fetchSpaces() {
+      setSpacesLoading(true);
       if (!user) {
         setSpaces([]);
         setDefaultFeed("");
@@ -25,6 +27,7 @@ export function useSpaces(user) {
 
       if (error) {
         console.error("Error fetching spaces:", error);
+        setSpacesLoading(false);
         return;
       }
 
@@ -38,6 +41,7 @@ export function useSpaces(user) {
        setActiveFeed((prev) => prev || defaultSpace.name);
        setUploadSpace((prev) => prev || defaultSpace.name);
       }
+      setSpacesLoading(false);
     }
 
     fetchSpaces();
@@ -262,6 +266,7 @@ export function useSpaces(user) {
   return {
     spaces,
     setSpaces,
+    spacesLoading,
     defaultFeed,
     setDefaultFeed,
     saveDefaultFeed,

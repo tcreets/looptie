@@ -37,6 +37,7 @@ export default function App() {
   const {
     spaces,
     setSpaces,
+    spacesLoading,
     defaultFeed,
     setDefaultFeed,
     saveDefaultFeed,
@@ -57,6 +58,7 @@ export default function App() {
   const {
     feedItems,
     setFeedItems,
+    itemsLoading,
     saveItemMemo,
     toggleFavorite,
     deleteItem,
@@ -92,7 +94,7 @@ export default function App() {
     return <AuthScreen setUser={setUser} />;
   }
   
-  if (profileLoading) {
+  if (profileLoading || spacesLoading || itemsLoading) {
     return (
       <div style={appStyle}>
         <p style={{ color: "#a1a1aa", margin: "auto" }}>

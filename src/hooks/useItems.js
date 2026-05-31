@@ -3,11 +3,13 @@ import { supabase } from "../utils/supabaseClient";
 
 export function useItems(user) {
   const [feedItems, setFeedItems] = useState([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
 
   useEffect(() => {
     async function fetchItems() {
       if (!user) {
         setFeedItems([]);
+        setItemsLoading(false);
         return;
       }
 
@@ -19,6 +21,7 @@ export function useItems(user) {
 
       if (error) {
         console.error("Error fetching items:", error);
+        setItemsLoading(false);
         return;
       }
 
@@ -36,6 +39,7 @@ export function useItems(user) {
       }));
 
       setFeedItems(formattedItems);
+      setItemsLoading(false);
     }
 
     fetchItems();
@@ -181,6 +185,7 @@ export function useItems(user) {
   return {
     feedItems,
     setFeedItems,
+    itemsLoading,
     saveItemMemo,
     toggleFavorite,
     deleteItem,

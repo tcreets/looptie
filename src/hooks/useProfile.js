@@ -7,6 +7,7 @@ export function useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace) 
 
   useEffect(() => {
     async function fetchProfile() {
+      setProfileLoading(true);
       if (!user) {
         setProfile(null);
         setProfileLoading(false);
