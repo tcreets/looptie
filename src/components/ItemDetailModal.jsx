@@ -2,27 +2,28 @@ import React, { useState } from "react";
 import { ArrowLeft, Heart } from "lucide-react";
 
 export default function ItemDetailModal({
-    selectedItem,
-    itemNoteDraft,
-    setItemNoteDraft,
-    onClose,
-    onSave,
-    onToggleFavorite,
-    itemFavoriteDraft,
-    setItemFavoriteDraft,
-    onDelete,
-  }) {
+  selectedItem,
+  itemNoteDraft,
+  setItemNoteDraft,
+  onClose,
+  onSave,
+  onToggleFavorite,
+  itemFavoriteDraft,
+  setItemFavoriteDraft,
+  onDelete,
+}) {
+  const [mediaFit, setMediaFit] = useState("cover");
+  const [showFullscreen, setShowFullscreen] = useState(false);
 
   if (!selectedItem) return null;
 
-  const [mediaFit, setMediaFit] = useState("cover");
-  
   return (
     <div style={itemModalOverlay}>
       <div style={itemModalCard} className="pretty-scroll">
         <button onClick={onClose} style={itemModalClose}>
           <ArrowLeft size={22} strokeWidth={2.5} />
         </button>
+
         <button
           type="button"
           onClick={onToggleFavorite}
@@ -54,10 +55,12 @@ export default function ItemDetailModal({
             style={{
               ...itemModalMedia,
               objectFit: mediaFit,
+              cursor: "zoom-in",
             }}
+            onClick={() => setShowFullscreen(true)}
             onLoad={(e) => {
               const img = e.currentTarget;
-            
+
               if (img.naturalWidth > img.naturalHeight * 1.3) {
                 setMediaFit("contain");
               } else {
@@ -67,48 +70,57 @@ export default function ItemDetailModal({
           />
         )}
 
+        {showFullscreen && (
+          <div
+            style={fullscreenOverlay}
+            onClick={() => setShowFullscreen(false)}
+          >
+            <img
+              src={selectedItem.image}
+              alt=""
+              style={fullscreenImage}
+            />
+          </div>
+        )}
+
         <div style={itemModalContent}>
           <p style={itemModalSpace}>{selectedItem.space}</p>
+
           <p style={itemModalTimestamp}>
             Added{" "}
-            {new Date(selectedItem.created_at).toLocaleDateString(
-              "en-US",
-              {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              }
-            )}
+            {new Date(selectedItem.created_at).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
           </p>
-            <textarea
-              data-gramm="false"
-              placeholder="Add a memo, note, or comment..."
-              value={itemNoteDraft}
-              onChange={(e) => setItemNoteDraft(e.target.value)}
-              style={itemModalNote}
-            />
 
-            <button
-              style={{ ...modalPrimaryButton, marginTop: "24px" }}
-              onClick={onSave}
-            >
-              Save Memo
-            </button>
+          <textarea
+            data-gramm="false"
+            placeholder="Add a memo, note, or comment..."
+            value={itemNoteDraft}
+            onChange={(e) => setItemNoteDraft(e.target.value)}
+            style={itemModalNote}
+          />
 
-        <div style={tagSection}>
-          {(selectedItem.tags || []).map((tag) => (
-            <span key={tag} style={tagPill}>
-              #{tag}
-            </span>
-          ))}
-        </div>
-        <button
-          style={deleteButton}
-          onClick={onDelete}
-        >
-          Delete Item
-        </button>
+          <button
+            style={{ ...modalPrimaryButton, marginTop: "24px" }}
+            onClick={onSave}
+          >
+            Save Memo
+          </button>
 
+          <div style={tagSection}>
+            {(selectedItem.tags || []).map((tag) => (
+              <span key={tag} style={tagPill}>
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          <button style={deleteButton} onClick={onDelete}>
+            Delete Item
+          </button>
         </div>
       </div>
     </div>
@@ -172,6 +184,12 @@ const itemModalSpace = {
   margin: "0 0 8px",
 };
 
+const itemModalTimestamp = {
+  color: "#71717a",
+  fontSize: "13px",
+  margin: "0 0 18px",
+};
+
 const itemModalNote = {
   width: "100%",
   minHeight: "190px",
@@ -201,51 +219,62 @@ const modalPrimaryButton = {
 };
 
 const tagSection = {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "8px",
-    marginTop: "16px",
-  };
-  
-  const tagPill = {
-    background: "#241f30",
-    border: "1px solid #3a3447",
-    color: "#c4b5fd",
-    padding: "6px 12px",
-    borderRadius: "999px",
-    fontSize: "13px",
-  };
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "8px",
+  marginTop: "16px",
+};
 
-  const favoriteButton = {
-    position: "absolute",
-    top: "14px",
-    right: "14px",
-    width: "38px",
-    height: "38px",
-    border: "none",
-    background: "transparent",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    zIndex: 5,
-    padding: 0,
-  };
-
-  const deleteButton = {
-    width: "100%",
-    padding: "14px",
-    borderRadius: "16px",
-    border: "1px solid #7f1d1d",
-    background: "#1f0f12",
-    color: "#fca5a5",
-    fontWeight: "bold",
-    cursor: "pointer",
-    marginTop: "24px",
-  };
-
-  const itemModalTimestamp = {
-  color: "#71717a",
+const tagPill = {
+  background: "#241f30",
+  border: "1px solid #3a3447",
+  color: "#c4b5fd",
+  padding: "6px 12px",
+  borderRadius: "999px",
   fontSize: "13px",
-  margin: "0 0 18px",
+};
+
+const favoriteButton = {
+  position: "absolute",
+  top: "14px",
+  right: "14px",
+  width: "38px",
+  height: "38px",
+  border: "none",
+  background: "transparent",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+  zIndex: 5,
+  padding: 0,
+};
+
+const deleteButton = {
+  width: "100%",
+  padding: "14px",
+  borderRadius: "16px",
+  border: "1px solid #7f1d1d",
+  background: "#1f0f12",
+  color: "#fca5a5",
+  fontWeight: "bold",
+  cursor: "pointer",
+  marginTop: "24px",
+};
+
+const fullscreenOverlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,.95)",
+  zIndex: 1000,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "20px",
+};
+
+const fullscreenImage = {
+  maxWidth: "100%",
+  maxHeight: "100%",
+  objectFit: "contain",
 };
