@@ -18,12 +18,12 @@ function SmartImage({ src, style }) {
       onLoad={(e) => {
         const img = e.currentTarget;
 
-        if (img.naturalWidth > img.naturalHeight) {
-          setFit("contain");
-        } else {
-          setFit("cover");
-        }
-      }}
+        if (img.naturalWidth > img.naturalHeight * 1.3) {
+            setFit("contain");
+          } else {
+            setFit("cover");
+          }
+        }}
     />
   );
 }
@@ -134,7 +134,10 @@ export default function HomeFeed({
                 preload="auto"
               />
             ) : (
-              <img src={item.image} style={imageStyle} />
+              <SmartImage
+                src={item.image}
+                style={imageStyle}
+              />
             )}
 
             <div style={overlayStyle} />

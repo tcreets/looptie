@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ArrowLeft, Heart } from "lucide-react";
 
 export default function ItemDetailModal({
@@ -14,6 +14,8 @@ export default function ItemDetailModal({
   }) {
 
   if (!selectedItem) return null;
+
+  const [mediaFit, setMediaFit] = useState("cover");
   
   return (
     <div style={itemModalOverlay}>
@@ -46,7 +48,23 @@ export default function ItemDetailModal({
             style={itemModalMedia}
           />
         ) : (
-          <img src={selectedItem.image} alt="" style={itemModalMedia} />
+          <img
+            src={selectedItem.image}
+            alt=""
+            style={{
+              ...itemModalMedia,
+              objectFit: mediaFit,
+            }}
+            onLoad={(e) => {
+              const img = e.currentTarget;
+            
+              if (img.naturalWidth > img.naturalHeight * 1.3) {
+                setMediaFit("contain");
+              } else {
+                setMediaFit("cover");
+              }
+            }}
+          />
         )}
 
         <div style={itemModalContent}>
@@ -138,7 +156,7 @@ const itemModalClose = {
 
 const itemModalMedia = {
   width: "100%",
-  height: "100vh",
+  maxHeight: "60vh",
   objectFit: "cover",
   display: "block",
 };
