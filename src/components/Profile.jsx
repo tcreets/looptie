@@ -98,8 +98,11 @@ export default function Profile({
                 src={item.image}
                 muted
                 playsInline
-                preload="metadata"
+                preload="auto"
                 style={profileImage}
+                onLoadedData={(e) => {
+                  e.currentTarget.currentTime = 0.1;
+                }}
               />
             ) : (
               <img
@@ -192,6 +195,7 @@ export default function Profile({
     width: "100%",
     height: "auto",
     display: "block",
+    objectFit: "cover",
   };
   
   const profileOverlay = {
