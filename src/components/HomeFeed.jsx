@@ -1,6 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX, Pause, Play, SquarePen, Heart } from "lucide-react";
 
+
+function SmartImage({ src, style }) {
+  const [fit, setFit] = useState("cover");
+
+  return (
+    <img
+      src={src}
+      loading="lazy"
+      alt=""
+      style={{
+        ...style,
+        objectFit: fit,
+        background: "#050505",
+      }}
+      onLoad={(e) => {
+        const img = e.currentTarget;
+
+        if (img.naturalWidth > img.naturalHeight) {
+          setFit("contain");
+        } else {
+          setFit("cover");
+        }
+      }}
+    />
+  );
+}
+
 export default function HomeFeed({
   spaces,
   activeFeed,
@@ -107,7 +134,7 @@ export default function HomeFeed({
                 preload="auto"
               />
             ) : (
-              <img src={item.image} loading="lazy" alt="" style={imageStyle} />
+              <img src={item.image} style={imageStyle} />
             )}
 
             <div style={overlayStyle} />

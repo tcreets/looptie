@@ -2,6 +2,33 @@ import { useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 import { Settings, Heart, Play } from "lucide-react";
 
+
+function SmartImage({ src, style }) {
+  const [fit, setFit] = useState("cover");
+
+  return (
+    <img
+      src={src}
+      loading="lazy"
+      alt=""
+      style={{
+        ...style,
+        objectFit: fit,
+        background: "#050505",
+      }}
+      onLoad={(e) => {
+        const img = e.currentTarget;
+
+        if (img.naturalWidth > img.naturalHeight) {
+          setFit("contain");
+        } else {
+          setFit("cover");
+        }
+      }}
+    />
+  );
+}
+
 export default function Profile({ 
   items,
   spaces,
@@ -105,12 +132,7 @@ export default function Profile({
                 }}
               />
             ) : (
-              <img
-                src={item.image}
-                loading="lazy"
-                alt=""
-                style={profileImage}
-              />
+              <SmartImage src={item.image} style={profileImage} />
             )}
 
             {item.media_type === "video" && (
