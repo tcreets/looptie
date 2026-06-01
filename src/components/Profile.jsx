@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-import { Settings, Heart } from "lucide-react";
+import { Settings, Heart, Play } from "lucide-react";
 
 export default function Profile({ 
   items,
@@ -93,12 +93,28 @@ export default function Profile({
             key={item.id}
             onClick={() => setSelectedItem(item)}
           >
-            <img
-              src={item.image}
-              loading="lazy"
-              alt=""
-              style={profileImage}
-            />
+            {item.media_type === "video" ? (
+              <video
+                src={item.image}
+                muted
+                playsInline
+                preload="metadata"
+                style={profileImage}
+              />
+            ) : (
+              <img
+                src={item.image}
+                loading="lazy"
+                alt=""
+                style={profileImage}
+              />
+            )}
+
+            {item.media_type === "video" && (
+              <div style={videoBadge}>
+                <Play fill="white" color="white" size={16} />
+              </div>
+            )}
           
             {item.favorite && (
               <div style={profileFavoriteBadge}>
@@ -285,3 +301,18 @@ export default function Profile({
     alignItems: "center",
     justifyContent: "center",
   };
+
+  const videoBadge = {
+  position: "absolute",
+  top: "10px",
+  right: "10px",
+  width: "32px",
+  height: "32px",
+  borderRadius: "999px",
+  background: "rgba(0,0,0,.65)",
+  backdropFilter: "blur(8px)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  zIndex: 3,
+};

@@ -7,6 +7,7 @@ export function useItems(user) {
 
   useEffect(() => {
     async function fetchItems() {
+      setItemsLoading(true);
       if (!user) {
         setFeedItems([]);
         setItemsLoading(false);

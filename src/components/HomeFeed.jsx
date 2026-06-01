@@ -31,7 +31,6 @@ export default function HomeFeed({
             setPausedVideos((prev) => ({ ...prev, [itemId]: false }));
           } else {
             video.pause();
-            video.currentTime = 0;
             setPausedVideos((prev) => ({ ...prev, [itemId]: true }));
           }
         });
@@ -66,15 +65,14 @@ export default function HomeFeed({
                 top: 0,
                 behavior: "auto",
               });
-            
+
               setActiveFeed(feed.name);
             }}
             style={{
               ...feedButtonStyle,
               background:
                 activeFeed === feed.name ? "#7c3aed" : "#18181b",
-              color:
-                activeFeed === feed.name ? "black" : "white",
+              color: activeFeed === feed.name ? "black" : "white",
             }}
           >
             {feed.name}
@@ -96,7 +94,9 @@ export default function HomeFeed({
               <video
                 data-item-id={item.id}
                 ref={(el) => {
-                  if (el) videoRefs.current[item.id] = el;
+                  if (el) {
+                    videoRefs.current[item.id] = el;
+                  }
                 }}
                 src={item.image}
                 style={imageStyle}
@@ -112,7 +112,11 @@ export default function HomeFeed({
 
             <div style={overlayStyle} />
 
-            {item.favorite && <div style={favoriteIndicator}><Heart fill="#ef4444" color="#ef4444" size={28}/></div>}
+            {item.favorite && (
+              <div style={favoriteIndicator}>
+                <Heart fill="#ef4444" color="#ef4444" size={28} />
+              </div>
+            )}
 
             <div style={floatingActions}>
               {item.media_type === "video" && (
