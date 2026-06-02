@@ -288,7 +288,7 @@ const imageStyle = {
 const overlayStyle = {
   position: "absolute",
   inset: 0,
-  background: "linear-gradient(to top, rgba(0,0,0,.9), rgba(0,0,0,.1))",
+  background: "linear-gradient(to top, rgba(0,0,0,.35), transparent)",
   pointerEvents: "none",
 };
 
