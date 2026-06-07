@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
+import imageCompression from "browser-image-compression";
 
 export default function AddContentScreen({
   user,
@@ -23,6 +24,9 @@ export default function AddContentScreen({
   const [showCreateSpaceModal, setShowCreateSpaceModal] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const handlePreviewWheel = (e) => {
+  e.currentTarget.scrollLeft += e.deltaY * 2.2;
+};
 
   return (
     <div>
@@ -144,80 +148,65 @@ export default function AddContentScreen({
           disabled={!selectedFiles.length || isUploading || !uploadSpace}
           onClick={async () => {
             if (!selectedFiles.length) return;
-
+                    
             const selectedSpaceName =
               typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
-
+                    
             if (!selectedSpaceName) {
               alert("Choose or create a space before saving.");
               return;
             }
-
+          
             setIsUploading(true);
-
-            const uploadedItems = [];
-
-            for (let i = 0; i < selectedFiles.length; i++) {
-              const file = selectedFiles[i];
-
-              console.log("FILE CHECK:", {
-                name: file.name,
-                type: file.type,
-                sizeMB: (file.size / 1024 / 1024).toFixed(2),
-              });
-
-              setUploadProgress(
-                `Saving to Looptie... (${i + 1} of ${selectedFiles.length})`
-              );
-
+            setUploadProgress(`Saving to Looptie...`);
+          
+            const safeSpace = selectedSpaceName
+              .replace(/\s+/g, "-")
+              .replace(/[^a-zA-Z0-9-_]/g, "");
+          
+            const uploadSingleFile = async (file, index) => {
               const fileExt = file.name.split(".").pop();
-
+            
               const mediaType = file.type.startsWith("video/")
                 ? "video"
                 : "image";
-
-              const cleanOriginalName = file.name
-                .replace(/\.[^/.]+$/, "")
-                .replace(/\s+/g, "-")
-                .replace(/[^a-zA-Z0-9-_]/g, "");
-
-              const fileName = `${Date.now()}-${cleanOriginalName}.${fileExt}`;
-
-              const safeSpace = selectedSpaceName
-                .replace(/\s+/g, "-")
-                .replace(/[^a-zA-Z0-9-_]/g, "");
-
+            
+              const fileName = `${crypto.randomUUID()}.${fileExt}`;
               const filePath = `${user.id}/${safeSpace}/${fileName}`;
-              
-              console.log(
-                "Uploading:",
-                file.name,
-                "Size:",
-                (file.size / 1024 / 1024).toFixed(2),
-                "MB"
-              );
-
+            
+              let fileToUpload = file;
+            
+              if (file.type.startsWith("image/")) {
+                try {
+                  fileToUpload = await imageCompression(file, {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1600,
+                    useWebWorker: true,
+                  });
+                } catch (err) {
+                  console.error("Compression failed:", err);
+                }
+              }
+            
               const { error: uploadError } = await supabase.storage
                 .from("looptie-uploads")
-                .upload(filePath, file);
-
+                .upload(filePath, fileToUpload, {
+                  cacheControl: "3600",
+                  upsert: false,
+                  contentType: fileToUpload.type,
+                });
+              
               if (uploadError) {
-                console.error("UPLOAD ERROR FULL:", uploadError);
-                alert(
-                  `Upload failed for ${file.name}\n\nSize: ${(file.size / 1024 / 1024).toFixed(
-                    2
-                  )} MB\n\nError: ${uploadError.message}`
+                throw new Error(
+                  `Upload failed for ${file.name}: ${uploadError.message}`
                 );
-                setIsUploading(false);
-                setUploadProgress("");
-                return;
               }
-
+            
               const { data: publicUrlData } = supabase.storage
                 .from("looptie-uploads")
                 .getPublicUrl(filePath);
-
-              uploadedItems.push({
+            
+              return {
                 user_id: user.id,
                 space: selectedSpaceName,
                 media_type: mediaType,
@@ -225,46 +214,73 @@ export default function AddContentScreen({
                 storage_path: filePath,
                 note: null,
                 favorite: false,
-              });
-            }
-
-            const { data, error } = await supabase
-              .from("items")
-              .insert(uploadedItems)
-              .select();
-              console.log("Inserted items:", data);
-
-            if (error) {
-              console.error("Error saving uploads:", error);
-              alert("Error saving upload: " + error.message);
+              };
+            };
+          
+            try {
+              const concurrencyLimit = 3;
+              const uploadedItems = [];
+            
+              for (let i = 0; i < selectedFiles.length; i += concurrencyLimit) {
+                const batch = selectedFiles.slice(i, i + concurrencyLimit);
+              
+                setUploadProgress(
+                  `Saving to Looptie... (${Math.min(
+                    i + concurrencyLimit,
+                    selectedFiles.length
+                  )} of ${selectedFiles.length})`
+                );
+              
+                const batchResults = await Promise.all(
+                  batch.map((file, batchIndex) =>
+                    uploadSingleFile(file, i + batchIndex)
+                  )
+                );
+              
+                uploadedItems.push(...batchResults);
+              }
+            
+              const { data, error } = await supabase
+                .from("items")
+                .insert(uploadedItems)
+                .select();
+            
+              if (error) {
+                console.error("Error saving uploads:", error);
+                alert("Error saving upload: " + error.message);
+                setIsUploading(false);
+                setUploadProgress("");
+                return;
+              }
+            
+              const formattedItems = data.map((item) => ({
+                id: item.id,
+                space: item.space,
+                image: item.image_url,
+                storagePath: item.storage_path,
+                note: item.note,
+                favorite: item.favorite,
+                media_type: item.media_type,
+                created_at: item.created_at,
+              }));
+            
+              setFeedItems([...formattedItems, ...feedItems]);
+              setSelectedFiles([]);
+              setActiveFeed(selectedSpaceName);
+            
+              setShowSuccess(true);
+            
+              setTimeout(() => {
+                setShowSuccess(false);
+                setTab("home");
+              }, 1200);
+            } catch (err) {
+              console.error(err);
+              alert(err.message);
+            } finally {
               setIsUploading(false);
               setUploadProgress("");
-              return;
             }
-
-            const formattedItems = data.map((item) => ({
-              id: item.id,
-              space: item.space,
-              image: item.image_url,
-              storagePath: item.storage_path,
-              note: item.note,
-              favorite: item.favorite,
-              media_type: item.media_type,
-              created_at: item.created_at,
-            }));
-
-            setIsUploading(false);
-            setUploadProgress("");
-            setFeedItems([...formattedItems, ...feedItems]);
-            setSelectedFiles([]);
-            setActiveFeed(uploadSpace);
-
-            setShowSuccess(true);
-
-            setTimeout(() => {
-              setShowSuccess(false);
-              setTab("home");
-            }, 1200);
           }}
         >
           {isUploading ? (
@@ -281,11 +297,15 @@ export default function AddContentScreen({
           )}
         </button>
         <p style={uploadLimitText}>
-          Save what matters. Larger videos may take a little longer.
+          Save what matters. Videos may take a minute. Keep this page open while Looptie saves them.
         </p>
 
         {selectedFiles.length > 0 && (
-          <div style={uploadPreviewGrid}>
+          <div
+            style={uploadPreviewGrid}
+            className="horizontal-pretty-scrollbar"
+            onWheel={handlePreviewWheel}
+          >
             {selectedFiles.map((file, index) => {
               const previewUrl = URL.createObjectURL(file);
               const isVideo = file.type.startsWith("video");
@@ -476,20 +496,25 @@ const modalPrimaryButton = {
 
 const uploadPreviewGrid = {
   display: "flex",
-  gap: "8px",
+  gap: "14px",
   overflowX: "auto",
-  paddingBottom: "8px",
+  overflowY: "hidden",
+  padding: "4px 2px 12px",
+  scrollSnapType: "x proximity",
+  WebkitOverflowScrolling: "touch",
+  overscrollBehaviorX: "contain",
 };
 
 const uploadPreviewCard = {
-  width: "72px",
-  height: "72px",
+  width: "112px",
+  height: "112px",
   flex: "0 0 auto",
-  borderRadius: "14px",
+  borderRadius: "20px",
   overflow: "hidden",
   border: "1px solid #3a3447",
   background: "#16161d",
   position: "relative",
+  scrollSnapAlign: "start",
 };
 
 const uploadPreviewMedia = {
