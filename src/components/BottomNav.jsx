@@ -32,7 +32,9 @@ export default function BottomNav({
       </button>
 
       <button onClick={() => setTab("add")} style={addNavButton}>
+      <div style={{ transform: "translateY(2px)" }}>
         <Plus size={30} strokeWidth={3} />
+      </div>
       </button>
 
       <button onClick={() => setTab("search")} style={navButton}>
