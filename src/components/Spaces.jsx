@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Star, MoreVertical } from "lucide-react";
+import SpaceDetail from "./SpaceDetail";
 
 export default function Spaces({
   spaces,
@@ -20,203 +21,157 @@ export default function Spaces({
   const [renamingSpace, setRenamingSpace] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
 
-  const selectedSpaceItems = feedItems.filter(
-    (item) => item.space === selectedSpace
-  );
-
-  if (selectedSpace === null) {
+  if (selectedSpace !== null) {
     return (
-      <div>
-        <p style={subtitleStyle}>Your spaces</p>
-
-        <div style={spacesGrid}>
-          {spaces.map((space) => (
-            <div
-              key={space.id}
-              onClick={() => setSelectedSpace(space.name)}
-              style={{
-                ...spaceCard,
-                cursor: "pointer",
-                border:
-                  defaultFeed === space.name
-                    ? "2px solid #7c3aed"
-                    : "1px solid #27272a",
-              }}
-            >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDefaultFeed(space.name);
-                }}
-                style={starButton}
-              >
-                <Star
-                  size={20}
-                  fill={defaultFeed === space.name ? "#7c3aed" : "transparent"}
-                  color={defaultFeed === space.name ? "#7c3aed" : "#71717a"}
-                />
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setOpenMenuSpaceId(
-                    openMenuSpaceId === space.id ? null : space.id
-                  );
-                }}
-                style={menuButton}
-              >
-                <MoreVertical size={18} />
-              </button>
-
-              {openMenuSpaceId === space.id && (
-                <div style={spaceMenu}>
-                  <button
-                    style={spaceMenuItem}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setRenamingSpace(space);
-                      setRenameDraft(space.name);
-                      setOpenMenuSpaceId(null);
-                    }}
-                  >
-                    Rename
-                  </button>
-
-                  <button
-                    style={{ ...spaceMenuItem, color: "#fca5a5" }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenMenuSpaceId(null);
-                      onDeleteSpace(space.name);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
-
-              <div style={spaceContent}>
-                <h3 style={{ margin: 0 }}>{space.name}</h3>
-                <p style={spaceItemsText}>
-                  {feedItems.filter((item) => item.space === space.name).length}{" "}
-                  items
-                </p>
-              </div>
-            </div>
-          ))}
-
-          <div style={newSpaceCard} onClick={() => setShowNewSpaceForm(true)}>
-            <h3 style={{ margin: 0 }}>New Space</h3>
-            <div style={newSpacePlus}>
-              <Plus size={20} strokeWidth={3} />
-            </div>
-          </div>
-        </div>
-
-        {renamingSpace && (
-          <div style={modalOverlay}>
-            <div style={modalCard}>
-              <h2 style={modalTitle}>Rename Space</h2>
-
-              <p style={modalSubtitle}>
-                Update the name for this space.
-              </p>
-
-              <input
-                style={modalInput}
-                value={renameDraft}
-                onChange={(e) => setRenameDraft(e.target.value)}
-                autoFocus
-              />
-
-              <button
-                style={modalPrimaryButton}
-                onClick={async () => {
-                  const success = await renameSpace({
-                    spaceId: renamingSpace.id,
-                    oldName: renamingSpace.name,
-                    newName: renameDraft,
-                    feedItems,
-                    setFeedItems,
-                    setSelectedSpace,
-                  });
-                  
-                  if (!success) return;
-                  
-                  setRenamingSpace(null);
-                  setRenameDraft("");
-                }}
-              >
-                Save Name
-              </button>
-
-              <button
-                style={modalSecondaryButton}
-                onClick={() => {
-                  setRenamingSpace(null);
-                  setRenameDraft("");
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <SpaceDetail
+        selectedSpace={selectedSpace}
+        setSelectedSpace={setSelectedSpace}
+        spaces={spaces}
+        feedItems={feedItems}
+        setFeedItems={setFeedItems}
+        setSelectedItem={setSelectedItem}
+        setUploadSpace={setUploadSpace}
+        setTab={setTab}
+      />
     );
   }
 
   return (
-    <div style={spaceDetailScreen} className="no-scrollbar">
-      <div style={stickySpaceHeader}>
-        <button onClick={() => setSelectedSpace(null)} style={backArrowButton}>
-          ←
-        </button>
+    <div>
+      <p style={subtitleStyle}>Your spaces</p>
 
-        <h1>{selectedSpace}</h1>
-
-        <p style={subtitleStyle}>
-          {selectedSpaceItems.length} items in this space
-        </p>
-      </div>
-
-      {selectedSpaceItems.length === 0 && (
-        <p style={emptyStateText}>
-          Build a feed that pulls you back into this world.
-        </p>
-      )}
-
-      <div style={spaceDetailGrid}>
-        {selectedSpaceItems.map((item) => (
+      <div style={spacesGrid}>
+        {spaces.map((space) => (
           <div
-            key={item.id}
-            style={spaceDetailCard}
-            onClick={() => setSelectedItem(item)}
+            key={space.id}
+            onClick={() => setSelectedSpace(space.name)}
+            style={{
+              ...spaceCard,
+              cursor: "pointer",
+              border:
+                defaultFeed === space.name
+                  ? "2px solid #7c3aed"
+                  : "1px solid #27272a",
+            }}
           >
-            {item.media_type === "video" ? (
-              <video src={item.image} style={spaceDetailImage} muted playsInline />
-            ) : (
-              <img src={item.image} loading="lazy" alt="" style={spaceDetailImage} />
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setDefaultFeed(space.name);
+              }}
+              style={starButton}
+            >
+              <Star
+                size={20}
+                fill={defaultFeed === space.name ? "#7c3aed" : "transparent"}
+                color={defaultFeed === space.name ? "#7c3aed" : "#71717a"}
+              />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenMenuSpaceId(
+                  openMenuSpaceId === space.id ? null : space.id
+                );
+              }}
+              style={menuButton}
+            >
+              <MoreVertical size={18} />
+            </button>
+
+            {openMenuSpaceId === space.id && (
+              <div style={spaceMenu}>
+                <button
+                  style={spaceMenuItem}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setRenamingSpace(space);
+                    setRenameDraft(space.name);
+                    setOpenMenuSpaceId(null);
+                  }}
+                >
+                  Rename
+                </button>
+
+                <button
+                  style={{ ...spaceMenuItem, color: "#fca5a5" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenMenuSpaceId(null);
+                    onDeleteSpace(space.name);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             )}
 
-            {item.favorite && <div style={spaceFavoriteIndicator}>♥</div>}
+            <div style={spaceContent}>
+              <h3 style={{ margin: 0 }}>{space.name}</h3>
+              <p style={spaceItemsText}>
+                {feedItems.filter((item) => item.space === space.name).length}{" "}
+                items
+              </p>
+            </div>
           </div>
         ))}
 
-        <button
-          style={addToSpaceCard}
-          onClick={() => {
-            setUploadSpace(selectedSpace);
-            setTab("add");
-          }}
-        >
-          <>
-            <span>Add to {selectedSpace}</span>
-            <div style={addItemPlus}>+</div>
-          </>
-        </button>
+        <div style={newSpaceCard} onClick={() => setShowNewSpaceForm(true)}>
+          <h3 style={{ margin: 0 }}>New Space</h3>
+          <div style={newSpacePlus}>
+            <Plus size={20} strokeWidth={3} />
+          </div>
+        </div>
       </div>
+
+      {renamingSpace && (
+        <div style={modalOverlay}>
+          <div style={modalCard}>
+            <h2 style={modalTitle}>Rename Space</h2>
+
+            <p style={modalSubtitle}>Update the name for this space.</p>
+
+            <input
+              style={modalInput}
+              value={renameDraft}
+              onChange={(e) => setRenameDraft(e.target.value)}
+              autoFocus
+            />
+
+            <button
+              style={modalPrimaryButton}
+              onClick={async () => {
+                const success = await renameSpace({
+                  spaceId: renamingSpace.id,
+                  oldName: renamingSpace.name,
+                  newName: renameDraft,
+                  feedItems,
+                  setFeedItems,
+                  setSelectedSpace,
+                });
+
+                if (!success) return;
+
+                setRenamingSpace(null);
+                setRenameDraft("");
+              }}
+            >
+              Save Name
+            </button>
+
+            <button
+              style={modalSecondaryButton}
+              onClick={() => {
+                setRenamingSpace(null);
+                setRenameDraft("");
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -384,112 +339,4 @@ const modalSecondaryButton = {
   color: "#aaa",
   marginTop: "10px",
   cursor: "pointer",
-};
-
-const backArrowButton = {
-  width: "38px",
-  height: "38px",
-  borderRadius: "999px",
-  border: "1px solid #27272a",
-  background: "#18181b",
-  color: "#d4d4d8",
-  cursor: "pointer",
-  fontSize: "20px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  marginBottom: "18px",
-};
-
-const spaceDetailGrid = {
-  columnCount: 2,
-  columnGap: "16px",
-  paddingBottom: "160px",
-};
-
-const spaceDetailCard = {
-  background: "#18181b",
-  border: "1px solid #27272a",
-  borderRadius: "22px",
-  overflow: "hidden",
-  cursor: "pointer",
-  breakInside: "avoid",
-  marginBottom: "16px",
-  position: "relative",
-};
-
-const spaceDetailImage = {
-  width: "100%",
-  height: "auto",
-  display: "block",
-};
-
-const addToSpaceCard = {
-  width: "100%",
-  minHeight: "220px",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "18px",
-  background: "transparent",
-  border: "1px dashed #52525b",
-  borderRadius: "28px",
-  color: "white",
-  fontSize: "18px",
-  fontWeight: "600",
-  cursor: "pointer",
-  padding: "24px",
-  textAlign: "center",
-  breakInside: "avoid",
-  marginBottom: "16px",
-  boxSizing: "border-box",
-};
-
-const addItemPlus = {
-  width: "42px",
-  height: "42px",
-  borderRadius: "999px",
-  background: "#18181b",
-  color: "#7c3aed",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "30px",
-  fontWeight: "700",
-  lineHeight: 1,
-  transform: "translateY(-2px)",
-};
-
-const emptyStateText = {
-  color: "white",
-  fontSize: "18px",
-  fontWeight: "600",
-  lineHeight: 1.5,
-};
-
-const spaceDetailScreen = {
-  height: "100%",
-  overflowY: "auto",
-  WebkitOverflowScrolling: "touch",
-  paddingBottom: "120px",
-};
-
-const stickySpaceHeader = {
-  position: "sticky",
-  top: 0,
-  zIndex: 10,
-  background: "#050505",
-  paddingBottom: "12px",
-};
-
-const spaceFavoriteIndicator = {
-  position: "absolute",
-  top: "10px",
-  left: "10px",
-  color: "#ef4444",
-  fontSize: "24px",
-  zIndex: 20,
-  textShadow: "0 2px 10px rgba(0,0,0,.7)",
-  pointerEvents: "none",
 };
