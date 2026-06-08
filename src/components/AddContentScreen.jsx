@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, ChevronDown, Plus, Check } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 import imageCompression from "browser-image-compression";
 
@@ -125,7 +125,7 @@ export default function AddContentScreen({
               );
             })}
 
-            <option value="__new__">+ Create New Space</option>
+            <option value="__new__">Create New Space</option>
           </select>
 
           <div
@@ -139,7 +139,7 @@ export default function AddContentScreen({
               fontSize: "14px",
             }}
           >
-            ▼
+            <ChevronDown size={16} strokeWidth={2.5} />
           </div>
         </div>
 
@@ -442,7 +442,8 @@ export default function AddContentScreen({
       {showSuccess && (
         <div style={successOverlay}>
           <div style={successCard}>
-            ✓ Saved to Looptie
+            <Check size={22} strokeWidth={3} />
+            <span>Saved to Looptie</span>
           </div>
         </div>
       )}
@@ -600,6 +601,10 @@ const successCard = {
   color: "white",
   fontSize: "18px",
   fontWeight: "600",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "10px",
 };
 
 const spinner = {

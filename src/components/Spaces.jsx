@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Star, MoreVertical } from "lucide-react";
+import { Plus, Star, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import SpaceDetail from "./SpaceDetail";
 
 export default function Spaces({
@@ -91,7 +91,8 @@ export default function Spaces({
                     setOpenMenuSpaceId(null);
                   }}
                 >
-                  Rename
+                  <Pencil size={15} strokeWidth={2.5} />
+                  <span>Rename</span>
                 </button>
 
                 <button
@@ -102,7 +103,8 @@ export default function Spaces({
                     onDeleteSpace(space.name);
                   }}
                 >
-                  Delete
+                  <Trash2 size={15} strokeWidth={2.5} />
+                  <span>Delete</span>
                 </button>
               </div>
             )}
@@ -232,7 +234,9 @@ const spaceMenu = {
 };
 
 const spaceMenuItem = {
-  display: "block",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
   width: "100%",
   padding: "10px 14px",
   border: "none",

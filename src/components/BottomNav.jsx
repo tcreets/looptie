@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Grid3X3, User, Search } from "lucide-react";
+import { Home, Grid3X3, User, Search, Plus } from "lucide-react";
 
 export default function BottomNav({
   defaultFeed,
@@ -32,7 +32,7 @@ export default function BottomNav({
       </button>
 
       <button onClick={() => setTab("add")} style={addNavButton}>
-        +
+        <Plus size={30} strokeWidth={3} />
       </button>
 
       <button onClick={() => setTab("search")} style={navButton}>

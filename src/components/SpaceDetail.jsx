@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Check, ArrowLeft,  CheckSquare, X, } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  CheckSquare,
+  Heart,
+  MoveRight,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 
 export default function SpaceDetail({
@@ -98,9 +107,9 @@ export default function SpaceDetail({
   return (
     <div style={spaceDetailScreen} className="no-scrollbar">
       <button onClick={() => setSelectedSpace(null)} style={backArrowButton}>
-        <ArrowLeft size={20} strokeWidth={2.5} />
+        <ArrowLeft size={21} strokeWidth={2.5} />
       </button>
-      
+
       <button
         style={selectItemsButton}
         onClick={() => {
@@ -166,7 +175,11 @@ export default function SpaceDetail({
               </div>
             )}
 
-            {item.favorite && <div style={spaceFavoriteIndicator}>♥</div>}
+            {item.favorite && (
+              <div style={spaceFavoriteIndicator}>
+                <Heart size={22} fill="#ef4444" color="#ef4444" />
+              </div>
+            )}
           </div>
         ))}
 
@@ -179,7 +192,9 @@ export default function SpaceDetail({
             }}
           >
             <span>Add to {selectedSpace}</span>
-            <div style={addItemPlus}>+</div>
+            <div style={addItemPlus}>
+              <Plus size={24} strokeWidth={3} />
+            </div>
           </button>
         )}
       </div>
@@ -191,10 +206,12 @@ export default function SpaceDetail({
               style={bulkMoveButton}
               onClick={() => setShowMoveMenu((prev) => !prev)}
             >
+              <MoveRight size={18} strokeWidth={2.5} />
               Move {selectedItemIds.length}
             </button>
 
             <button style={bulkDeleteButton} onClick={deleteSelectedItems}>
+              <Trash2 size={18} strokeWidth={2.5} />
               Delete
             </button>
           </div>
@@ -225,14 +242,32 @@ const backArrowButton = {
   top: "14px",
   left: "14px",
   zIndex: 80,
-  width: "38px",
-  height: "38px",
+  width: "42px",
+  height: "42px",
   borderRadius: "999px",
   border: "1px solid #27272a",
   background: "rgba(24,24,27,.9)",
   color: "#d4d4d8",
   cursor: "pointer",
-  fontSize: "20px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  backdropFilter: "blur(10px)",
+};
+
+const selectItemsButton = {
+  position: "fixed",
+  top: "14px",
+  right: "14px",
+  zIndex: 80,
+  width: "42px",
+  height: "42px",
+  padding: 0,
+  border: "1px solid #27272a",
+  background: "rgba(24,24,27,.9)",
+  color: "white",
+  borderRadius: "999px",
+  cursor: "pointer",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -242,6 +277,7 @@ const backArrowButton = {
 const spaceDetailGrid = {
   columnCount: 2,
   columnGap: "16px",
+  paddingTop: "56px",
   paddingBottom: "160px",
 };
 
@@ -293,9 +329,6 @@ const addItemPlus = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: "26px",
-  fontWeight: "700",
-  lineHeight: 1,
 };
 
 const emptyStateText = {
@@ -303,6 +336,7 @@ const emptyStateText = {
   fontSize: "18px",
   fontWeight: "600",
   lineHeight: 1.5,
+  paddingTop: "72px",
 };
 
 const spaceDetailScreen = {
@@ -316,26 +350,9 @@ const spaceFavoriteIndicator = {
   position: "absolute",
   top: "10px",
   left: "10px",
-  color: "#ef4444",
-  fontSize: "24px",
   zIndex: 20,
   textShadow: "0 2px 10px rgba(0,0,0,.7)",
   pointerEvents: "none",
-};
-
-const selectItemsButton = {
-  position: "fixed",
-  top: "14px",
-  right: "14px",
-  zIndex: 80,
-  border: "1px solid #27272a",
-  background: "rgba(24,24,27,.9)",
-  color: "white",
-  padding: "10px 16px",
-  borderRadius: "999px",
-  cursor: "pointer",
-  fontWeight: "600",
-  backdropFilter: "blur(10px)",
 };
 
 const selectedCheck = {
@@ -382,6 +399,10 @@ const bulkMoveButton = {
   borderRadius: "16px",
   fontWeight: "700",
   cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "8px",
 };
 
 const bulkDeleteButton = {
@@ -393,6 +414,10 @@ const bulkDeleteButton = {
   borderRadius: "16px",
   fontWeight: "700",
   cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "8px",
 };
 
 const moveMenu = {
