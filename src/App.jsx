@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "./App.css";
 
 import AuthScreen from "./components/AuthScreen";
@@ -18,6 +18,7 @@ import { useItems } from "./hooks/useItems";
 import { useItemModal } from "./hooks/useItemModal";
 import { useSearch } from "./hooks/useSearch";
 import { useAuth } from "./hooks/useAuth";
+import { trackEvent } from "./utils/trackEvent";
 
 export default function App() {
   const [tab, setTab] = useState("home");
@@ -87,6 +88,14 @@ export default function App() {
   const filteredFeedItems = feedItems.filter(
     (item) => item.space === currentFeed
   );
+
+  useEffect(() => {
+    if (!user) return;
+    
+    trackEvent("app_opened", {
+      source: "app_start",
+    });
+  }, [user?.id]);
 
   if (authLoading) return null;
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX, Pause, Play, SquarePen, Heart } from "lucide-react";
-
+import { trackEvent } from "../utils/trackEvent";
 
 function SmartImage({ src, style }) {
   const [fit, setFit] = useState("cover");
@@ -88,11 +88,16 @@ export default function HomeFeed({
           <button
             key={feed.id}
             onClick={() => {
+              trackEvent("space_opened", {
+                space: feed.name,
+                source: "home_feed_pill",
+              });
+            
               feedRef.current?.scrollTo({
                 top: 0,
                 behavior: "auto",
               });
-
+            
               setActiveFeed(feed.name);
             }}
             style={{
@@ -216,7 +221,15 @@ export default function HomeFeed({
               <button
                 type="button"
                 style={floatingIconButton}
-                onClick={() => setSelectedItem(item)}
+                onClick={() => {
+                  trackEvent("item_opened_from_feed", {
+                    item_id: item.id,
+                    space: item.space,
+                    media_type: item.media_type,
+                  });
+                
+                  setSelectedItem(item);
+                }}
               >
                 <SquarePen size={32} strokeWidth={2.8} />
               </button>

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowLeft, Heart } from "lucide-react";
+import { trackEvent } from "../utils/trackEvent";
 
 export default function ItemDetailModal({
   selectedItem,
@@ -15,6 +16,16 @@ export default function ItemDetailModal({
   const [mediaFit, setMediaFit] = useState("cover");
   const [showFullscreen, setShowFullscreen] = useState(false);
 
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    trackEvent("item_viewed", {
+      item_id: selectedItem.id,
+      space: selectedItem.space,
+      media_type: selectedItem.media_type,
+    });
+  }, [selectedItem?.id]);
+
   if (!selectedItem) return null;
 
   return (
@@ -26,7 +37,15 @@ export default function ItemDetailModal({
 
         <button
           type="button"
-          onClick={onToggleFavorite}
+          onClick={() => {
+            trackEvent("favorite_clicked", {
+              item_id: selectedItem.id,
+              space: selectedItem.space,
+              new_value: !itemFavoriteDraft,
+            });
+          
+            onToggleFavorite();
+          }}
           style={{
             ...favoriteButton,
             color: itemFavoriteDraft ? "#ef4444" : "white",
@@ -57,7 +76,14 @@ export default function ItemDetailModal({
               objectFit: mediaFit,
               cursor: "zoom-in",
             }}
-            onClick={() => setShowFullscreen(true)}
+            onClick={() => {
+              trackEvent("fullscreen_opened", {
+                item_id: selectedItem.id,
+                space: selectedItem.space,
+              });
+            
+              setShowFullscreen(true);
+            }}
             onLoad={(e) => {
               const img = e.currentTarget;
 
@@ -105,7 +131,15 @@ export default function ItemDetailModal({
 
           <button
             style={{ ...modalPrimaryButton, marginTop: "24px" }}
-            onClick={onSave}
+            onClick={() => {
+              trackEvent("note_saved", {
+                item_id: selectedItem.id,
+                space: selectedItem.space,
+                has_note: itemNoteDraft.trim().length > 0,
+              });
+            
+              onSave();
+            }}
           >
             Save Memo
           </button>
@@ -118,7 +152,18 @@ export default function ItemDetailModal({
             ))}
           </div>
 
-          <button style={deleteButton} onClick={onDelete}>
+          <button
+            style={deleteButton}
+            onClick={() => {
+              trackEvent("item_deleted", {
+                item_id: selectedItem.id,
+                space: selectedItem.space,
+                media_type: selectedItem.media_type,
+              });
+            
+              onDelete();
+            }}
+          >
             Delete Item
           </button>
         </div>

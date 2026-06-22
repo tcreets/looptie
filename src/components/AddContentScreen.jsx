@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, ChevronDown, Plus, Check } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 import imageCompression from "browser-image-compression";
+import { trackEvent } from "../utils/trackEvent";
 
 export default function AddContentScreen({
   user,
@@ -252,6 +253,12 @@ export default function AddContentScreen({
                 setUploadProgress("");
                 return;
               }
+
+              await trackEvent("item_uploaded", {
+                count: data.length,
+                space: selectedSpaceName,
+                media_types: data.map((item) => item.media_type),
+              });
             
               const formattedItems = data.map((item) => ({
                 id: item.id,
@@ -418,6 +425,11 @@ export default function AddContentScreen({
               
                 setSpaces((prev) => [...prev, newSpace]);
                 setUploadSpace(newSpace.name);
+
+                await trackEvent("space_created", {
+                  space: newSpace.name,
+                  source: "upload_screen",
+                });
               
                 setNewSpaceName("");
                 setShowCreateSpaceModal(false);

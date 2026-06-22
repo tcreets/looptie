@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Star, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import SpaceDetail from "./SpaceDetail";
+import { trackEvent } from "../utils/trackEvent";
 
 export default function Spaces({
   spaces,
@@ -44,7 +45,14 @@ export default function Spaces({
         {spaces.map((space) => (
           <div
             key={space.id}
-            onClick={() => setSelectedSpace(space.name)}
+            onClick={() => {
+              trackEvent("space_opened", {
+                space: space.name,
+                source: "spaces_tab_card",
+              });
+            
+              setSelectedSpace(space.name);
+            }}
             style={{
               ...spaceCard,
               cursor: "pointer",
@@ -58,6 +66,11 @@ export default function Spaces({
               onClick={(e) => {
                 e.stopPropagation();
                 setDefaultFeed(space.name);
+
+                  trackEvent("default_space_changed", {
+                    space: space.name,
+                    source: "spaces_tab",
+                });
               }}
               style={starButton}
             >
@@ -119,7 +132,16 @@ export default function Spaces({
           </div>
         ))}
 
-        <div style={newSpaceCard} onClick={() => setShowNewSpaceForm(true)}>
+        <div
+          style={newSpaceCard}
+          onClick={() => {
+            trackEvent("new_space_clicked", {
+              source: "spaces_tab",
+            });
+          
+            setShowNewSpaceForm(true);
+          }}
+        >
           <h3 style={{ margin: 0 }}>New Space</h3>
           <div style={newSpacePlus}>
             <Plus size={20} strokeWidth={3} />
