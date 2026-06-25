@@ -1,5 +1,6 @@
 import React from "react";
 import { Home, Grid3X3, User, Search, Plus } from "lucide-react";
+import { trackEvent } from "../utils/trackEvent";
 
 export default function BottomNav({
   defaultFeed,
@@ -11,6 +12,7 @@ export default function BottomNav({
     <div style={navStyle}>
       <button
         onClick={() => {
+          trackEvent("tab_changed", { tab: "home" });
           setActiveFeed(defaultFeed);
           setTab("home");
         }}
@@ -22,6 +24,7 @@ export default function BottomNav({
 
       <button
         onClick={() => {
+          trackEvent("tab_changed", { tab: "spaces" });
           setTab("spaces");
           setSelectedSpace(null);
         }}
@@ -31,18 +34,36 @@ export default function BottomNav({
         <span>Spaces</span>
       </button>
 
-      <button onClick={() => setTab("add")} style={addNavButton}>
-      <div style={{ transform: "translateY(2px)" }}>
-        <Plus size={30} strokeWidth={3} />
-      </div>
+      <button
+        onClick={() => {
+          trackEvent("tab_changed", { tab: "add" });
+          setTab("add");
+        }}
+        style={addNavButton}
+      >
+        <div style={{ transform: "translateY(2px)" }}>
+          <Plus size={30} strokeWidth={3} />
+        </div>
       </button>
 
-      <button onClick={() => setTab("search")} style={navButton}>
+      <button
+        onClick={() => {
+          trackEvent("tab_changed", { tab: "search" });
+          setTab("search");
+        }}
+        style={navButton}
+      >
         <Search size={22} />
         <span>Search</span>
       </button>
 
-      <button onClick={() => setTab("profile")} style={navButton}>
+      <button
+        onClick={() => {
+          trackEvent("tab_changed", { tab: "profile" });
+          setTab("profile");
+        }}
+        style={navButton}
+      >
         <User size={22} />
         <span>Profile</span>
       </button>
