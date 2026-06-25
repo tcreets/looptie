@@ -222,7 +222,7 @@ export default function HomeFeed({
                 type="button"
                 style={floatingIconButton}
                 onClick={() => {
-                  trackEvent("item_opened_from_feed", {
+                  trackEvent("item_opened", {
                     item_id: item.id,
                     space: item.space,
                     media_type: item.media_type,
