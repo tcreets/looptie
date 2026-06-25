@@ -41,6 +41,7 @@ export default function ItemDetailModal({
             trackEvent("favorite_clicked", {
               item_id: selectedItem.id,
               space: selectedItem.space,
+              media_type: selectedItem.media_type,
               new_value: !itemFavoriteDraft,
             });
           
@@ -136,6 +137,7 @@ export default function ItemDetailModal({
                 item_id: selectedItem.id,
                 space: selectedItem.space,
                 has_note: itemNoteDraft.trim().length > 0,
+                note_length: itemNoteDraft.trim().length,
               });
             
               onSave();

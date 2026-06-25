@@ -1,3 +1,5 @@
+import { trackEvent } from "../utils/trackEvent";
+
 export default function Search({
   searchTerm,
   setSearchTerm,
@@ -13,7 +15,18 @@ export default function Search({
         type="text"
         placeholder="Search spaces, notes, tags..."
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          setSearchTerm(value);
+
+          if (value.trim().length >= 2) {
+            trackEvent("search_used", {
+              query_length: value.trim().length,
+              result_count: searchResults.length,
+              source: "search_input",
+            });
+          }
+        }}
         style={searchInput}
       />
 
@@ -25,7 +38,14 @@ export default function Search({
             {spaces.map((space) => (
               <button
                 key={space.id}
-                onClick={() => setSearchTerm(space.name)}
+                onClick={() => {
+                  trackEvent("search_used", {
+                    query_length: space.name.length,
+                    source: "suggested_space",
+                  });
+
+                  setSearchTerm(space.name);
+                }}
                 style={tagPill}
               >
                 {space.name}
@@ -46,7 +66,16 @@ export default function Search({
             <div
               key={item.id}
               style={searchResultCard}
-              onClick={() => setSelectedItem(item)}
+              onClick={() => {
+                trackEvent("item_opened", {
+                  item_id: item.id,
+                  space: item.space,
+                  media_type: item.media_type,
+                  source: "search",
+                });
+
+                setSelectedItem(item);
+              }}
             >
               {item.media_type === "video" ? (
                 <video

@@ -158,6 +158,7 @@ export default function AddContentScreen({
               return;
             }
           
+            const uploadStart = Date.now();
             setIsUploading(true);
             setUploadProgress(`Saving to Looptie...`);
           
@@ -254,10 +255,11 @@ export default function AddContentScreen({
                 return;
               }
 
-              await trackEvent("item_uploaded", {
+              await trackEvent("content_uploaded", {
                 count: data.length,
                 space: selectedSpaceName,
                 media_types: data.map((item) => item.media_type),
+                duration_ms: Date.now() - uploadStart,
               });
             
               const formattedItems = data.map((item) => ({

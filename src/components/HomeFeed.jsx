@@ -229,7 +229,7 @@ export default function HomeFeed({
                   });
                 
                   setSelectedItem(item);
-                }}
+                }}n
               >
                 <SquarePen size={32} strokeWidth={2.8} />
               </button>
