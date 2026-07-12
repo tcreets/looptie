@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Looptie</string>
+    <string name="title_activity_main">Looptie</string>
+    <string name="package_name">com.steerinnovations.looptie</string>
+    <string name="custom_url_scheme">com.steerinnovations.looptie</string>
+</resources>
