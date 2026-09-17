@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Check, CheckSquare, Heart, MoveRight, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, Heart, MoveRight, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 
 export default function SpaceDetail({ selectedSpace, setSelectedSpace, spaces, feedItems, setFeedItems, setSelectedItem, setUploadSpace, setTab }) {
@@ -29,8 +29,16 @@ export default function SpaceDetail({ selectedSpace, setSelectedSpace, spaces, f
   };
 
   return <div style={spaceDetailScreen} className="no-scrollbar">
-    <button onClick={() => setSelectedSpace(null)} style={floatingButton}><ArrowLeft size={21} strokeWidth={2.5} /></button>
-    <button style={{ ...floatingButton, left: "auto", right: "14px" }} onClick={() => { setIsSelectingItems((prev) => !prev); setSelectedItemIds([]); setShowMoveMenu(false); }}>{isSelectingItems ? <X size={20} strokeWidth={2.5} /> : <CheckSquare size={20} strokeWidth={2.5} />}</button>
+    <div style={spaceDetailHeader}>
+      <button onClick={() => setSelectedSpace(null)} style={backButton} aria-label="Back"><ArrowLeft size={22} strokeWidth={2.5} /></button>
+      <div style={spaceTitleBlock}>
+        <div style={spaceTitle}>{selectedSpace}</div>
+        <div style={spaceItemCount}>{selectedSpaceItems.length} item${selectedSpaceItems.length === 1 ? "" : "s"}</div>
+      </div>
+      <button style={selectButton} onClick={() => { setIsSelectingItems((prev) => !prev); setSelectedItemIds([]); setShowMoveMenu(false); }}>
+        {isSelectingItems ? "Cancel" : "Select"}
+      </button>
+    </div>
     {selectedSpaceItems.length === 0 && <p style={emptyStateText}>Build a feed that pulls you back into this world.</p>}
     <div style={spaceDetailGrid}>
       {selectedSpaceItems.map((item) => <div key={item.id} style={{ ...spaceDetailCard, border: selectedItemIds.includes(item.id) ? "3px solid var(--brand)" : "1px solid var(--border)" }} onClick={() => { if (isSelectingItems) setSelectedItemIds((prev) => prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]); else setSelectedItem(item); }}>
@@ -47,15 +55,13 @@ export default function SpaceDetail({ selectedSpace, setSelectedSpace, spaces, f
   </div>;
 }
 
-const floatingButton = { position: "fixed", top: "14px", left: "14px", zIndex: 80, width: "42px", height: "42px", borderRadius: "999px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", boxShadow: "var(--shadow)" };
-const spaceDetailGrid = { columnCount: 2, columnGap: "16px", paddingTop: "56px", paddingBottom: "160px" };
-const spaceDetailCard = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "22px", overflow: "hidden", cursor: "pointer", breakInside: "avoid", marginBottom: "16px", position: "relative" };
+const spaceDetailHeader = { display:"grid", gridTemplateColumns:"44px 1fr auto", alignItems:"center", gap:"12px", padding:"10px 14px 14px", background:"var(--bg)", position:"sticky", top:0, zIndex:60 };\nconst backButton = { width:"42px", height:"42px", borderRadius:"999px", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text-primary)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"var(--shadow)" };\nconst spaceTitleBlock = { minWidth:0 };\nconst spaceTitle = { fontSize:"var(--text-xl)", fontWeight:"var(--weight-bold)", lineHeight:"var(--leading-tight)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" };\nconst spaceItemCount = { marginTop:"2px", color:"var(--text-secondary)", fontSize:"var(--text-sm)" };\nconst selectButton = { border:"none", background:"transparent", color:"var(--brand)", fontSize:"var(--text-md)", fontWeight:"var(--weight-semibold)", cursor:"pointer", padding:"10px 2px 10px 10px" };\nconst spaceDetailGrid = { columnCount:2, columnGap:"12px", padding:"0 14px 160px" };\nconst spaceDetailCard = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "18px", overflow: "hidden", cursor: "pointer", breakInside: "avoid", marginBottom: "12px", position: "relative" };
 const spaceDetailImage = { width: "100%", height: "auto", display: "block" };
 const addToSpaceCard = { width: "100%", minHeight: "180px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "14px", background: "transparent", border: "1px dashed var(--text-muted)", borderRadius: "24px", color: "var(--text-primary)", fontSize:"var(--text-md)", fontWeight:"var(--weight-semibold)", cursor: "pointer", padding: "20px", textAlign: "center", breakInside: "avoid", marginBottom: "16px", boxSizing: "border-box" };
 const addItemPlus = { width: "36px", height: "36px", borderRadius: "999px", background: "var(--surface-elevated)", color: "var(--brand)", display: "flex", alignItems: "center", justifyContent: "center" };
-const emptyStateText = { color: "var(--text-primary)", fontSize:"var(--text-lg)", fontWeight:"var(--weight-semibold)", lineHeight: 1.5, paddingTop: "72px" };
+const emptyStateText = { color: "var(--text-primary)", fontSize:"var(--text-lg)", fontWeight:"var(--weight-semibold)", lineHeight: 1.5, padding: "28px 20px 18px" };
 const spaceDetailScreen = { height: "100%", overflowY: "auto", WebkitOverflowScrolling: "touch", paddingBottom: "120px", color: "var(--text-primary)" };
-const spaceFavoriteIndicator = { position: "absolute", top: "10px", left: "10px", zIndex: 20, textShadow: "0 2px 10px rgba(0,0,0,.7)", pointerEvents: "none" };
+const spaceFavoriteIndicator = { position: "absolute", top: "10px", right: "10px", zIndex: 20, textShadow: "0 2px 10px rgba(0,0,0,.7)", pointerEvents: "none" };
 const selectedCheck = { position: "absolute", top: "10px", right: "10px", width: "30px", height: "30px", borderRadius: "999px", background: "var(--brand)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 30 };
 const bulkActionBar = { position: "fixed", left: "50%", bottom: "88px", transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: "430px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "24px", padding: "12px", zIndex: 100, boxShadow: "var(--shadow)" };
 const bulkActionButtons = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" };
