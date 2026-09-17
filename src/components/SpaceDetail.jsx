@@ -33,7 +33,7 @@ export default function SpaceDetail({ selectedSpace, setSelectedSpace, spaces, f
       <button onClick={() => setSelectedSpace(null)} style={backButton} aria-label="Back"><ArrowLeft size={22} strokeWidth={2.5} /></button>
       <div style={spaceTitleBlock}>
         <div style={spaceTitle}>{selectedSpace}</div>
-        <div style={spaceItemCount}>{selectedSpaceItems.length} item${selectedSpaceItems.length === 1 ? "" : "s"}</div>
+        <div style={spaceItemCount}>{selectedSpaceItems.length} {selectedSpaceItems.length === 1 ? "item" : "items"}</div>
       </div>
       <button style={selectButton} onClick={() => { setIsSelectingItems((prev) => !prev); setSelectedItemIds([]); setShowMoveMenu(false); }}>
         {isSelectingItems ? "Cancel" : "Select"}
