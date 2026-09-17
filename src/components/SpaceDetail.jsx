@@ -1,438 +1,65 @@
 import { useState } from "react";
-import {
-  ArrowLeft,
-  Check,
-  CheckSquare,
-  Heart,
-  MoveRight,
-  Plus,
-  Trash2,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Check, CheckSquare, Heart, MoveRight, Plus, Trash2, X } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 
-export default function SpaceDetail({
-  selectedSpace,
-  setSelectedSpace,
-  spaces,
-  feedItems,
-  setFeedItems,
-  setSelectedItem,
-  setUploadSpace,
-  setTab,
-}) {
+export default function SpaceDetail({ selectedSpace, setSelectedSpace, spaces, feedItems, setFeedItems, setSelectedItem, setUploadSpace, setTab }) {
   const [isSelectingItems, setIsSelectingItems] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState([]);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
-
-  const selectedSpaceItems = feedItems.filter(
-    (item) => item.space === selectedSpace
-  );
+  const selectedSpaceItems = feedItems.filter((item) => item.space === selectedSpace);
 
   const moveSelectedItems = async (newSpaceName) => {
     if (!selectedItemIds.length) return;
-
-    const { error } = await supabase
-      .from("items")
-      .update({ space: newSpaceName })
-      .in("id", selectedItemIds);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    setFeedItems((prev) =>
-      prev.map((item) =>
-        selectedItemIds.includes(item.id)
-          ? { ...item, space: newSpaceName }
-          : item
-      )
-    );
-
-    setSelectedItemIds([]);
-    setIsSelectingItems(false);
-    setShowMoveMenu(false);
+    const { error } = await supabase.from("items").update({ space: newSpaceName }).in("id", selectedItemIds);
+    if (error) { alert(error.message); return; }
+    setFeedItems((prev) => prev.map((item) => selectedItemIds.includes(item.id) ? { ...item, space: newSpaceName } : item));
+    setSelectedItemIds([]); setIsSelectingItems(false); setShowMoveMenu(false);
   };
 
   const deleteSelectedItems = async () => {
     if (!selectedItemIds.length) return;
-
-    const confirmDelete = window.confirm(
-      `Delete ${selectedItemIds.length} item${
-        selectedItemIds.length > 1 ? "s" : ""
-      } from ${selectedSpace}?`
-    );
-
+    const confirmDelete = window.confirm(`Delete ${selectedItemIds.length} item${selectedItemIds.length > 1 ? "s" : ""} from ${selectedSpace}?`);
     if (!confirmDelete) return;
-
-    const itemsToDelete = feedItems.filter((item) =>
-      selectedItemIds.includes(item.id)
-    );
-
-    const storagePaths = itemsToDelete
-      .map((item) => item.storagePath || item.storage_path)
-      .filter(Boolean);
-
-    if (storagePaths.length > 0) {
-      const { error: storageError } = await supabase.storage
-        .from("looptie-uploads")
-        .remove(storagePaths);
-
-      if (storageError) {
-        alert(storageError.message);
-        return;
-      }
-    }
-
-    const { error } = await supabase
-      .from("items")
-      .delete()
-      .in("id", selectedItemIds);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    setFeedItems((prev) =>
-      prev.filter((item) => !selectedItemIds.includes(item.id))
-    );
-
-    setSelectedItemIds([]);
-    setIsSelectingItems(false);
-    setShowMoveMenu(false);
+    const storagePaths = feedItems.filter((item) => selectedItemIds.includes(item.id)).map((item) => item.storagePath || item.storage_path).filter(Boolean);
+    if (storagePaths.length) { const { error: storageError } = await supabase.storage.from("looptie-uploads").remove(storagePaths); if (storageError) { alert(storageError.message); return; } }
+    const { error } = await supabase.from("items").delete().in("id", selectedItemIds);
+    if (error) { alert(error.message); return; }
+    setFeedItems((prev) => prev.filter((item) => !selectedItemIds.includes(item.id)));
+    setSelectedItemIds([]); setIsSelectingItems(false); setShowMoveMenu(false);
   };
 
-  return (
-    <div style={spaceDetailScreen} className="no-scrollbar">
-      <button onClick={() => setSelectedSpace(null)} style={backArrowButton}>
-        <ArrowLeft size={21} strokeWidth={2.5} />
-      </button>
-
-      <button
-        style={selectItemsButton}
-        onClick={() => {
-          setIsSelectingItems((prev) => !prev);
-          setSelectedItemIds([]);
-          setShowMoveMenu(false);
-        }}
-      >
-        {isSelectingItems ? (
-          <X size={20} strokeWidth={2.5} />
-        ) : (
-          <CheckSquare size={20} strokeWidth={2.5} />
-        )}
-      </button>
-
-      {selectedSpaceItems.length === 0 && (
-        <p style={emptyStateText}>
-          Build a feed that pulls you back into this world.
-        </p>
-      )}
-
-      <div style={spaceDetailGrid}>
-        {selectedSpaceItems.map((item) => (
-          <div
-            key={item.id}
-            style={{
-              ...spaceDetailCard,
-              border: selectedItemIds.includes(item.id)
-                ? "3px solid #7c3aed"
-                : "1px solid #27272a",
-            }}
-            onClick={() => {
-              if (isSelectingItems) {
-                setSelectedItemIds((prev) =>
-                  prev.includes(item.id)
-                    ? prev.filter((id) => id !== item.id)
-                    : [...prev, item.id]
-                );
-              } else {
-                setSelectedItem(item);
-              }
-            }}
-          >
-            {item.media_type === "video" ? (
-              <video
-                src={item.image}
-                style={spaceDetailImage}
-                muted
-                playsInline
-              />
-            ) : (
-              <img
-                src={item.image}
-                loading="lazy"
-                alt=""
-                style={spaceDetailImage}
-              />
-            )}
-
-            {isSelectingItems && selectedItemIds.includes(item.id) && (
-              <div style={selectedCheck}>
-                <Check size={18} strokeWidth={3} />
-              </div>
-            )}
-
-            {item.favorite && (
-              <div style={spaceFavoriteIndicator}>
-                <Heart size={22} fill="#ef4444" color="#ef4444" />
-              </div>
-            )}
-          </div>
-        ))}
-
-        {!isSelectingItems && (
-          <button
-            style={addToSpaceCard}
-            onClick={() => {
-              setUploadSpace(selectedSpace);
-              setTab("add");
-            }}
-          >
-            <span>Add to {selectedSpace}</span>
-            <div style={addItemPlus}>
-              <Plus size={24} strokeWidth={3} />
-            </div>
-          </button>
-        )}
-      </div>
-
-      {isSelectingItems && selectedItemIds.length > 0 && (
-        <div style={bulkActionBar}>
-          <div style={bulkActionButtons}>
-            <button
-              style={bulkMoveButton}
-              onClick={() => setShowMoveMenu((prev) => !prev)}
-            >
-              <MoveRight size={18} strokeWidth={2.5} />
-              Move {selectedItemIds.length}
-            </button>
-
-            <button style={bulkDeleteButton} onClick={deleteSelectedItems}>
-              <Trash2 size={18} strokeWidth={2.5} />
-              Delete
-            </button>
-          </div>
-
-          {showMoveMenu && (
-            <div style={moveMenu}>
-              {spaces
-                .filter((space) => space.name !== selectedSpace)
-                .map((space) => (
-                  <button
-                    key={space.id}
-                    style={moveMenuItem}
-                    onClick={() => moveSelectedItems(space.name)}
-                  >
-                    {space.name}
-                  </button>
-                ))}
-            </div>
-          )}
-        </div>
-      )}
+  return <div style={spaceDetailScreen} className="no-scrollbar">
+    <button onClick={() => setSelectedSpace(null)} style={floatingButton}><ArrowLeft size={21} strokeWidth={2.5} /></button>
+    <button style={{ ...floatingButton, left: "auto", right: "14px" }} onClick={() => { setIsSelectingItems((prev) => !prev); setSelectedItemIds([]); setShowMoveMenu(false); }}>{isSelectingItems ? <X size={20} strokeWidth={2.5} /> : <CheckSquare size={20} strokeWidth={2.5} />}</button>
+    {selectedSpaceItems.length === 0 && <p style={emptyStateText}>Build a feed that pulls you back into this world.</p>}
+    <div style={spaceDetailGrid}>
+      {selectedSpaceItems.map((item) => <div key={item.id} style={{ ...spaceDetailCard, border: selectedItemIds.includes(item.id) ? "3px solid var(--brand)" : "1px solid var(--border)" }} onClick={() => { if (isSelectingItems) setSelectedItemIds((prev) => prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]); else setSelectedItem(item); }}>
+        {item.media_type === "video" ? <video src={item.image} style={spaceDetailImage} muted playsInline /> : <img src={item.image} loading="lazy" alt="" style={spaceDetailImage} />}
+        {isSelectingItems && selectedItemIds.includes(item.id) && <div style={selectedCheck}><Check size={18} strokeWidth={3} /></div>}
+        {item.favorite && <div style={spaceFavoriteIndicator}><Heart size={22} fill="var(--favorite)" color="var(--favorite)" /></div>}
+      </div>)}
+      {!isSelectingItems && <button style={addToSpaceCard} onClick={() => { setUploadSpace(selectedSpace); setTab("add"); }}><span>Add to {selectedSpace}</span><div style={addItemPlus}><Plus size={24} strokeWidth={3} /></div></button>}
     </div>
-  );
+    {isSelectingItems && selectedItemIds.length > 0 && <div style={bulkActionBar}><div style={bulkActionButtons}>
+      <button style={bulkMoveButton} onClick={() => setShowMoveMenu((prev) => !prev)}><MoveRight size={18} strokeWidth={2.5} />Move {selectedItemIds.length}</button>
+      <button style={bulkDeleteButton} onClick={deleteSelectedItems}><Trash2 size={18} strokeWidth={2.5} />Delete</button>
+    </div>{showMoveMenu && <div style={moveMenu}>{spaces.filter((space) => space.name !== selectedSpace).map((space) => <button key={space.id} style={moveMenuItem} onClick={() => moveSelectedItems(space.name)}>{space.name}</button>)}</div>}</div>}
+  </div>;
 }
 
-const backArrowButton = {
-  position: "fixed",
-  top: "14px",
-  left: "14px",
-  zIndex: 80,
-  width: "42px",
-  height: "42px",
-  borderRadius: "999px",
-  border: "1px solid #27272a",
-  background: "rgba(24,24,27,.9)",
-  color: "#d4d4d8",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  backdropFilter: "blur(10px)",
-};
-
-const selectItemsButton = {
-  position: "fixed",
-  top: "14px",
-  right: "14px",
-  zIndex: 80,
-  width: "42px",
-  height: "42px",
-  padding: 0,
-  border: "1px solid #27272a",
-  background: "rgba(24,24,27,.9)",
-  color: "white",
-  borderRadius: "999px",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  backdropFilter: "blur(10px)",
-};
-
-const spaceDetailGrid = {
-  columnCount: 2,
-  columnGap: "16px",
-  paddingTop: "56px",
-  paddingBottom: "160px",
-};
-
-const spaceDetailCard = {
-  background: "#18181b",
-  border: "1px solid #27272a",
-  borderRadius: "22px",
-  overflow: "hidden",
-  cursor: "pointer",
-  breakInside: "avoid",
-  marginBottom: "16px",
-  position: "relative",
-};
-
-const spaceDetailImage = {
-  width: "100%",
-  height: "auto",
-  display: "block",
-};
-
-const addToSpaceCard = {
-  width: "100%",
-  minHeight: "180px",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "14px",
-  background: "transparent",
-  border: "1px dashed #3f3f46",
-  borderRadius: "24px",
-  color: "white",
-  fontSize: "16px",
-  fontWeight: "600",
-  cursor: "pointer",
-  padding: "20px",
-  textAlign: "center",
-  breakInside: "avoid",
-  marginBottom: "16px",
-  boxSizing: "border-box",
-};
-
-const addItemPlus = {
-  width: "36px",
-  height: "36px",
-  borderRadius: "999px",
-  background: "#18181b",
-  color: "#7c3aed",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-const emptyStateText = {
-  color: "white",
-  fontSize: "18px",
-  fontWeight: "600",
-  lineHeight: 1.5,
-  paddingTop: "72px",
-};
-
-const spaceDetailScreen = {
-  height: "100%",
-  overflowY: "auto",
-  WebkitOverflowScrolling: "touch",
-  paddingBottom: "120px",
-};
-
-const spaceFavoriteIndicator = {
-  position: "absolute",
-  top: "10px",
-  left: "10px",
-  zIndex: 20,
-  textShadow: "0 2px 10px rgba(0,0,0,.7)",
-  pointerEvents: "none",
-};
-
-const selectedCheck = {
-  position: "absolute",
-  top: "10px",
-  right: "10px",
-  width: "30px",
-  height: "30px",
-  borderRadius: "999px",
-  background: "#7c3aed",
-  color: "white",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 30,
-};
-
-const bulkActionBar = {
-  position: "fixed",
-  left: "50%",
-  bottom: "88px",
-  transform: "translateX(-50%)",
-  width: "calc(100% - 32px)",
-  maxWidth: "430px",
-  background: "#18181b",
-  border: "1px solid #27272a",
-  borderRadius: "24px",
-  padding: "12px",
-  zIndex: 100,
-};
-
-const bulkActionButtons = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: "10px",
-};
-
-const bulkMoveButton = {
-  width: "100%",
-  border: "none",
-  background: "#7c3aed",
-  color: "white",
-  padding: "14px",
-  borderRadius: "16px",
-  fontWeight: "700",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "8px",
-};
-
-const bulkDeleteButton = {
-  width: "100%",
-  border: "none",
-  background: "#ef4444",
-  color: "white",
-  padding: "14px",
-  borderRadius: "16px",
-  fontWeight: "700",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "8px",
-};
-
-const moveMenu = {
-  marginTop: "12px",
-  display: "grid",
-  gap: "8px",
-  maxHeight: "220px",
-  overflowY: "auto",
-};
-
-const moveMenuItem = {
-  border: "1px solid #27272a",
-  background: "#050505",
-  color: "white",
-  padding: "12px",
-  borderRadius: "14px",
-  cursor: "pointer",
-};
+const floatingButton = { position: "fixed", top: "14px", left: "14px", zIndex: 80, width: "42px", height: "42px", borderRadius: "999px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", boxShadow: "var(--shadow)" };
+const spaceDetailGrid = { columnCount: 2, columnGap: "16px", paddingTop: "56px", paddingBottom: "160px" };
+const spaceDetailCard = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "22px", overflow: "hidden", cursor: "pointer", breakInside: "avoid", marginBottom: "16px", position: "relative" };
+const spaceDetailImage = { width: "100%", height: "auto", display: "block" };
+const addToSpaceCard = { width: "100%", minHeight: "180px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "14px", background: "transparent", border: "1px dashed var(--text-muted)", borderRadius: "24px", color: "var(--text-primary)", fontSize: "16px", fontWeight: "600", cursor: "pointer", padding: "20px", textAlign: "center", breakInside: "avoid", marginBottom: "16px", boxSizing: "border-box" };
+const addItemPlus = { width: "36px", height: "36px", borderRadius: "999px", background: "var(--surface-elevated)", color: "var(--brand)", display: "flex", alignItems: "center", justifyContent: "center" };
+const emptyStateText = { color: "var(--text-primary)", fontSize: "18px", fontWeight: "600", lineHeight: 1.5, paddingTop: "72px" };
+const spaceDetailScreen = { height: "100%", overflowY: "auto", WebkitOverflowScrolling: "touch", paddingBottom: "120px", color: "var(--text-primary)" };
+const spaceFavoriteIndicator = { position: "absolute", top: "10px", left: "10px", zIndex: 20, textShadow: "0 2px 10px rgba(0,0,0,.7)", pointerEvents: "none" };
+const selectedCheck = { position: "absolute", top: "10px", right: "10px", width: "30px", height: "30px", borderRadius: "999px", background: "var(--brand)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 30 };
+const bulkActionBar = { position: "fixed", left: "50%", bottom: "88px", transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: "430px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "24px", padding: "12px", zIndex: 100, boxShadow: "var(--shadow)" };
+const bulkActionButtons = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" };
+const bulkMoveButton = { width: "100%", border: "none", background: "var(--brand)", color: "white", padding: "14px", borderRadius: "16px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" };
+const bulkDeleteButton = { width: "100%", border: "none", background: "var(--danger)", color: "white", padding: "14px", borderRadius: "16px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" };
+const moveMenu = { marginTop: "12px", display: "grid", gap: "8px", maxHeight: "220px", overflowY: "auto" };
+const moveMenuItem = { border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", padding: "12px", borderRadius: "14px", cursor: "pointer" };
