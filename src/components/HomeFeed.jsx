@@ -64,10 +64,10 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
   );
 }
 
-const feedSelectorStyle = { display:"flex", gap:"10px", marginBottom:"16px", overflowX:"scroll", overflowY:"hidden", width:"100%", maxWidth:"100%", paddingBottom:"8px", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch" };
+const feedSelectorStyle = { display:"flex", gap:"10px", margin:"0 0 16px", padding:"12px 16px 8px", boxSizing:"border-box", overflowX:"auto", overflowY:"hidden", width:"100%", maxWidth:"100%", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" };
 const feedButtonStyle = { border:"1px solid var(--border)", borderRadius:"999px", padding:"10px 16px", fontWeight:"bold", cursor:"pointer", flexShrink:0, whiteSpace:"nowrap" };
-const feedList = { display:"grid", gap:"18px", paddingBottom:"16px", height:"calc(100vh - 170px)", overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch" };
-const feedCard = { position:"relative", height:"calc(100vh - 170px)", borderRadius:"28px", overflow:"hidden", border:"1px solid var(--border)", background:"var(--surface)", scrollSnapAlign:"start", scrollSnapStop:"always" };
+const feedList = { display:"grid", gap:"18px", paddingBottom:"16px", height:"calc(100vh - 182px)", overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch" };
+const feedCard = { position:"relative", height:"calc(100vh - 182px)", borderRadius:"28px", overflow:"hidden", border:"1px solid var(--border)", background:"var(--surface)", scrollSnapAlign:"start", scrollSnapStop:"always" };
 const imageStyle = { width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" };
 const overlayStyle = { position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,.35), transparent)", pointerEvents:"none" };
 const favoriteIndicator = { position:"absolute", top:"18px", left:"18px", color:"var(--favorite)", fontSize:"30px", zIndex:3, textShadow:"0 2px 10px rgba(0,0,0,.6)", opacity:.9 };
