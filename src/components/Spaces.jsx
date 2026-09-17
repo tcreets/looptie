@@ -7,7 +7,7 @@ function SpaceCover({ items }) {
   const coverItems = items.slice(0, 3);
   if (coverItems.length === 0) return <div style={emptyCover} />;
 
-  return <div style={{ ...coverGrid, gridTemplateColumns: coverItems.length === 1 ? "1fr" : coverItems.length === 2 ? "1fr 1fr" : "1.35fr .85fr" }}>
+  return <div style={{ ...coverGrid, gridTemplateColumns: coverItems.length === 1 ? "1fr" : coverItems.length === 2 ? "1fr 1fr" : "1.35fr .85fr", gridTemplateRows: coverItems.length < 3 ? "1fr" : "1fr 1fr" }}>
     {coverItems.map((item, index) => {
       const media = item.image;
       const tileStyle = coverItems.length === 3 && index === 0 ? { ...coverTile, gridRow: "1 / 3" } : coverTile;
