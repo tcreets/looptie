@@ -22,6 +22,21 @@
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
+
+  /* Typography */
+  --font-body: var(--sans);
+  --font-heading: var(--sans);
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
   font: 18px/145% var(--sans);
   letter-spacing: .18px;
   color-scheme: light;
@@ -55,9 +70,9 @@
 
 :root[data-theme="light"] { color-scheme:light; }
 
-body { margin:0; background:var(--bg); color:var(--text-primary); }
+body { margin:0; background:var(--bg); color:var(--text-primary); font-family:var(--font-body); font-size:var(--text-md); line-height:var(--leading-normal); font-weight:var(--weight-regular); }
 #root { width:1126px; max-width:100%; margin:0 auto; min-height:100svh; display:flex; flex-direction:column; box-sizing:border-box; }
-h1,h2 { font-family:var(--heading); color:var(--text-primary); }
+h1,h2,h3,h4,h5,h6 { font-family:var(--font-heading); color:var(--text-primary); line-height:var(--leading-tight); }\nbutton,input,textarea,select { font:inherit; }
 p { margin:0; }
 .pretty-scroll::-webkit-scrollbar { width:5px; }
 .pretty-scroll::-webkit-scrollbar-track,.horizontal-pretty-scrollbar::-webkit-scrollbar-track { background:transparent; }
