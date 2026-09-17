@@ -32,7 +32,6 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
 
   return (
     <div style={homeStyle}>
-      <p style={subtitleStyle}>Choose the state you want to enter.</p>
       <div style={feedSelectorStyle} className="horizontal-pretty-scrollbar" onWheel={handlePillWheel}>
         {spaces.map((feed) => {
           const active = activeFeed === feed.name;
@@ -65,15 +64,14 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
   );
 }
 
-const subtitleStyle = { color: "var(--text-secondary)", marginBottom: "24px" };
-const feedSelectorStyle = { display: "flex", gap: "10px", marginBottom: "24px", overflowX: "scroll", overflowY: "hidden", width: "100%", maxWidth: "100%", paddingBottom: "8px", whiteSpace: "nowrap", WebkitOverflowScrolling: "touch" };
-const feedButtonStyle = { border: "1px solid var(--border)", borderRadius: "999px", padding: "10px 16px", fontWeight: "bold", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" };
-const feedList = { display: "grid", gap: "18px", paddingBottom: "16px", height: "calc(100vh - 210px)", overflowY: "auto", scrollSnapType: "y mandatory", scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" };
-const feedCard = { position: "relative", height: "calc(100vh - 210px)", borderRadius: "28px", overflow: "hidden", border: "1px solid var(--border)", background: "var(--surface)", scrollSnapAlign: "start", scrollSnapStop: "always" };
-const imageStyle = { width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" };
-const overlayStyle = { position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,.35), transparent)", pointerEvents: "none" };
-const favoriteIndicator = { position: "absolute", top: "18px", left: "18px", color: "var(--favorite)", fontSize: "30px", zIndex: 3, textShadow: "0 2px 10px rgba(0,0,0,.6)", opacity: 0.9 };
-const emptyState = { marginTop: "80px", textAlign: "center", color: "var(--text-secondary)" };
-const homeStyle = { height: "100%", display: "flex", flexDirection: "column", minHeight: 0 };
-const floatingActions = { position: "absolute", right: "20px", bottom: "32px", display: "flex", flexDirection: "column", gap: "22px", zIndex: 10 };
-const floatingIconButton = { border: "none", background: "transparent", color: "white", cursor: "pointer", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" };
+const feedSelectorStyle = { display:"flex", gap:"10px", marginBottom:"16px", overflowX:"scroll", overflowY:"hidden", width:"100%", maxWidth:"100%", paddingBottom:"8px", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch" };
+const feedButtonStyle = { border:"1px solid var(--border)", borderRadius:"999px", padding:"10px 16px", fontWeight:"bold", cursor:"pointer", flexShrink:0, whiteSpace:"nowrap" };
+const feedList = { display:"grid", gap:"18px", paddingBottom:"16px", height:"calc(100vh - 170px)", overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch" };
+const feedCard = { position:"relative", height:"calc(100vh - 170px)", borderRadius:"28px", overflow:"hidden", border:"1px solid var(--border)", background:"var(--surface)", scrollSnapAlign:"start", scrollSnapStop:"always" };
+const imageStyle = { width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" };
+const overlayStyle = { position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,.35), transparent)", pointerEvents:"none" };
+const favoriteIndicator = { position:"absolute", top:"18px", left:"18px", color:"var(--favorite)", fontSize:"30px", zIndex:3, textShadow:"0 2px 10px rgba(0,0,0,.6)", opacity:.9 };
+const emptyState = { marginTop:"80px", textAlign:"center", color:"var(--text-secondary)" };
+const homeStyle = { height:"100%", display:"flex", flexDirection:"column", minHeight:0 };
+const floatingActions = { position:"absolute", right:"20px", bottom:"32px", display:"flex", flexDirection:"column", gap:"22px", zIndex:10 };
+const floatingIconButton = { border:"none", background:"transparent", color:"white", cursor:"pointer", padding:"8px", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" };
