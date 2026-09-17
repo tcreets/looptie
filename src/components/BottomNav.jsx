@@ -16,7 +16,7 @@ export default function BottomNav({ defaultFeed, setActiveFeed, setTab, setSelec
   );
 }
 
-const navWrap = { padding:"8px 14px 12px", background:"transparent" };
-const navStyle = { display:"flex", alignItems:"center", justifyContent:"space-around", minHeight:"62px", padding:"4px 10px", border:"1px solid var(--border)", borderRadius:"24px", background:"color-mix(in srgb, var(--surface) 92%, transparent)", boxShadow:"0 8px 28px rgba(0,0,0,.18)", backdropFilter:"blur(16px)", WebkitBackdropFilter:"blur(16px)" };
+const navWrap = { position:"fixed", left:0, right:0, bottom:0, zIndex:120, padding:"8px 14px 12px", background:"transparent", pointerEvents:"none" };
+const navStyle = { display:"flex", alignItems:"center", justifyContent:"space-around", minHeight:"62px", padding:"4px 10px", border:"1px solid var(--border)", borderRadius:"24px", background:"color-mix(in srgb, var(--surface) 92%, transparent)", boxShadow:"0 8px 28px rgba(0,0,0,.18)", backdropFilter:"blur(16px)", WebkitBackdropFilter:"blur(16px)", pointerEvents:"auto" };
 const navButton = { width:"44px", height:"44px", background:"transparent", color:"var(--text-primary)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0 };
 const addNavButton = { width:"50px", height:"50px", borderRadius:"17px", border:"none", background:"var(--brand)", color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0, lineHeight:1, boxShadow:"0 5px 16px rgba(var(--brand-rgb),.28)" };
