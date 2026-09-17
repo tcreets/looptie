@@ -42,7 +42,7 @@ export default function Profile({ items, spaces, setSelectedItem, setTab, profil
 }
 
 const profilePage = { height: "100%", overflowY: "auto", paddingBottom: "0px", background: "var(--bg)", color: "var(--text-primary)" };
-const profileAvatar = { width: "70px", height: "70px", borderRadius: "999px", background: "var(--brand)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px", fontWeight: "700" };
+const profileAvatar = { width: "70px", height: "70px", borderRadius: "999px", background: "var(--brand)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px", fontWeight:"var(--weight-bold)" };
 const profileStats = { display: "flex", gap: "12px", marginBottom: "24px" };
 const profileStatCard = { flex: 1, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "18px", padding: "14px 10px", textAlign: "center" };
 const profileGrid = { columnCount: 2, columnGap: "12px", paddingBottom: "0px" };
@@ -50,13 +50,13 @@ const profileCardItem = { display: "inline-block", width: "100%", marginBottom: 
 const profileImage = { width: "100%", height: "auto", display: "block", objectFit: "cover" };
 const profileOverlay = { position: "absolute", bottom: "10px", left: "10px", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)", padding: "6px 10px", borderRadius: "999px", fontSize: "12px", color: "white" };
 const profileTitleBlock = { display: "flex", flexDirection: "column", justifyContent: "center" };
-const profileTitle = { margin: 0, color: "var(--text-primary)", fontSize: "24px", fontWeight: "800", lineHeight: 1.1 };
-const profileSubtitle = { margin: "6px 0 0", color: "var(--text-secondary)", fontSize: "13px" };
+const profileTitle = { margin: 0, color: "var(--text-primary)", fontSize:"var(--text-xl)", fontWeight: "800", lineHeight: 1.1 };
+const profileSubtitle = { margin: "6px 0 0", color: "var(--text-secondary)", fontSize:"var(--text-sm)" };
 const profileHeader = { display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px", justifyContent: "space-between" };
-const profileStatNumber = { display: "block", fontSize: "18px", color: "var(--text-primary)", lineHeight: 1 };
+const profileStatNumber = { display: "block", fontSize:"var(--text-lg)", color: "var(--text-primary)", lineHeight: 1 };
 const profileStatLabel = { display: "block", marginTop: "4px", fontSize: "11px", color: "var(--text-secondary)" };
 const profileTabs = { display: "flex", gap: "10px", marginBottom: "18px" };
-const profileTab = { border: "1px solid var(--border)", borderRadius: "999px", padding: "9px 14px", fontWeight: "700", cursor: "pointer" };
+const profileTab = { border: "1px solid var(--border)", borderRadius: "999px", padding: "9px 14px", fontWeight:"var(--weight-bold)", cursor: "pointer" };
 const profileFavoriteBadge = { position: "absolute", top: "10px", left: "10px", color: "var(--favorite)", fontSize: "22px", zIndex: 2, textShadow: "0 2px 10px rgba(0,0,0,.5)" };
 const profileStickyTop = { position: "sticky", top: 0, zIndex: 10, background: "var(--bg)", paddingBottom: "14px" };
 const emptyState = { marginTop: "80px", textAlign: "center", color: "var(--text-secondary)", columnSpan: "all" };
