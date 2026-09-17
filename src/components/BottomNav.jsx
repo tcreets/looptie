@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Grid3X3, User, Search, Plus } from "lucide-react";
+import { Home, Layers3, User, Search, Plus } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
 export default function BottomNav({
@@ -14,7 +14,7 @@ export default function BottomNav({
         <Home size={22} /><span>Home</span>
       </button>
       <button onClick={() => { trackEvent("tab_changed", { tab: "spaces" }); setTab("spaces"); setSelectedSpace(null); }} style={navButton}>
-        <Grid3X3 size={22} /><span>Spaces</span>
+        <Layers3 size={22} /><span>Spaces</span>
       </button>
       <button onClick={() => { trackEvent("tab_changed", { tab: "add" }); setTab("add"); }} style={addNavButton}>
         <div style={{ transform: "translateY(2px)" }}><Plus size={30} strokeWidth={3} /></div>
