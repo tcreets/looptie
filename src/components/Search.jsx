@@ -3,15 +3,14 @@ import { trackEvent } from "../utils/trackEvent";
 export default function Search({ searchTerm, setSearchTerm, searchResults, setSelectedItem, spaces }) {
   return (
     <div style={searchPage} className="pretty-scroll">
-      <p style={subtitleStyle}>Search your Cache</p>
       <input type="text" placeholder="Search spaces, notes, tags..." value={searchTerm} onChange={(e) => {
         const value = e.target.value;
         setSearchTerm(value);
         if (value.trim().length >= 2) trackEvent("search_used", { query_length: value.trim().length, result_count: searchResults.length, source: "search_input" });
       }} style={searchInput} />
 
-      {searchTerm === "" ? <div style={{ marginTop: "24px" }}>
-        <h3 style={{ marginBottom: "16px", color: "var(--text-primary)" }}>Suggested</h3>
+      {searchTerm === "" ? <div style={{ marginTop: "22px" }}>
+        <h3 style={spacesHeading}>Spaces</h3>
         <div style={searchTags}>{spaces.map((space) => <button key={space.id} onClick={() => { trackEvent("search_used", { query_length: space.name.length, source: "suggested_space" }); setSearchTerm(space.name); }} style={tagPill}>{space.name}</button>)}</div>
       </div> : <div style={searchResultsList}>
         {searchTerm && searchResults.length === 0 && <div style={emptyState}><h3>No results found</h3><p>Try another word, tag, or space.</p></div>}
@@ -24,7 +23,6 @@ export default function Search({ searchTerm, setSearchTerm, searchResults, setSe
   );
 }
 
-const subtitleStyle = { color: "var(--text-secondary)", marginBottom: "24px" };
 const searchInput = { width: "100%", padding: "18px", borderRadius: "18px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", fontSize:"var(--text-md)", outline: "none", boxSizing: "border-box" };
 const searchTags = { display: "flex", flexWrap: "wrap", gap: "12px" };
 const tagPill = { background: "var(--surface-elevated)", border: "1px solid var(--border)", borderRadius: "999px", padding: "10px 16px", color: "var(--text-primary)", fontSize:"var(--text-sm)", cursor: "pointer" };
@@ -34,4 +32,5 @@ const searchResultImage = { width: "72px", height: "72px", borderRadius: "16px",
 const searchResultSpace = { color: "var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", margin: 0 };
 const searchResultNote = { color: "var(--text-primary)", fontSize:"var(--text-sm)", margin: "6px 0 0" };
 const emptyState = { marginTop: "80px", textAlign: "center", color: "var(--text-secondary)" };
-const searchPage = { height: "100%", overflowY: "auto", paddingBottom: "120px", WebkitOverflowScrolling: "touch", color: "var(--text-primary)" };
+const spacesHeading = { margin:"0 0 14px", color:"var(--text-primary)", fontSize:"var(--text-md)", fontWeight:"var(--weight-semibold)" };
+const searchPage = { height:"100%", overflowY:"auto", padding:"14px 14px 120px", boxSizing:"border-box", WebkitOverflowScrolling:"touch", color:"var(--text-primary)" };
