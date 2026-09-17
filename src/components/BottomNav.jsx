@@ -4,16 +4,19 @@ import { trackEvent } from "../utils/trackEvent";
 
 export default function BottomNav({ defaultFeed, setActiveFeed, setTab, setSelectedSpace }) {
   return (
-    <div style={navStyle}>
-      <button aria-label="Home" title="Home" onClick={() => { trackEvent("tab_changed", { tab: "home" }); setActiveFeed(defaultFeed); setTab("home"); }} style={navButton}><Home size={24} /></button>
-      <button aria-label="Spaces" title="Spaces" onClick={() => { trackEvent("tab_changed", { tab: "spaces" }); setTab("spaces"); setSelectedSpace(null); }} style={navButton}><Layers3 size={24} /></button>
-      <button aria-label="Add content" title="Add content" onClick={() => { trackEvent("tab_changed", { tab: "add" }); setTab("add"); }} style={addNavButton}><Plus size={30} strokeWidth={3} /></button>
-      <button aria-label="Search" title="Search" onClick={() => { trackEvent("tab_changed", { tab: "search" }); setTab("search"); }} style={navButton}><Search size={24} /></button>
-      <button aria-label="Profile" title="Profile" onClick={() => { trackEvent("tab_changed", { tab: "profile" }); setTab("profile"); }} style={navButton}><User size={24} /></button>
+    <div style={navWrap}>
+      <div style={navStyle}>
+        <button aria-label="Home" title="Home" onClick={() => { trackEvent("tab_changed", { tab: "home" }); setActiveFeed(defaultFeed); setTab("home"); }} style={navButton}><Home size={24} /></button>
+        <button aria-label="Spaces" title="Spaces" onClick={() => { trackEvent("tab_changed", { tab: "spaces" }); setTab("spaces"); setSelectedSpace(null); }} style={navButton}><Layers3 size={24} /></button>
+        <button aria-label="Add content" title="Add content" onClick={() => { trackEvent("tab_changed", { tab: "add" }); setTab("add"); }} style={addNavButton}><Plus size={30} strokeWidth={3} /></button>
+        <button aria-label="Search" title="Search" onClick={() => { trackEvent("tab_changed", { tab: "search" }); setTab("search"); }} style={navButton}><Search size={24} /></button>
+        <button aria-label="Profile" title="Profile" onClick={() => { trackEvent("tab_changed", { tab: "profile" }); setTab("profile"); }} style={navButton}><User size={24} /></button>
+      </div>
     </div>
   );
 }
 
-const navStyle = { display:"flex", alignItems:"center", justifyContent:"space-around", padding:"12px 18px", borderTop:"1px solid var(--border)", background:"var(--surface)" };
+const navWrap = { padding:"8px 14px 12px", background:"transparent" };
+const navStyle = { display:"flex", alignItems:"center", justifyContent:"space-around", minHeight:"62px", padding:"4px 10px", border:"1px solid var(--border)", borderRadius:"24px", background:"color-mix(in srgb, var(--surface) 92%, transparent)", boxShadow:"0 8px 28px rgba(0,0,0,.18)", backdropFilter:"blur(16px)", WebkitBackdropFilter:"blur(16px)" };
 const navButton = { width:"44px", height:"44px", background:"transparent", color:"var(--text-primary)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0 };
-const addNavButton = { width:"52px", height:"52px", borderRadius:"18px", border:"none", background:"var(--brand)", color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0, lineHeight:1 };
+const addNavButton = { width:"50px", height:"50px", borderRadius:"17px", border:"none", background:"var(--brand)", color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0, lineHeight:1, boxShadow:"0 5px 16px rgba(var(--brand-rgb),.28)" };
