@@ -1,14 +1,18 @@
-import { Heart, Play } from "lucide-react";
+import { Heart, Play, Search as SearchIcon, X } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
 export default function Search({ searchTerm, setSearchTerm, searchResults, setSelectedItem }) {
   return (
     <div style={searchPage} className="pretty-scroll">
-      <input type="text" placeholder="Search spaces, notes, tags..." value={searchTerm} onChange={(e) => {
-        const value = e.target.value;
-        setSearchTerm(value);
-        if (value.trim().length >= 2) trackEvent("search_used", { query_length: value.trim().length, result_count: searchResults.length, source: "search_input" });
-      }} style={searchInput} />
+      <div style={searchInputWrap}>
+        <SearchIcon size={19} strokeWidth={2} style={searchIcon} />
+        <input type="text" placeholder="Search your saved content..." value={searchTerm} onChange={(e) => {
+          const value = e.target.value;
+          setSearchTerm(value);
+          if (value.trim().length >= 2) trackEvent("search_used", { query_length: value.trim().length, result_count: searchResults.length, source: "search_input" });
+        }} style={searchInput} />
+        {searchTerm && <button type="button" aria-label="Clear search" onClick={() => setSearchTerm("")} style={clearButton}><X size={17} strokeWidth={2.2} /></button>}
+      </div>
 
       {searchTerm === "" ? <div style={searchPrompt}>Find anything you've saved across Looptie.</div> : <>
         <div style={resultsCount}>{searchResults.length} {searchResults.length === 1 ? "result" : "results"}</div>
@@ -24,8 +28,11 @@ export default function Search({ searchTerm, setSearchTerm, searchResults, setSe
   );
 }
 
-const searchInput = { width: "100%", padding: "18px", borderRadius: "18px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", fontSize:"var(--text-md)", outline: "none", boxSizing: "border-box" };
-const resultsCount = { margin:"16px 2px 10px", color:"var(--text-secondary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-medium)" };
+const searchInputWrap = { position:"relative", width:"100%" };
+const searchIcon = { position:"absolute", left:"16px", top:"50%", transform:"translateY(-50%)", color:"var(--text-secondary)", pointerEvents:"none" };
+const searchInput = { width:"100%", padding:"16px 46px 16px 46px", borderRadius:"18px", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text-primary)", fontSize:"var(--text-md)", outline:"none", boxSizing:"border-box" };
+const clearButton = { position:"absolute", right:"10px", top:"50%", transform:"translateY(-50%)", width:"32px", height:"32px", border:"none", borderRadius:"999px", background:"var(--surface-elevated)", color:"var(--text-secondary)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0 };
+const resultsCount = { margin:"18px 2px 10px", color:"var(--text-secondary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-medium)" };
 const searchResultsGrid = { display:"grid", gridTemplateColumns:"repeat(3, minmax(0, 1fr))", gap:"3px", paddingBottom:"90px" };
 const searchResultTile = { position:"relative", width:"100%", aspectRatio:"1 / 1.25", padding:0, border:"none", borderRadius:"10px", overflow:"hidden", background:"var(--surface-elevated)", cursor:"pointer" };
 const searchResultMedia = { width:"100%", height:"100%", objectFit:"cover", display:"block" };
