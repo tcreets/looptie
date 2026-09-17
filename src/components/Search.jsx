@@ -25,13 +25,13 @@ export default function Search({ searchTerm, setSearchTerm, searchResults, setSe
 }
 
 const subtitleStyle = { color: "var(--text-secondary)", marginBottom: "24px" };
-const searchInput = { width: "100%", padding: "18px", borderRadius: "18px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", fontSize: "16px", outline: "none", boxSizing: "border-box" };
+const searchInput = { width: "100%", padding: "18px", borderRadius: "18px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", fontSize:"var(--text-md)", outline: "none", boxSizing: "border-box" };
 const searchTags = { display: "flex", flexWrap: "wrap", gap: "12px" };
-const tagPill = { background: "var(--surface-elevated)", border: "1px solid var(--border)", borderRadius: "999px", padding: "10px 16px", color: "var(--text-primary)", fontSize: "14px", cursor: "pointer" };
+const tagPill = { background: "var(--surface-elevated)", border: "1px solid var(--border)", borderRadius: "999px", padding: "10px 16px", color: "var(--text-primary)", fontSize:"var(--text-sm)", cursor: "pointer" };
 const searchResultsList = { display: "grid", gap: "16px", marginTop: "24px", paddingBottom: "90px" };
 const searchResultCard = { display: "flex", gap: "14px", alignItems: "center", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", padding: "12px", cursor: "pointer" };
 const searchResultImage = { width: "72px", height: "72px", borderRadius: "16px", objectFit: "cover" };
-const searchResultSpace = { color: "var(--brand)", fontSize: "13px", fontWeight: "bold", margin: 0 };
-const searchResultNote = { color: "var(--text-primary)", fontSize: "14px", margin: "6px 0 0" };
+const searchResultSpace = { color: "var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", margin: 0 };
+const searchResultNote = { color: "var(--text-primary)", fontSize:"var(--text-sm)", margin: "6px 0 0" };
 const emptyState = { marginTop: "80px", textAlign: "center", color: "var(--text-secondary)" };
 const searchPage = { height: "100%", overflowY: "auto", paddingBottom: "120px", WebkitOverflowScrolling: "touch", color: "var(--text-primary)" };
