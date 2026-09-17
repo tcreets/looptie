@@ -29,9 +29,9 @@ export default function Spaces({ spaces, defaultFeed, setDefaultFeed, selectedSp
       {spaces.map((space) => {
         // feedItems are kept in their existing order; the first three saved to a Space become its cover.
         const spaceItems = feedItems.filter((item) => item.space === space.name);
-        return <div key={space.id} onClick={() => { trackEvent("space_opened", { space: space.name, source: "spaces_tab_card" }); setSelectedSpace(space.name); }} style={spaceCard}>
-          <SpaceCover items={spaceItems} />
-          <div style={coverShade} />
+        return <div key={space.id} onClick={() => { trackEvent("space_opened", { space: space.name, source: "spaces_tab_card" }); setSelectedSpace(space.name); }} style={{ ...spaceCard, ...(spaceItems.length === 0 ? emptySpaceCard : {}) }}>
+          {spaceItems.length > 0 && <SpaceCover items={spaceItems} />}
+          {spaceItems.length > 0 && <div style={coverShade} />}
           <button aria-label={defaultFeed === space.name ? `${space.name} is your default space` : `Make ${space.name} your default space`} onClick={(e) => { e.stopPropagation(); setDefaultFeed(space.name); trackEvent("default_space_changed", { space: space.name, source: "spaces_tab" }); }} style={{ ...starButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><Star size={21} strokeWidth={2.2} fill={defaultFeed === space.name ? "var(--brand)" : "transparent"} color={defaultFeed === space.name ? "var(--brand)" : (spaceItems.length === 0 ? "var(--text-muted)" : "white")} /></button>
           <button aria-label={`More options for ${space.name}`} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(openMenuSpaceId === space.id ? null : space.id); }} style={{ ...menuButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><MoreVertical size={20} /></button>
           {openMenuSpaceId === space.id && <div style={spaceMenu}>
