@@ -30,9 +30,9 @@ export default function AuthScreen({ setUser }) {
   </div>;
 }
 
-const authPage = { minHeight: "100vh", background: "var(--bg)", color: "var(--text-primary)", display: "flex", flexDirection: "column", justifyContent: "center", padding: "24px", boxSizing: "border-box", fontFamily: "Inter, sans-serif" };
+const authPage = { minHeight: "100vh", background: "var(--bg)", color: "var(--text-primary)", display: "flex", flexDirection: "column", justifyContent: "center", padding: "24px", boxSizing: "border-box", fontFamily:"var(--font-body)" };
 const subtitle = { color: "var(--text-secondary)", marginBottom: "28px" };
-const input = { width: "100%", boxSizing: "border-box", padding: "16px", borderRadius: "16px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", fontSize: "16px", marginBottom: "14px" };
-const primaryButton = { width: "100%", padding: "14px", borderRadius: "16px", border: "none", background: "var(--brand)", color: "white", fontWeight: "bold", cursor: "pointer" };
+const input = { width: "100%", boxSizing: "border-box", padding: "16px", borderRadius: "16px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)", fontSize:"var(--text-md)", marginBottom: "14px" };
+const primaryButton = { width: "100%", padding: "14px", borderRadius: "16px", border: "none", background: "var(--brand)", color: "white", fontWeight:"var(--weight-bold)", cursor: "pointer" };
 const switchButton = { marginTop: "16px", border: "none", background: "transparent", color: "var(--brand)", cursor: "pointer" };
-const forgotButton = { marginTop: "12px", marginBottom: "4px", border: "none", background: "transparent", color: "var(--text-secondary)", fontSize: "14px", cursor: "pointer", textAlign: "left", padding: 0 };
+const forgotButton = { marginTop: "12px", marginBottom: "4px", border: "none", background: "transparent", color: "var(--text-secondary)", fontSize:"var(--text-sm)", cursor: "pointer", textAlign: "left", padding: 0 };
