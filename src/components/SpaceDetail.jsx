@@ -1,12 +1,20 @@
 import { useState } from "react";
-import { ArrowLeft, Check, Heart, MoveRight, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowDownUp, Check, Heart, MoveRight, Plus, Trash2 } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 
 export default function SpaceDetail({ selectedSpace, setSelectedSpace, spaces, feedItems, setFeedItems, setSelectedItem, setUploadSpace, setTab }) {
   const [isSelectingItems, setIsSelectingItems] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState([]);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const selectedSpaceItems = feedItems.filter((item) => item.space === selectedSpace);
+  const sortedSpaceItems = [...selectedSpaceItems].sort((a, b) => {
+    if (sortOrder === "favorites") return Number(Boolean(b.favorite)) - Number(Boolean(a.favorite));
+    const aTime = new Date(a.created_at || a.createdAt || 0).getTime();
+    const bTime = new Date(b.created_at || b.createdAt || 0).getTime();
+    return sortOrder === "oldest" ? aTime - bTime : bTime - aTime;
+  });
 
   const moveSelectedItems = async (newSpaceName) => {
     if (!selectedItemIds.length) return;
@@ -35,13 +43,21 @@ export default function SpaceDetail({ selectedSpace, setSelectedSpace, spaces, f
         <div style={spaceTitle}>{selectedSpace}</div>
         <div style={spaceItemCount}>{selectedSpaceItems.length} {selectedSpaceItems.length === 1 ? "item" : "items"}</div>
       </div>
+      <div style={headerActions}>
+        {!isSelectingItems && <div style={sortWrap}>
+          <button type="button" style={sortButton} aria-label="Sort space" title="Sort" onClick={() => setShowSortMenu((prev) => !prev)}><ArrowDownUp size={19} /></button>
+          {showSortMenu && <div style={sortMenu}>
+            {[["newest","Newest"],["oldest","Oldest"],["favorites","Favorites first"]].map(([value,label]) => <button key={value} type="button" style={sortMenuItem} onClick={() => { setSortOrder(value); setShowSortMenu(false); }}><span>{label}</span>{sortOrder === value && <Check size={17} color="var(--brand)" />}</button>)}
+          </div>}
+        </div>}
       <button style={selectButton} onClick={() => { setIsSelectingItems((prev) => !prev); setSelectedItemIds([]); setShowMoveMenu(false); }}>
         {isSelectingItems ? "Cancel" : "Select"}
       </button>
+      </div>
     </div>
     {selectedSpaceItems.length === 0 && <p style={emptyStateText}>Build a feed that pulls you back into this world.</p>}
     <div style={spaceDetailGrid}>
-      {selectedSpaceItems.map((item) => <div key={item.id} style={{ ...spaceDetailCard, border: selectedItemIds.includes(item.id) ? "3px solid var(--brand)" : "1px solid var(--border)" }} onClick={() => { if (isSelectingItems) setSelectedItemIds((prev) => prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]); else setSelectedItem(item); }}>
+      {sortedSpaceItems.map((item) => <div key={item.id} style={{ ...spaceDetailCard, border: selectedItemIds.includes(item.id) ? "3px solid var(--brand)" : "1px solid var(--border)" }} onClick={() => { if (isSelectingItems) setSelectedItemIds((prev) => prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]); else setSelectedItem(item); }}>
         {item.media_type === "video" ? <video src={item.image} style={spaceDetailImage} muted playsInline /> : <img src={item.image} loading="lazy" alt="" style={spaceDetailImage} />}
         {isSelectingItems && selectedItemIds.includes(item.id) && <div style={selectedCheck}><Check size={18} strokeWidth={3} /></div>}
         {item.favorite && <div style={spaceFavoriteIndicator}><Heart size={22} fill="var(--favorite)" color="var(--favorite)" /></div>}
@@ -76,3 +92,8 @@ const bulkMoveButton = { width: "100%", border: "none", background: "var(--brand
 const bulkDeleteButton = { width: "100%", border: "none", background: "var(--danger)", color: "white", padding: "14px", borderRadius: "16px", fontWeight:"var(--weight-bold)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" };
 const moveMenu = { marginTop: "12px", display: "grid", gap: "8px", maxHeight: "220px", overflowY: "auto" };
 const moveMenuItem = { border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", padding: "12px", borderRadius: "14px", cursor: "pointer" };
+const headerActions = { display:"flex", alignItems:"center", gap:"4px" };
+const sortWrap = { position:"relative" };
+const sortButton = { width:"38px", height:"38px", borderRadius:"999px", border:"none", background:"transparent", color:"var(--text-primary)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" };
+const sortMenu = { position:"absolute", top:"44px", right:0, width:"180px", padding:"6px", border:"1px solid var(--border)", borderRadius:"16px", background:"var(--surface)", boxShadow:"var(--shadow)", zIndex:90 };
+const sortMenuItem = { width:"100%", border:"none", background:"transparent", color:"var(--text-primary)", padding:"11px 10px", borderRadius:"11px", display:"flex", alignItems:"center", justifyContent:"space-between", fontSize:"var(--text-sm)", cursor:"pointer" };
