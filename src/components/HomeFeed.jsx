@@ -54,7 +54,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
       <div style={sortWrap}>
         <button type="button" style={sortButton} aria-label="Sort feed" title="Sort" onClick={() => setShowSortMenu((prev) => !prev)}><ArrowDownUp size={20} /></button>
         {showSortMenu && <div style={sortMenu}>
-          {[["newest","Newest"],["oldest","Oldest"],["favorites","Favorites first"]].map(([value,label]) => <button key={value} type="button" style={sortMenuItem} onClick={() => { setSortOrder(value); setShowSortMenu(false); feedRef.current?.scrollTo({ top:0, behavior:"auto" }); }}><span>{label}</span>{sortOrder === value && <Check size={17} color="var(--brand)" />}</button>)}
+          {[["newest","Newest"],["oldest","Oldest"],["favorites","Favorites first"]].map(([value,label]) => <button key={value} type="button" style={sortMenuItem} onClick={() => { setSortOrder(value); setShowSortMenu(false); requestAnimationFrame(() => { if (feedRef.current) { feedRef.current.scrollTop = 0; feedRef.current.scrollTo({ top: 0, behavior: "auto" }); } }); }}><span>{label}</span>{sortOrder === value && <Check size={17} color="var(--brand)" />}</button>)}
         </div>}
       </div>
       </div>
