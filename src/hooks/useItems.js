@@ -50,6 +50,7 @@ export function useItems(user) {
     selectedItem,
     itemNoteDraft,
     itemFavoriteDraft,
+    itemTagsDraft,
     closeItemModal,
   }) => {
     if (!selectedItem || !user) return;
@@ -59,6 +60,7 @@ export function useItems(user) {
       .update({
         note: itemNoteDraft,
         favorite: itemFavoriteDraft,
+        tags: itemTagsDraft,
       })
       .eq("id", selectedItem.id)
       .eq("user_id", user.id);
@@ -71,7 +73,7 @@ export function useItems(user) {
     setFeedItems((prev) =>
       prev.map((item) =>
         item.id === selectedItem.id
-          ? { ...item, note: itemNoteDraft, favorite: itemFavoriteDraft }
+          ? { ...item, note: itemNoteDraft, favorite: itemFavoriteDraft, tags: itemTagsDraft }
           : item
       )
     );
