@@ -1,184 +1,43 @@
+import { Heart, Play, Search as SearchIcon, X } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
-export default function Search({
-  searchTerm,
-  setSearchTerm,
-  searchResults,
-  setSelectedItem,
-  spaces,
-}) {
+export default function Search({ searchTerm, setSearchTerm, searchResults, setSelectedItem }) {
   return (
     <div style={searchPage} className="pretty-scroll">
-      <p style={subtitleStyle}>Search your Cache</p>
-
-      <input
-        type="text"
-        placeholder="Search spaces, notes, tags..."
-        value={searchTerm}
-        onChange={(e) => {
+      <div style={searchInputWrap}>
+        <SearchIcon size={19} strokeWidth={2} style={searchIcon} />
+        <input type="text" placeholder="Search your saved content..." value={searchTerm} onChange={(e) => {
           const value = e.target.value;
           setSearchTerm(value);
+          if (value.trim().length >= 2) trackEvent("search_used", { query_length: value.trim().length, result_count: searchResults.length, source: "search_input" });
+        }} style={searchInput} />
+        {searchTerm && <button type="button" aria-label="Clear search" onClick={() => setSearchTerm("")} style={clearButton}><X size={17} strokeWidth={2.2} /></button>}
+      </div>
 
-          if (value.trim().length >= 2) {
-            trackEvent("search_used", {
-              query_length: value.trim().length,
-              result_count: searchResults.length,
-              source: "search_input",
-            });
-          }
-        }}
-        style={searchInput}
-      />
-
-      {searchTerm === "" ? (
-        <div style={{ marginTop: "24px" }}>
-          <h3 style={{ marginBottom: "16px" }}>Suggested</h3>
-
-          <div style={searchTags}>
-            {spaces.map((space) => (
-              <button
-                key={space.id}
-                onClick={() => {
-                  trackEvent("search_used", {
-                    query_length: space.name.length,
-                    source: "suggested_space",
-                  });
-
-                  setSearchTerm(space.name);
-                }}
-                style={tagPill}
-              >
-                {space.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div style={searchResultsList}>
-          {searchTerm && searchResults.length === 0 && (
-            <div style={emptyState}>
-              <h3>No results found</h3>
-              <p>Try another word, tag, or space.</p>
-            </div>
-          )}
-
-          {searchResults.map((item) => (
-            <div
-              key={item.id}
-              style={searchResultCard}
-              onClick={() => {
-                trackEvent("item_opened", {
-                  item_id: item.id,
-                  space: item.space,
-                  media_type: item.media_type,
-                  source: "search",
-                });
-
-                setSelectedItem(item);
-              }}
-            >
-              {item.media_type === "video" ? (
-                <video
-                  src={item.image}
-                  style={searchResultImage}
-                  muted
-                  playsInline
-                />
-              ) : (
-                <img src={item.image} alt="" style={searchResultImage} />
-              )}
-
-              <div>
-                <p style={searchResultSpace}>{item.space}</p>
-                {item.note && <p style={searchResultNote}>{item.note}</p>}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {searchTerm === "" ? <div style={searchPrompt}>Find anything you've saved across Looptie.</div> : <>
+        <div style={resultsCount}>{searchResults.length} {searchResults.length === 1 ? "result" : "results"}</div>
+        {searchResults.length === 0 ? <div style={emptyState}><h3>No results found</h3><p>Try another word, tag, or space.</p></div> : <div style={searchResultsGrid}>
+          {searchResults.map((item) => <button key={item.id} style={searchResultTile} onClick={() => { trackEvent("item_opened", { item_id: item.id, space: item.space, media_type: item.media_type, source: "search" }); setSelectedItem(item); }}>
+            {item.media_type === "video" ? <video src={item.image} style={searchResultMedia} muted playsInline /> : <img src={item.image} alt="" loading="lazy" style={searchResultMedia} />}
+            {item.media_type === "video" && <div style={videoIndicator}><Play size={15} fill="currentColor" /></div>}
+            {item.favorite && <div style={favoriteIndicator}><Heart size={17} fill="var(--favorite)" color="var(--favorite)" /></div>}
+          </button>)}
+        </div>}
+      </>}
     </div>
   );
 }
 
-const subtitleStyle = {
-  color: "#9ca3af",
-  marginBottom: "24px",
-};
-
-const searchInput = {
-  width: "100%",
-  padding: "18px",
-  borderRadius: "18px",
-  border: "1px solid #27272a",
-  background: "#18181b",
-  color: "white",
-  fontSize: "16px",
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const searchTags = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "12px",
-};
-
-const tagPill = {
-  background: "#18181b",
-  border: "1px solid #27272a",
-  borderRadius: "999px",
-  padding: "10px 16px",
-  color: "white",
-  fontSize: "14px",
-  cursor: "pointer",
-};
-
-const searchResultsList = {
-  display: "grid",
-  gap: "16px",
-  marginTop: "24px",
-  paddingBottom: "90px",
-};
-
-const searchResultCard = {
-  display: "flex",
-  gap: "14px",
-  alignItems: "center",
-  background: "#18181b",
-  border: "1px solid #27272a",
-  borderRadius: "20px",
-  padding: "12px",
-};
-
-const searchResultImage = {
-  width: "72px",
-  height: "72px",
-  borderRadius: "16px",
-  objectFit: "cover",
-};
-
-const searchResultSpace = {
-  color: "#7c3aed",
-  fontSize: "13px",
-  fontWeight: "bold",
-  margin: 0,
-};
-
-const searchResultNote = {
-  color: "#d4d4d8",
-  fontSize: "14px",
-  margin: "6px 0 0",
-};
-
-const emptyState = {
-  marginTop: "80px",
-  textAlign: "center",
-  color: "#a1a1aa",
-};
-
-const searchPage = {
-  height: "100%",
-  overflowY: "auto",
-  paddingBottom: "120px",
-  WebkitOverflowScrolling: "touch",
-};
+const searchInputWrap = { position:"relative", width:"100%" };
+const searchIcon = { position:"absolute", left:"16px", top:"50%", transform:"translateY(-50%)", color:"var(--text-secondary)", pointerEvents:"none" };
+const searchInput = { width:"100%", padding:"16px 46px 16px 46px", borderRadius:"18px", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text-primary)", fontSize:"var(--text-md)", outline:"none", boxSizing:"border-box" };
+const clearButton = { position:"absolute", right:"10px", top:"50%", transform:"translateY(-50%)", width:"32px", height:"32px", border:"none", borderRadius:"999px", background:"var(--surface-elevated)", color:"var(--text-secondary)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0 };
+const resultsCount = { margin:"18px 2px 10px", color:"var(--text-secondary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-medium)" };
+const searchResultsGrid = { display:"grid", gridTemplateColumns:"repeat(3, minmax(0, 1fr))", gap:"3px", paddingBottom:"90px" };
+const searchResultTile = { position:"relative", width:"100%", aspectRatio:"1 / 1.25", padding:0, border:"none", borderRadius:"10px", overflow:"hidden", background:"var(--surface-elevated)", cursor:"pointer" };
+const searchResultMedia = { width:"100%", height:"100%", objectFit:"cover", display:"block" };
+const favoriteIndicator = { position:"absolute", top:"7px", right:"7px", zIndex:2, filter:"drop-shadow(0 1px 3px rgba(0,0,0,.45))", pointerEvents:"none" };
+const videoIndicator = { position:"absolute", top:"7px", left:"7px", zIndex:2, color:"white", filter:"drop-shadow(0 1px 3px rgba(0,0,0,.65))", pointerEvents:"none", display:"flex" };
+const emptyState = { marginTop: "80px", textAlign: "center", color: "var(--text-secondary)" };
+const searchPrompt = { marginTop:"24px", color:"var(--text-secondary)", fontSize:"var(--text-sm)" };
+const searchPage = { height:"100%", overflowY:"auto", padding:"14px 14px 120px", boxSizing:"border-box", WebkitOverflowScrolling:"touch", color:"var(--text-primary)" };

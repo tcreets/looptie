@@ -27,251 +27,55 @@ export default function App() {
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const feedRef = useRef(null);
-  const [showCreateSpaceModal, setShowCreateSpaceModal] = useState(false);
 
-  const {
-    user,
-    setUser,
-    authLoading,
-  } = useAuth();
- 
-  const {
-    spaces,
-    setSpaces,
-    spacesLoading,
-    defaultFeed,
-    setDefaultFeed,
-    saveDefaultFeed,
-    activeFeed,
-    setActiveFeed,
-    uploadSpace,
-    setUploadSpace,
-    deleteSpace,
-    renameSpace,
-  } = useSpaces(user);
+  const { user, setUser, authLoading } = useAuth();
+  const { spaces, setSpaces, spacesLoading, defaultFeed, setDefaultFeed, saveDefaultFeed, activeFeed, setActiveFeed, uploadSpace, setUploadSpace, deleteSpace, renameSpace } = useSpaces(user);
+  const { profile, setProfile, profileLoading } = useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace);
+  const { feedItems, setFeedItems, itemsLoading, saveItemMemo, saveItemTags, toggleFavorite, deleteItem, deleteAllUserItemsAndStorage } = useItems(user);
+  const { selectedItem, itemNoteDraft, setItemNoteDraft, itemFavoriteDraft, setItemFavoriteDraft, itemTagsDraft, setItemTagsDraft, openItemModal, closeItemModal } = useItemModal();
+  const { searchTerm, setSearchTerm, searchResults } = useSearch(feedItems);
 
-  const {
-    profile,
-    setProfile,
-    profileLoading,
-  } = useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace);
-
-  const {
-    feedItems,
-    setFeedItems,
-    itemsLoading,
-    saveItemMemo,
-    toggleFavorite,
-    deleteItem,
-    deleteAllUserItemsAndStorage,
-  } = useItems(user);
-
-  const {
-    selectedItem,
-    itemNoteDraft,
-    setItemNoteDraft,
-    itemFavoriteDraft,
-    setItemFavoriteDraft,
-    openItemModal,
-    closeItemModal,
-  } = useItemModal();
-
-  const {
-    searchTerm,
-    setSearchTerm,
-    searchResults,
-  } = useSearch(feedItems);
-
-  
   const currentFeed = activeFeed || defaultFeed;
-
-  const filteredFeedItems = feedItems.filter(
-    (item) => item.space === currentFeed
-  );
+  const filteredFeedItems = feedItems.filter((item) => item.space === currentFeed);
 
   useEffect(() => {
     if (!user) return;
-    
-    trackEvent("app_opened", {
-      source: "app_start",
-    });
+    trackEvent("app_opened", { source: "app_start" });
   }, [user?.id]);
 
   if (authLoading) return null;
+  if (!user) return <AuthScreen setUser={setUser} />;
 
-  if (!user) {
-    return <AuthScreen setUser={setUser} />;
-  }
-  
   if (profileLoading || spacesLoading || itemsLoading) {
-    return (
-      <div style={appStyle}>
-        <p style={{ color: "#a1a1aa", margin: "auto" }}>
-          Loading your Looptie...
-        </p>
-      </div>
-    );
+    return <div style={appStyle}><p style={{ color: "var(--text-secondary)", margin: "auto" }}>Loading your Looptie...</p></div>;
   }
 
   if (user && profile && !profile.has_completed_onboarding) {
-    return (
-      <Onboarding
-        user={user}
-        setProfile={setProfile}
-        onComplete={(newSpace) => {
-          setSpaces([newSpace]);
-          setDefaultFeed(newSpace.name);
-          setActiveFeed(newSpace.name);
-          setUploadSpace(newSpace.name);
-          setTab("home");
-        }}
-      />
-    );
+    return <Onboarding user={user} setProfile={setProfile} onComplete={(newSpace) => {
+      setSpaces([newSpace]); setDefaultFeed(newSpace.name); setActiveFeed(newSpace.name); setUploadSpace(newSpace.name); setTab("home");
+    }} />;
   }
 
   return (
     <div style={appStyle}>
       <div style={contentStyle}>
-        {tab === "home" && (
-          <HomeFeed
-            spaces={spaces}
-            activeFeed={currentFeed}
-            setActiveFeed={setActiveFeed}
-            feedRef={feedRef}
-            filteredFeedItems={filteredFeedItems}
-            setSelectedItem={openItemModal}
-          />
-        )}
-
-        {tab === "spaces" && (
-          <Spaces
-          spaces={spaces}
-          defaultFeed={defaultFeed}
-          setDefaultFeed={saveDefaultFeed}
-          selectedSpace={selectedSpace}
-          setSelectedSpace={setSelectedSpace}
-          feedItems={feedItems}
-          setFeedItems={setFeedItems}
-          setSelectedItem={openItemModal}
-          setShowNewSpaceForm={setShowNewSpaceForm}
-          setUploadSpace={setUploadSpace}
-          setTab={setTab}
-          renameSpace={renameSpace}
-          onDeleteSpace={(spaceName) =>
-            deleteSpace(spaceName, feedItems, setFeedItems, setSelectedSpace)
-          }
-        />
-        )}
-
-        {tab === "search" && (
-          <SearchScreen
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          searchResults={searchResults}
-          setSelectedItem={openItemModal}
-          spaces={spaces}
-        />
-        )}
-
-        {tab === "add" && (
-          <AddContentScreen
-            user={user}
-            spaces={spaces}
-            setSpaces={setSpaces}
-            defaultFeed={defaultFeed}
-            uploadSpace={uploadSpace}
-            setUploadSpace={setUploadSpace}
-            selectedFiles={selectedFiles}
-            setSelectedFiles={setSelectedFiles}
-            feedItems={feedItems}
-            setFeedItems={setFeedItems}
-            setActiveFeed={setActiveFeed}
-            setTab={setTab}
-          />
-        )}
-
-        {tab === "profile" && (
-          <Profile
-          items={feedItems}
-          spaces={spaces}
-          setSelectedItem={openItemModal}
-          setTab={setTab}
-          profile={profile}
-        />)}
-
-        {tab === "settings" && (
-          <SettingsScreen
-          profile={profile}
-          spaces={spaces}
-          defaultFeed={defaultFeed}
-          setDefaultFeed={setDefaultFeed}
-          setActiveFeed={setActiveFeed}
-          setProfile={setProfile}
-          setTab={setTab}
-          user={user}
-          deleteAllUserItemsAndStorage={deleteAllUserItemsAndStorage}
-        />
-        )}
-
-        {showNewSpaceForm && (
-          <CreateSpaceModal
-            user={user}
-            newSpaceName={newSpaceName}
-            setNewSpaceName={setNewSpaceName}
-            spaces={spaces}
-            setSpaces={setSpaces}
-            setSelectedSpace={setSelectedSpace}
-            setShowNewSpaceForm={setShowNewSpaceForm}
-            setTab={setTab}
-          />
-        )}
-
-        {selectedItem && (
-          <ItemDetailModal
-            selectedItem={selectedItem}
-            itemNoteDraft={itemNoteDraft}
-            setItemNoteDraft={setItemNoteDraft}
-            onClose={closeItemModal}
-            itemFavoriteDraft={itemFavoriteDraft}
-            setItemFavoriteDraft={setItemFavoriteDraft}
-            onToggleFavorite={async () => {
-              const nextFavorite = !itemFavoriteDraft;
-                      
-              setItemFavoriteDraft(nextFavorite);
-                      
-              await toggleFavorite(selectedItem, nextFavorite);
-            }}
-            onSave={() =>
-              saveItemMemo({
-                selectedItem,
-                itemNoteDraft,
-                itemFavoriteDraft,
-                closeItemModal,
-              })
-            }
-            onDelete={() =>
-              deleteItem({
-                selectedItem,
-                closeItemModal,
-              })
-            }
-          />
-        )}
+        {tab === "home" && <HomeFeed spaces={spaces} activeFeed={currentFeed} setActiveFeed={setActiveFeed} feedRef={feedRef} filteredFeedItems={filteredFeedItems} setSelectedItem={openItemModal} />}
+        {tab === "spaces" && <Spaces spaces={spaces} defaultFeed={defaultFeed} setDefaultFeed={saveDefaultFeed} selectedSpace={selectedSpace} setSelectedSpace={setSelectedSpace} feedItems={feedItems} setFeedItems={setFeedItems} setSelectedItem={openItemModal} setShowNewSpaceForm={setShowNewSpaceForm} setUploadSpace={setUploadSpace} setTab={setTab} renameSpace={renameSpace} onDeleteSpace={(spaceName) => deleteSpace(spaceName, feedItems, setFeedItems, setSelectedSpace)} />}
+        {tab === "search" && <SearchScreen searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchResults={searchResults} setSelectedItem={openItemModal} spaces={spaces} />}
+        {tab === "add" && <AddContentScreen user={user} spaces={spaces} setSpaces={setSpaces} defaultFeed={defaultFeed} uploadSpace={uploadSpace} setUploadSpace={setUploadSpace} selectedFiles={selectedFiles} setSelectedFiles={setSelectedFiles} feedItems={feedItems} setFeedItems={setFeedItems} setActiveFeed={setActiveFeed} setTab={setTab} />}
+        {tab === "profile" && <Profile items={feedItems} spaces={spaces} setSelectedItem={openItemModal} setTab={setTab} profile={profile} />}
+        {tab === "settings" && <SettingsScreen profile={profile} spaces={spaces} defaultFeed={defaultFeed} setDefaultFeed={setDefaultFeed} setActiveFeed={setActiveFeed} setProfile={setProfile} setTab={setTab} user={user} deleteAllUserItemsAndStorage={deleteAllUserItemsAndStorage} />}
+        {showNewSpaceForm && <CreateSpaceModal user={user} newSpaceName={newSpaceName} setNewSpaceName={setNewSpaceName} spaces={spaces} setSpaces={setSpaces} setSelectedSpace={setSelectedSpace} setShowNewSpaceForm={setShowNewSpaceForm} setTab={setTab} />}
+        {selectedItem && <ItemDetailModal selectedItem={selectedItem} itemNoteDraft={itemNoteDraft} setItemNoteDraft={setItemNoteDraft} itemTagsDraft={itemTagsDraft} setItemTagsDraft={setItemTagsDraft} onClose={closeItemModal} itemFavoriteDraft={itemFavoriteDraft} setItemFavoriteDraft={setItemFavoriteDraft} onToggleFavorite={async () => { const nextFavorite = !itemFavoriteDraft; setItemFavoriteDraft(nextFavorite); await toggleFavorite(selectedItem, nextFavorite); }} onSaveMemo={(note) => saveItemMemo(selectedItem, note)} onSaveTags={(tags) => saveItemTags(selectedItem, tags)} onDelete={() => deleteItem({ selectedItem, closeItemModal })} />}
       </div>
-
-      <BottomNav
-        defaultFeed={defaultFeed}
-        setActiveFeed={setActiveFeed}
-        setTab={setTab}
-        setSelectedSpace={setSelectedSpace}
-      />
+      <BottomNav defaultFeed={defaultFeed} setActiveFeed={setActiveFeed} setTab={setTab} setSelectedSpace={setSelectedSpace} />
     </div>
   );
 }
 
 const appStyle = {
-  background: "#050505",
-  color: "white",
+  background: "var(--bg)",
+  color: "var(--text-primary)",
   height: "100vh",
   overflow: "hidden",
   display: "flex",
@@ -279,7 +83,4 @@ const appStyle = {
   fontFamily: "Inter, sans-serif",
 };
 
-const contentStyle = {
-  flex: 1,
-  overflow: "hidden",
-};
+const contentStyle = { flex: 1, overflow: "hidden" };

@@ -1,110 +1,22 @@
 import React from "react";
-import { Home, Grid3X3, User, Search, Plus } from "lucide-react";
+import { Home, Layers3, User, Search, Plus } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
-export default function BottomNav({
-  defaultFeed,
-  setActiveFeed,
-  setTab,
-  setSelectedSpace,
-}) {
+export default function BottomNav({ defaultFeed, setActiveFeed, setTab, setSelectedSpace }) {
   return (
-    <div style={navStyle}>
-      <button
-        onClick={() => {
-          trackEvent("tab_changed", { tab: "home" });
-          setActiveFeed(defaultFeed);
-          setTab("home");
-        }}
-        style={navButton}
-      >
-        <Home size={22} />
-        <span>Home</span>
-      </button>
-
-      <button
-        onClick={() => {
-          trackEvent("tab_changed", { tab: "spaces" });
-          setTab("spaces");
-          setSelectedSpace(null);
-        }}
-        style={navButton}
-      >
-        <Grid3X3 size={22} />
-        <span>Spaces</span>
-      </button>
-
-      <button
-        onClick={() => {
-          trackEvent("tab_changed", { tab: "add" });
-          setTab("add");
-        }}
-        style={addNavButton}
-      >
-        <div style={{ transform: "translateY(2px)" }}>
-          <Plus size={30} strokeWidth={3} />
-        </div>
-      </button>
-
-      <button
-        onClick={() => {
-          trackEvent("tab_changed", { tab: "search" });
-          setTab("search");
-        }}
-        style={navButton}
-      >
-        <Search size={22} />
-        <span>Search</span>
-      </button>
-
-      <button
-        onClick={() => {
-          trackEvent("tab_changed", { tab: "profile" });
-          setTab("profile");
-        }}
-        style={navButton}
-      >
-        <User size={22} />
-        <span>Profile</span>
-      </button>
+    <div style={navWrap}>
+      <div style={navStyle}>
+        <button aria-label="Home" title="Home" onClick={() => { trackEvent("tab_changed", { tab: "home" }); setActiveFeed(defaultFeed); setTab("home"); }} style={navButton}><Home size={24} /></button>
+        <button aria-label="Spaces" title="Spaces" onClick={() => { trackEvent("tab_changed", { tab: "spaces" }); setTab("spaces"); setSelectedSpace(null); }} style={navButton}><Layers3 size={24} /></button>
+        <button aria-label="Add content" title="Add content" onClick={() => { trackEvent("tab_changed", { tab: "add" }); setTab("add"); }} style={addNavButton}><Plus size={30} strokeWidth={3} /></button>
+        <button aria-label="Search" title="Search" onClick={() => { trackEvent("tab_changed", { tab: "search" }); setTab("search"); }} style={navButton}><Search size={24} /></button>
+        <button aria-label="Profile" title="Profile" onClick={() => { trackEvent("tab_changed", { tab: "profile" }); setTab("profile"); }} style={navButton}><User size={24} /></button>
+      </div>
     </div>
   );
 }
 
-const navStyle = {
-  display: "flex",
-  justifyContent: "space-around",
-  padding: "18px",
-  borderTop: "1px solid #222",
-  background: "#0a0a0a",
-};
-
-const navButton = {
-  background: "transparent",
-  color: "white",
-  border: "none",
-  fontSize: "12px",
-  cursor: "pointer",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: "4px",
-};
-
-const addNavButton = {
-  width: "52px",
-  height: "52px",
-  borderRadius: "18px",
-  border: "none",
-  background: "#7c3aed",
-  color: "white",
-  fontSize: "30px",
-  fontWeight: "600",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: 0,
-  paddingBottom: "4px",
-  lineHeight: 1,
-};
+const navWrap = { position:"fixed", left:0, right:0, bottom:0, zIndex:120, padding:"8px 14px 12px", background:"transparent", pointerEvents:"none" };
+const navStyle = { display:"flex", alignItems:"center", justifyContent:"space-around", minHeight:"62px", padding:"4px 10px", border:"1px solid var(--border)", borderRadius:"24px", background:"color-mix(in srgb, var(--surface) 92%, transparent)", boxShadow:"0 8px 28px rgba(0,0,0,.18)", backdropFilter:"blur(16px)", WebkitBackdropFilter:"blur(16px)", pointerEvents:"auto" };
+const navButton = { width:"44px", height:"44px", background:"transparent", color:"var(--text-primary)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0 };
+const addNavButton = { width:"50px", height:"50px", borderRadius:"17px", border:"none", background:"var(--brand)", color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0, lineHeight:1, boxShadow:"0 5px 16px rgba(var(--brand-rgb),.28)" };

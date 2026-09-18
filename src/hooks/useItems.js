@@ -46,37 +46,55 @@ export function useItems(user) {
     fetchItems();
   }, [user]);
 
-  const saveItemMemo = async ({
-    selectedItem,
-    itemNoteDraft,
-    itemFavoriteDraft,
-    closeItemModal,
-  }) => {
-    if (!selectedItem || !user) return;
+  const saveItemMemo = async (selectedItem, itemNoteDraft) => {
+    if (!selectedItem || !user) return false;
 
     const { error } = await supabase
       .from("items")
-      .update({
-        note: itemNoteDraft,
-        favorite: itemFavoriteDraft,
-      })
+      .update({ note: itemNoteDraft })
       .eq("id", selectedItem.id)
       .eq("user_id", user.id);
 
     if (error) {
-      console.error("Error saving item:", error);
-      return;
+      console.error("Error saving memo:", error);
+      return false;
     }
 
     setFeedItems((prev) =>
       prev.map((item) =>
         item.id === selectedItem.id
-          ? { ...item, note: itemNoteDraft, favorite: itemFavoriteDraft }
+          ? { ...item, note: itemNoteDraft }
           : item
       )
     );
 
-    closeItemModal();
+    return true;
+  };
+
+  const saveItemTags = async (selectedItem, tags) => {
+    if (!selectedItem || !user) return false;
+
+    const { error } = await supabase
+      .from("items")
+      .update({ tags })
+      .eq("id", selectedItem.id)
+      .eq("user_id", user.id);
+
+    if (error) {
+      console.error("Error saving tags:", error);
+      alert(error.message);
+      return false;
+    }
+
+    setFeedItems((prev) =>
+      prev.map((item) =>
+        item.id === selectedItem.id
+          ? { ...item, tags }
+          : item
+      )
+    );
+
+    return true;
   };
 
   const deleteItem = async ({ selectedItem, closeItemModal }) => {
@@ -188,6 +206,7 @@ export function useItems(user) {
     setFeedItems,
     itemsLoading,
     saveItemMemo,
+    saveItemTags,
     toggleFavorite,
     deleteItem,
     deleteAllUserItemsAndStorage,
