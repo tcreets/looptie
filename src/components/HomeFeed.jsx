@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX, Pause, Play, SquarePen, Heart } from "lucide-react";
+import { Volume2, VolumeX, Pause, Play, SquarePen, Heart, ArrowDownUp, Check } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
 function SmartImage({ src, style }) {
@@ -13,8 +13,16 @@ function SmartImage({ src, style }) {
 export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, filteredFeedItems, setSelectedItem }) {
   const [mutedVideos, setMutedVideos] = useState({});
   const [pausedVideos, setPausedVideos] = useState({});
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const videoRefs = useRef({});
   const handlePillWheel = (e) => { e.currentTarget.scrollLeft += e.deltaY; };
+  const sortedFeedItems = [...filteredFeedItems].sort((a, b) => {
+    if (sortOrder === "favorites") return Number(Boolean(b.favorite)) - Number(Boolean(a.favorite));
+    const aTime = new Date(a.created_at || a.createdAt || 0).getTime();
+    const bTime = new Date(b.created_at || b.createdAt || 0).getTime();
+    return sortOrder === "oldest" ? aTime - bTime : bTime - aTime;
+  });
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -32,6 +40,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
 
   return (
     <div style={homeStyle}>
+      <div style={feedControlsStyle}>
       <div style={feedSelectorStyle} className="horizontal-pretty-scrollbar" onWheel={handlePillWheel}>
         {spaces.map((feed) => {
           const active = activeFeed === feed.name;
@@ -42,10 +51,17 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
           }} style={{ ...feedButtonStyle, background: active ? "var(--brand)" : "var(--surface-elevated)", color: active ? "white" : "var(--text-primary)", borderColor: active ? "var(--brand)" : "var(--border)" }}>{feed.name}</button>;
         })}
       </div>
+      <div style={sortWrap}>
+        <button type="button" style={sortButton} aria-label="Sort feed" title="Sort" onClick={() => setShowSortMenu((prev) => !prev)}><ArrowDownUp size={20} /></button>
+        {showSortMenu && <div style={sortMenu}>
+          {[["newest","Newest"],["oldest","Oldest"],["favorites","Favorites first"]].map(([value,label]) => <button key={value} type="button" style={sortMenuItem} onClick={() => { setSortOrder(value); setShowSortMenu(false); feedRef.current?.scrollTo({ top:0, behavior:"auto" }); }}><span>{label}</span>{sortOrder === value && <Check size={17} color="var(--brand)" />}</button>)}
+        </div>}
+      </div>
+      </div>
 
       <div ref={feedRef} style={feedList} className="pretty-scroll">
         {filteredFeedItems.length === 0 && <div style={emptyState}><h3>No items here yet</h3><p>Add something to this space to start building your feed.</p></div>}
-        {filteredFeedItems.map((item) => (
+        {sortedFeedItems.map((item) => (
           <div key={item.id} style={feedCard}>
             {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : <SmartImage src={item.image} style={imageStyle} />}
             <div style={overlayStyle} />
@@ -64,7 +80,8 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
   );
 }
 
-const feedSelectorStyle = { display:"flex", gap:"10px", margin:"0 0 16px", padding:"12px 16px 8px", boxSizing:"border-box", overflowX:"auto", overflowY:"hidden", width:"100%", maxWidth:"100%", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" };
+const feedControlsStyle = { display:"flex", alignItems:"center", gap:"6px", paddingRight:"14px", position:"relative" };
+const feedSelectorStyle = { display:"flex", gap:"10px", margin:"0 0 16px", padding:"12px 8px 8px 16px", boxSizing:"border-box", overflowX:"auto", overflowY:"hidden", width:"100%", maxWidth:"100%", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" };
 const feedButtonStyle = { border:"1px solid var(--border)", borderRadius:"999px", padding:"10px 16px", fontWeight:"var(--weight-bold)", cursor:"pointer", flexShrink:0, whiteSpace:"nowrap" };
 const feedList = { display:"grid", gap:"18px", paddingBottom:"96px", flex:1, minHeight:0, overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch" };
 const feedCard = { position:"relative", height:"100%", minHeight:"calc(100vh - 118px)", borderRadius:"28px", overflow:"hidden", border:"1px solid var(--border)", background:"var(--surface)", scrollSnapAlign:"start", scrollSnapStop:"always" };
@@ -75,3 +92,7 @@ const emptyState = { marginTop:"80px", textAlign:"center", color:"var(--text-sec
 const homeStyle = { height:"100%", display:"flex", flexDirection:"column", minHeight:0 };
 const floatingActions = { position:"absolute", right:"20px", bottom:"108px", display:"flex", flexDirection:"column", gap:"22px", zIndex:10 };
 const floatingIconButton = { border:"none", background:"transparent", color:"white", cursor:"pointer", padding:"8px", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" };
+const sortWrap = { position:"relative", flexShrink:0, marginBottom:"4px" };
+const sortButton = { width:"40px", height:"40px", borderRadius:"999px", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text-primary)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" };
+const sortMenu = { position:"absolute", top:"48px", right:0, width:"180px", padding:"6px", border:"1px solid var(--border)", borderRadius:"16px", background:"var(--surface)", boxShadow:"var(--shadow)", zIndex:80 };
+const sortMenuItem = { width:"100%", border:"none", background:"transparent", color:"var(--text-primary)", padding:"11px 10px", borderRadius:"11px", display:"flex", alignItems:"center", justifyContent:"space-between", fontSize:"var(--text-sm)", cursor:"pointer" };
