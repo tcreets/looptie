@@ -2,17 +2,41 @@ import React, { useEffect, useState } from "react";
 import { ArrowLeft, Heart, Plus, X } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
-export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNoteDraft, itemTagsDraft, setItemTagsDraft, onClose, onSave, onToggleFavorite, itemFavoriteDraft, onDelete }) {
+export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNoteDraft, itemTagsDraft, setItemTagsDraft, onClose, onSaveMemo, onSaveTags, onToggleFavorite, itemFavoriteDraft, onDelete }) {
   const [mediaFit, setMediaFit] = useState("cover");
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [tagInput, setTagInput] = useState("");
-  const addTag = () => {
+  const [memoSaveStatus, setMemoSaveStatus] = useState("saved");
+  const addTag = async () => {
     const tag = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-").toLowerCase();
     if (!tag || itemTagsDraft.includes(tag)) { setTagInput(""); return; }
-    setItemTagsDraft([...itemTagsDraft, tag]);
+    const nextTags = [...itemTagsDraft, tag];
+    setItemTagsDraft(nextTags);
     setTagInput("");
+    const saved = await onSaveTags(nextTags);
+    if (!saved) setItemTagsDraft(itemTagsDraft);
+  };
+
+  const removeTag = async (tag) => {
+    const previousTags = itemTagsDraft;
+    const nextTags = itemTagsDraft.filter((currentTag) => currentTag !== tag);
+    setItemTagsDraft(nextTags);
+    const saved = await onSaveTags(nextTags);
+    if (!saved) setItemTagsDraft(previousTags);
   };
   useEffect(() => { if (selectedItem) trackEvent("item_viewed", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type }); }, [selectedItem?.id]);
+  useEffect(() => {
+    if (!selectedItem || itemNoteDraft === (selectedItem.note || "")) {
+      setMemoSaveStatus("saved");
+      return;
+    }
+    setMemoSaveStatus("saving");
+    const timer = setTimeout(async () => {
+      const saved = await onSaveMemo(itemNoteDraft);
+      setMemoSaveStatus(saved ? "saved" : "error");
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [itemNoteDraft, selectedItem?.id]);
   if (!selectedItem) return null;
 
   return <div style={itemModalOverlay}><div style={itemModalCard} className="pretty-scroll">
@@ -24,15 +48,15 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
       <p style={itemModalSpace}>{selectedItem.space}</p>
       <p style={itemModalTimestamp}>Added {new Date(selectedItem.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
       <textarea data-gramm="false" placeholder="Add a memo, note, or comment..." value={itemNoteDraft} onChange={(e) => setItemNoteDraft(e.target.value)} style={itemModalNote} />
+      <div style={saveStatus}>{memoSaveStatus === "saving" ? "Saving…" : memoSaveStatus === "error" ? "Couldn’t save" : "Saved"}</div>
       <div style={tagBlock}>
         <div style={tagLabel}>Tags</div>
-        {itemTagsDraft.length > 0 && <div style={tagSection}>{itemTagsDraft.map((tag) => <span key={tag} style={tagPill}>#{tag}<button type="button" aria-label={`Remove ${tag} tag`} style={removeTagButton} onClick={() => setItemTagsDraft(itemTagsDraft.filter((currentTag) => currentTag !== tag))}><X size={14} /></button></span>)}</div>}
+        {itemTagsDraft.length > 0 && <div style={tagSection}>{itemTagsDraft.map((tag) => <span key={tag} style={tagPill}>#{tag}<button type="button" aria-label={`Remove ${tag} tag`} style={removeTagButton} onClick={() => removeTag(tag)}><X size={14} /></button></span>)}</div>}
         <div style={tagInputRow}>
           <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }} placeholder="Add a tag" style={tagInputStyle} />
           <button type="button" onClick={addTag} style={addTagButton} disabled={!tagInput.trim()}><Plus size={18} />Add</button>
         </div>
       </div>
-      <button style={{ ...modalPrimaryButton, marginTop: "24px" }} onClick={() => { trackEvent("note_saved", { item_id: selectedItem.id, space: selectedItem.space, has_note: itemNoteDraft.trim().length > 0, note_length: itemNoteDraft.trim().length, tag_count: itemTagsDraft.length }); onSave(); }}>Save Changes</button>
       <button style={deleteButton} onClick={() => { trackEvent("item_deleted", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type }); onDelete(); }}>Delete Item</button>
     </div>
   </div></div>;
@@ -46,7 +70,7 @@ const itemModalContent = { padding: "20px", color: "var(--text-primary)" };
 const itemModalSpace = { color: "var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", margin: "0 0 8px" };
 const itemModalTimestamp = { color: "var(--text-muted)", fontSize:"var(--text-sm)", margin: "0 0 18px" };
 const itemModalNote = { width: "100%", minHeight: "190px", boxSizing: "border-box", padding: "14px", borderRadius: "16px", border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", fontSize:"var(--text-md)", lineHeight: 1.5, paddingBottom: "24px", resize: "none", outline: "none", fontFamily: "inherit" };
-const modalPrimaryButton = { width: "100%", padding: "14px", borderRadius: "16px", border: "none", background: "var(--brand)", color: "white", fontWeight:"var(--weight-bold)", cursor: "pointer" };
+const saveStatus = { marginTop:"6px", textAlign:"right", color:"var(--text-muted)", fontSize:"var(--text-xs)" };
 const tagBlock = { marginTop:"20px" };
 const tagLabel = { fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", marginBottom:"10px" };
 const tagSection = { display:"flex", flexWrap:"wrap", gap:"8px", marginBottom:"10px" };
