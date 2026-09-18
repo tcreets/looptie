@@ -32,7 +32,7 @@ export default function App() {
   const { spaces, setSpaces, spacesLoading, defaultFeed, setDefaultFeed, saveDefaultFeed, activeFeed, setActiveFeed, uploadSpace, setUploadSpace, deleteSpace, renameSpace } = useSpaces(user);
   const { profile, setProfile, profileLoading } = useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace);
   const { feedItems, setFeedItems, itemsLoading, saveItemMemo, toggleFavorite, deleteItem, deleteAllUserItemsAndStorage } = useItems(user);
-  const { selectedItem, itemNoteDraft, setItemNoteDraft, itemFavoriteDraft, setItemFavoriteDraft, openItemModal, closeItemModal } = useItemModal();
+  const { selectedItem, itemNoteDraft, setItemNoteDraft, itemFavoriteDraft, setItemFavoriteDraft, itemTagsDraft, setItemTagsDraft, openItemModal, closeItemModal } = useItemModal();
   const { searchTerm, setSearchTerm, searchResults } = useSearch(feedItems);
 
   const currentFeed = activeFeed || defaultFeed;
@@ -66,7 +66,7 @@ export default function App() {
         {tab === "profile" && <Profile items={feedItems} spaces={spaces} setSelectedItem={openItemModal} setTab={setTab} profile={profile} />}
         {tab === "settings" && <SettingsScreen profile={profile} spaces={spaces} defaultFeed={defaultFeed} setDefaultFeed={setDefaultFeed} setActiveFeed={setActiveFeed} setProfile={setProfile} setTab={setTab} user={user} deleteAllUserItemsAndStorage={deleteAllUserItemsAndStorage} />}
         {showNewSpaceForm && <CreateSpaceModal user={user} newSpaceName={newSpaceName} setNewSpaceName={setNewSpaceName} spaces={spaces} setSpaces={setSpaces} setSelectedSpace={setSelectedSpace} setShowNewSpaceForm={setShowNewSpaceForm} setTab={setTab} />}
-        {selectedItem && <ItemDetailModal selectedItem={selectedItem} itemNoteDraft={itemNoteDraft} setItemNoteDraft={setItemNoteDraft} onClose={closeItemModal} itemFavoriteDraft={itemFavoriteDraft} setItemFavoriteDraft={setItemFavoriteDraft} onToggleFavorite={async () => { const nextFavorite = !itemFavoriteDraft; setItemFavoriteDraft(nextFavorite); await toggleFavorite(selectedItem, nextFavorite); }} onSave={() => saveItemMemo({ selectedItem, itemNoteDraft, itemFavoriteDraft, closeItemModal })} onDelete={() => deleteItem({ selectedItem, closeItemModal })} />}
+        {selectedItem && <ItemDetailModal selectedItem={selectedItem} itemNoteDraft={itemNoteDraft} setItemNoteDraft={setItemNoteDraft} itemTagsDraft={itemTagsDraft} setItemTagsDraft={setItemTagsDraft} onClose={closeItemModal} itemFavoriteDraft={itemFavoriteDraft} setItemFavoriteDraft={setItemFavoriteDraft} onToggleFavorite={async () => { const nextFavorite = !itemFavoriteDraft; setItemFavoriteDraft(nextFavorite); await toggleFavorite(selectedItem, nextFavorite); }} onSave={() => saveItemMemo({ selectedItem, itemNoteDraft, itemFavoriteDraft, itemTagsDraft, closeItemModal })} onDelete={() => deleteItem({ selectedItem, closeItemModal })} />}
       </div>
       <BottomNav defaultFeed={defaultFeed} setActiveFeed={setActiveFeed} setTab={setTab} setSelectedSpace={setSelectedSpace} />
     </div>
