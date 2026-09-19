@@ -16,6 +16,8 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   const [linkUrl, setLinkUrl] = useState("");
   const [linkError, setLinkError] = useState("");
   const [isSavingLink, setIsSavingLink] = useState(false);
+  const [linkMetadata, setLinkMetadata] = useState(null);
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
   const libraryInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
   const handlePreviewWheel = (e) => { e.currentTarget.scrollLeft += e.deltaY * 2.2; };
@@ -138,6 +140,15 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     };
   };
 
+  const fetchLinkMetadata = async (preview) => {
+    if (!preview) { setLinkMetadata(null); return; }
+    setIsLoadingMetadata(true);
+    const { data, error } = await supabase.functions.invoke("link-metadata", { body: { url: preview.url } });
+    if (error) { console.warn("Could not fetch link metadata:", error); setLinkMetadata(null); }
+    else setLinkMetadata(data);
+    setIsLoadingMetadata(false);
+  };
+
   const saveLink = async () => {
     const preview = getLinkPreview(linkUrl);
     const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
@@ -149,13 +160,13 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       user_id: user.id,
       space: selectedSpaceName,
       media_type: "link",
-      image_url: preview.thumbnail || null,
+      image_url: linkMetadata?.image || preview.thumbnail || null,
       note: null,
       favorite: false,
       source_url: preview.url,
-      source_platform: preview.source,
-      source_title: preview.source === "YouTube" ? "YouTube video" : preview.host,
-      source_creator: null
+      source_platform: linkMetadata?.siteName || preview.source,
+      source_title: linkMetadata?.title || (preview.source === "YouTube" ? "YouTube video" : preview.host),
+      source_creator: linkMetadata?.creator || null
     };
     const { data, error } = await supabase.from("items").insert(payload).select().single();
     if (error) {
@@ -184,10 +195,10 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     return <div style={linkPage}>
       <button type="button" style={backButton} onClick={() => { setLinkError(""); setAddMode("menu"); }}><ArrowLeft size={20} /> Back</button>
       <div style={linkHeader}><h1 style={addMenuTitle}>Paste a link</h1><p style={addMenuSubtitle}>Add a link from YouTube, TikTok, Instagram, articles, and more.</p></div>
-      <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { setLinkUrl(e.target.value); setLinkError(""); }} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>
+      <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { setLinkUrl(e.target.value); setLinkError(""); setLinkMetadata(null); }} onBlur={() => fetchLinkMetadata(getLinkPreview(linkUrl))} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>
       {linkPreview && <div style={linkPreviewCard}>
-        {linkPreview.thumbnail ? <img src={linkPreview.thumbnail} alt="" style={linkPreviewImage} /> : <div style={linkPreviewFallback}><Link2 size={30} /></div>}
-        <div style={linkPreviewCopy}><strong>{linkPreview.source === "YouTube" ? "YouTube video" : linkPreview.host}</strong><span style={addCardSubtitle}>{linkPreview.source}</span></div>
+        {(linkMetadata?.image || linkPreview.thumbnail) ? <img src={linkMetadata?.image || linkPreview.thumbnail} alt="" style={linkPreviewImage} /> : <div style={linkPreviewFallback}>{isLoadingMetadata ? <span>Getting preview…</span> : <Link2 size={30} />}</div>}
+        <div style={linkPreviewCopy}><strong>{linkMetadata?.title || (linkPreview.source === "YouTube" ? "YouTube video" : linkPreview.host)}</strong><span style={addCardSubtitle}>{linkMetadata?.creator || linkMetadata?.siteName || linkPreview.source}</span></div>
       </div>}
       {linkPreview && <div style={linkSaveBlock}>
         <label style={linkFieldLabel}>Save to Feed</label>
