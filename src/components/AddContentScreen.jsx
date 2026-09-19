@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, ChevronDown, Check, Images, Camera, Link2, ArrowLeft } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 import imageCompression from "browser-image-compression";
 import { trackEvent } from "../utils/trackEvent";
 
-export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace, setUploadSpace, selectedFiles, setSelectedFiles, feedItems, setFeedItems, setActiveFeed, setTab }) {
+export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace, setUploadSpace, selectedFiles, setSelectedFiles, feedItems, setFeedItems, setActiveFeed, setTab, incomingShare, clearIncomingShare }) {
   const [previewFile, setPreviewFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCreatingSpace, setIsCreatingSpace] = useState(false);
@@ -22,6 +22,33 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   const cameraInputRef = React.useRef(null);
   const metadataTimerRef = React.useRef(null);
   const handlePreviewWheel = (e) => { e.currentTarget.scrollLeft += e.deltaY * 2.2; };
+
+  useEffect(() => {
+    if (!incomingShare) return;
+
+    const sharedText = [incomingShare.title, ...(incomingShare.texts || [])].filter(Boolean).join(" ");
+    const sharedUrl = sharedText.match(/https?:\/\/[^\s]+/i)?.[0]?.replace(/[),.;!?]+$/, "");
+
+    if (sharedUrl) {
+      setLinkUrl(sharedUrl);
+      setLinkError("");
+      setLinkMetadata(null);
+      setAddMode("link");
+      clearIncomingShare?.();
+      return;
+    }
+
+    if (incomingShare.files?.length) {
+      console.log("Shared files received; file import will be wired into Looptie's upload pipeline next.", incomingShare.files);
+      setLinkError("Looptie received shared media. Direct media import is the next part of this flow.");
+      clearIncomingShare?.();
+      return;
+    }
+
+    setLinkError("Looptie couldn't find a link in the shared content.");
+    setAddMode("link");
+    clearIncomingShare?.();
+  }, [incomingShare]);
 
   const handleUpload = async () => {
     if (!selectedFiles.length) return;
