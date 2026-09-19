@@ -20,6 +20,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
   const libraryInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
+  const metadataTimerRef = React.useRef(null);
   const handlePreviewWheel = (e) => { e.currentTarget.scrollLeft += e.deltaY * 2.2; };
 
   const handleUpload = async () => {
@@ -140,15 +141,6 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     };
   };
 
-  React.useEffect(() => {
-    if (addMode !== "link") return;
-    const preview = getLinkPreview(linkUrl);
-    if (!preview) { setLinkMetadata(null); setIsLoadingMetadata(false); return; }
-    setIsLoadingMetadata(true);
-    const timer = setTimeout(() => fetchLinkMetadata(preview), 450);
-    return () => clearTimeout(timer);
-  }, [linkUrl, addMode]);
-
   const fetchLinkMetadata = async (preview) => {
     if (!preview) { setLinkMetadata(null); return; }
     setIsLoadingMetadata(true);
@@ -205,7 +197,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     return <div style={linkPage}>
       <button type="button" style={backButton} onClick={() => { setLinkError(""); setAddMode("menu"); }}><ArrowLeft size={20} /> Back</button>
       <div style={linkHeader}><h1 style={addMenuTitle}>Paste a link</h1><p style={addMenuSubtitle}>Add a link from YouTube, TikTok, Instagram, articles, and more.</p></div>
-      <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { setLinkUrl(e.target.value); setLinkError(""); setLinkMetadata(null); }} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>
+      <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { const value = e.target.value; setLinkUrl(value); setLinkError(""); setLinkMetadata(null); if (metadataTimerRef.current) clearTimeout(metadataTimerRef.current); const preview = getLinkPreview(value); if (!preview) { setIsLoadingMetadata(false); return; } setIsLoadingMetadata(true); metadataTimerRef.current = setTimeout(() => fetchLinkMetadata(preview), 450); }} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>
       {linkPreview && <div style={linkPreviewCard}>
         {(linkMetadata?.image || linkPreview.thumbnail) ? <img src={linkMetadata?.image || linkPreview.thumbnail} alt="" style={linkPreviewImage} /> : <div style={linkPreviewFallback}>{isLoadingMetadata ? <span>Getting preview…</span> : <Link2 size={30} />}</div>}
         <div style={linkPreviewCopy}><strong>{linkMetadata?.title || (linkPreview.source === "YouTube" ? "YouTube video" : linkPreview.host)}</strong><span style={addCardSubtitle}>{linkMetadata?.creator || linkMetadata?.siteName || linkPreview.source}</span></div>
