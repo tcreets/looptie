@@ -2,6 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX, Pause, Play, SquarePen, Heart, ArrowDownUp, Check, Link2 } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
+function getYouTubeId(url) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") return parsed.pathname.slice(1).split("/")[0];
+    if (host === "youtube.com" || host.endsWith(".youtube.com")) {
+      return parsed.searchParams.get("v") || (parsed.pathname.startsWith("/shorts/") ? parsed.pathname.split("/")[2] : "");
+    }
+  } catch {}
+  return "";
+}
+
 function SmartImage({ src, style }) {
   const [fit, setFit] = useState("cover");
   return <img src={src} loading="lazy" alt="" style={{ ...style, objectFit: fit, background: "var(--bg)" }} onLoad={(e) => {
@@ -63,7 +76,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
         {filteredFeedItems.length === 0 && <div style={emptyState}><h3>No items here yet</h3><p>Add something to this space to start building your feed.</p></div>}
         {sortedFeedItems.map((item) => (
           <div key={item.id} style={feedCard}>
-            {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
+            {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?playsinline=1&rel=0`} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
             <div style={overlayStyle} />
             {item.favorite && <div style={favoriteIndicator}><Heart fill="var(--favorite)" color="var(--favorite)" size={28} /></div>}
             <div style={floatingActions}>
@@ -101,3 +114,5 @@ const linkFallback = { width:"100%", height:"100%", minHeight:"calc(100vh - 118p
 const linkFallbackIcon = { width:"72px", height:"72px", borderRadius:"22px", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--brand)", background:"var(--surface-elevated)", border:"1px solid var(--border)" };
 const linkFallbackSource = { color:"var(--text-secondary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)" };
 const linkFallbackTitle = { margin:0, maxWidth:"520px", color:"var(--text-primary)", fontSize:"var(--text-xl)", lineHeight:"var(--leading-tight)" };
+
+const youtubeEmbed = { width:"100%", height:"100%", minHeight:"calc(100vh - 118px)", border:0, display:"block", background:"black" };
