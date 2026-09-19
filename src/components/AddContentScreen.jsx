@@ -214,8 +214,8 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   }
 
   return <div style={{ color: "var(--text-primary)" }}>
-    <button type="button" style={backButton} onClick={() => { setSelectedFiles([]); setAddMode("menu"); }}><ArrowLeft size={20} /> Back</button>
-    <p style={subtitleStyle}>Choose a Space and save your media.</p>
+    <button type="button" style={iconBackButton} aria-label="Back" title="Back" onClick={() => { setSelectedFiles([]); setAddMode("menu"); }}><ArrowLeft size={22} /></button>
+    <p style={uploadInstruction}>Choose a Space and save your media.</p>
     <div style={addGrid}>
       {selectedFiles.length > 0 && <div style={uploadPreviewGrid} className="horizontal-pretty-scrollbar" onWheel={handlePreviewWheel}>{selectedFiles.map((file, index) => {
         const previewUrl = URL.createObjectURL(file); const isVideo = file.type.startsWith("video");
@@ -267,6 +267,8 @@ const linkFieldLabel = { fontSize:"var(--text-sm)", fontWeight:"var(--weight-sem
 const linkErrorStyle = { color:"var(--danger)", fontSize:"var(--text-sm)", margin:"8px 0 12px" };
 
 const subtitleStyle = { color: "var(--text-secondary)", marginBottom: "24px" };
+const iconBackButton = { width:"40px", height:"40px", display:"flex", alignItems:"center", justifyContent:"center", border:"none", background:"transparent", color:"var(--text-primary)", padding:0, cursor:"pointer" };
+const uploadInstruction = { color:"var(--text-primary)", textAlign:"center", fontSize:"var(--text-md)", fontWeight:"var(--weight-semibold)", margin:"4px 0 28px" };
 const addGrid = { display: "grid", gap: "16px" };
 const addCard = { background: "var(--surface)", borderRadius: "24px", padding: "24px", border: "1px dashed var(--border)", minHeight: "140px", cursor: "pointer", transition: "0.2s ease" };
 const uploadTitle = { color: "var(--text-primary)", fontWeight:"var(--weight-medium)", fontSize:"var(--text-lg)", marginBottom: "20px" };
