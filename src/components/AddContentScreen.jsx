@@ -158,17 +158,27 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     if (isLoadingMetadata) { setLinkError("Wait for the preview to finish loading."); return; }
     setLinkError("");
     setIsSavingLink(true);
+    let metadata = linkMetadata;
+    if (preview.source === "YouTube" && (!metadata?.title || !metadata?.creator)) {
+      const { data: freshMetadata, error: metadataError } = await supabase.functions.invoke("link-metadata", { body: { url: preview.url } });
+      if (!metadataError && freshMetadata) {
+        metadata = freshMetadata;
+        setLinkMetadata(freshMetadata);
+      } else if (metadataError) {
+        console.warn("Could not refresh YouTube metadata before save:", metadataError);
+      }
+    }
     const payload = {
       user_id: user.id,
       space: selectedSpaceName,
       media_type: "link",
-      image_url: linkMetadata?.image || preview.thumbnail || null,
+      image_url: metadata?.image || preview.thumbnail || null,
       note: null,
       favorite: false,
       source_url: preview.url,
-      source_platform: linkMetadata?.siteName || preview.source,
-      source_title: linkMetadata?.title || (preview.source === "YouTube" ? "YouTube video" : preview.host),
-      source_creator: linkMetadata?.creator || null
+      source_platform: metadata?.siteName || preview.source,
+      source_title: metadata?.title || (preview.source === "YouTube" ? "YouTube video" : preview.host),
+      source_creator: metadata?.creator || null
     };
     const { data, error } = await supabase.from("items").insert(payload).select().single();
     if (error) {
