@@ -2,6 +2,30 @@ import React, { useEffect, useState } from "react";
 import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2 } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
+function getYouTubeId(url) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") return parsed.pathname.slice(1).split("/")[0];
+    if (host === "youtube.com" || host.endsWith(".youtube.com")) {
+      return parsed.searchParams.get("v") || (parsed.pathname.startsWith("/shorts/") ? parsed.pathname.split("/")[2] : "");
+    }
+  } catch {}
+  return "";
+}
+
+function getTikTokId(url) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host !== "tiktok.com" && !host.endsWith(".tiktok.com")) return "";
+    return parsed.pathname.match(/\/video\/(\d+)/)?.[1] || "";
+  } catch {}
+  return "";
+}
+
 export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNoteDraft, itemTagsDraft, setItemTagsDraft, onClose, onSaveMemo, onSaveTags, onToggleFavorite, itemFavoriteDraft, onDelete }) {
   const [mediaFit, setMediaFit] = useState("cover");
   const [showFullscreen, setShowFullscreen] = useState(false);
@@ -44,7 +68,7 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   return <div style={itemModalOverlay}><div style={itemModalCard} className="pretty-scroll">
     <button onClick={onClose} style={itemModalClose}><ArrowLeft size={22} strokeWidth={2.5} /></button>
     <button type="button" onClick={() => { trackEvent("favorite_clicked", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type, new_value: !itemFavoriteDraft }); onToggleFavorite(); }} style={{ ...favoriteButton, color: itemFavoriteDraft ? "var(--favorite)" : "white" }}><Heart size={28} fill={itemFavoriteDraft ? "var(--favorite)" : "transparent"} color={itemFavoriteDraft ? "var(--favorite)" : "white"} /></button>
-    {selectedItem.media_type === "video" ? <video src={selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : selectedItem.media_type === "link" ? (selectedItem.image ? <img src={selectedItem.image} alt="" style={{...itemModalMedia,objectFit:"cover"}} /> : <div style={linkMediaFallback}><Link2 size={42} /></div>) : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
+    {selectedItem.media_type === "video" ? <video src={selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : selectedItem.media_type === "link" && getYouTubeId(selectedItem.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(selectedItem.source_url)}?autoplay=1&playsinline=1&rel=0`} title={selectedItem.source_title || "YouTube video"} style={itemDetailEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : selectedItem.media_type === "link" && getTikTokId(selectedItem.source_url) ? <iframe src={`https://www.tiktok.com/player/v1/${getTikTokId(selectedItem.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={selectedItem.source_title || "TikTok video"} style={itemDetailEmbed} allow="autoplay; fullscreen" allowFullScreen /> : selectedItem.media_type === "link" ? (selectedItem.image ? <img src={selectedItem.image} alt="" style={{...itemModalMedia,objectFit:"cover"}} /> : <div style={linkMediaFallback}><Link2 size={42} /></div>) : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
     {showFullscreen && <div style={fullscreenOverlay} onClick={() => setShowFullscreen(false)}><img src={selectedItem.image} alt="" style={fullscreenImage} /></div>}
     <div style={itemModalContent}>
       <p style={itemModalSpace}>{selectedItem.space}</p>
@@ -79,6 +103,7 @@ const itemModalOverlay = { position: "fixed", inset: 0, background: "var(--overl
 const itemModalCard = { width: "100%", maxWidth: "430px", maxHeight: "90vh", overflowY: "scroll", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "28px", position: "relative", boxShadow: "var(--shadow)" };
 const itemModalClose = { position: "absolute", top: "18px", left: "14px", width: "32px", height: "32px", border: "none", background: "rgba(0,0,0,.45)", borderRadius: "999px", color: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 10, padding: 0 };
 const itemModalMedia = { width: "100%", maxHeight: "60vh", objectFit: "cover", display: "block", background: "var(--bg)" };
+const itemDetailEmbed = { width:"100%", height:"60vh", maxHeight:"620px", minHeight:"360px", border:0, display:"block", background:"black" };
 const itemModalContent = { padding: "20px", color: "var(--text-primary)" };
 const itemModalSpace = { color: "var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", margin: "0 0 8px" };
 const itemModalTimestamp = { color: "var(--text-muted)", fontSize:"var(--text-sm)", margin: "0 0 18px" };
