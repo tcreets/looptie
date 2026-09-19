@@ -195,7 +195,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   if (addMode === "link") {
     const linkPreview = getLinkPreview(linkUrl);
     return <div style={linkPage}>
-      <button type="button" style={backButton} onClick={() => { setLinkError(""); setAddMode("menu"); }}><ArrowLeft size={20} /> Back</button>
+      <button type="button" style={iconBackButton} aria-label="Back" title="Back" onClick={() => { setLinkError(""); setAddMode("menu"); }}><ArrowLeft size={22} /></button>
       <div style={linkHeader}><h1 style={addMenuTitle}>Paste a link</h1><p style={addMenuSubtitle}>Add a link from YouTube, TikTok, Instagram, articles, and more.</p></div>
       <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { const value = e.target.value; setLinkUrl(value); setLinkError(""); setLinkMetadata(null); if (metadataTimerRef.current) clearTimeout(metadataTimerRef.current); const preview = getLinkPreview(value); if (!preview) { setIsLoadingMetadata(false); return; } setIsLoadingMetadata(true); metadataTimerRef.current = setTimeout(() => fetchLinkMetadata(preview), 450); }} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>
       {linkPreview && <div style={linkPreviewCard}>
