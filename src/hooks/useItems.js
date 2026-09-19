@@ -37,6 +37,10 @@ export function useItems(user) {
         caption: item.caption,
         media_type: item.media_type,
         created_at: item.created_at,
+        source_url: item.source_url,
+        source_platform: item.source_platform,
+        source_title: item.source_title,
+        source_creator: item.source_creator,
       }));
 
       setFeedItems(formattedItems);

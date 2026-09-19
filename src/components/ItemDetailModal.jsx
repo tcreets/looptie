@@ -1,6 +1,63 @@
-import React, { useEffect, useState } from "react";
-import { ArrowLeft, Heart, Plus, X } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2 } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
+
+function getYouTubeId(url) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host === "youtu.be") return parsed.pathname.slice(1).split("/")[0];
+    if (host === "youtube.com" || host.endsWith(".youtube.com")) {
+      return parsed.searchParams.get("v") || (parsed.pathname.startsWith("/shorts/") ? parsed.pathname.split("/")[2] : "");
+    }
+  } catch {}
+  return "";
+}
+
+function getTikTokId(url) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host !== "tiktok.com" && !host.endsWith(".tiktok.com")) return "";
+    return parsed.pathname.match(/\/video\/(\d+)/)?.[1] || "";
+  } catch {}
+  return "";
+}
+
+function getInstagramEmbedUrl(url) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host !== "instagram.com" && !host.endsWith(".instagram.com")) return "";
+    const match = parsed.pathname.match(/^\/(p|reel|reels|tv)\/([^/]+)/i);
+    if (!match) return "";
+    const type = match[1].toLowerCase() === "reels" ? "reel" : match[1].toLowerCase();
+    return `https://www.instagram.com/${type}/${match[2]}/embed/`;
+  } catch {}
+  return "";
+}
+
+function InstagramEmbed({ url, title }) {
+  const embedRef = useRef(null);
+  useEffect(() => {
+    const process = () => window.instgrm?.Embeds?.process?.();
+    const existing = document.querySelector('script[src="https://www.instagram.com/embed.js"]');
+    if (existing) { process(); return; }
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://www.instagram.com/embed.js";
+    script.onload = process;
+    document.body.appendChild(script);
+  }, [url]);
+  return <div ref={embedRef} style={instagramDetailWrap}>
+    <blockquote className="instagram-media" data-instgrm-permalink={url} data-instgrm-version="14" style={instagramDetailBlockquote}>
+      <a href={url} target="_blank" rel="noreferrer">{title || "View this post on Instagram"}</a>
+    </blockquote>
+  </div>;
+}
 
 export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNoteDraft, itemTagsDraft, setItemTagsDraft, onClose, onSaveMemo, onSaveTags, onToggleFavorite, itemFavoriteDraft, onDelete }) {
   const [mediaFit, setMediaFit] = useState("cover");
@@ -44,7 +101,7 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   return <div style={itemModalOverlay}><div style={itemModalCard} className="pretty-scroll">
     <button onClick={onClose} style={itemModalClose}><ArrowLeft size={22} strokeWidth={2.5} /></button>
     <button type="button" onClick={() => { trackEvent("favorite_clicked", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type, new_value: !itemFavoriteDraft }); onToggleFavorite(); }} style={{ ...favoriteButton, color: itemFavoriteDraft ? "var(--favorite)" : "white" }}><Heart size={28} fill={itemFavoriteDraft ? "var(--favorite)" : "transparent"} color={itemFavoriteDraft ? "var(--favorite)" : "white"} /></button>
-    {selectedItem.media_type === "video" ? <video src={selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
+    {selectedItem.media_type === "video" ? <video src={selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : selectedItem.media_type === "link" && getYouTubeId(selectedItem.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(selectedItem.source_url)}?autoplay=1&playsinline=1&rel=0`} title={selectedItem.source_title || "YouTube video"} style={itemDetailEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : selectedItem.media_type === "link" && getTikTokId(selectedItem.source_url) ? <iframe src={`https://www.tiktok.com/player/v1/${getTikTokId(selectedItem.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={selectedItem.source_title || "TikTok video"} style={itemDetailEmbed} allow="autoplay; fullscreen" allowFullScreen /> : selectedItem.media_type === "link" && getInstagramEmbedUrl(selectedItem.source_url) ? <InstagramEmbed url={selectedItem.source_url} title={selectedItem.source_title} /> : selectedItem.media_type === "link" ? (selectedItem.image ? <img src={selectedItem.image} alt="" style={{...itemModalMedia,objectFit:"cover"}} /> : <div style={linkMediaFallback}><Link2 size={42} /></div>) : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
     {showFullscreen && <div style={fullscreenOverlay} onClick={() => setShowFullscreen(false)}><img src={selectedItem.image} alt="" style={fullscreenImage} /></div>}
     <div style={itemModalContent}>
       <p style={itemModalSpace}>{selectedItem.space}</p>
@@ -62,6 +119,14 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
           <button type="button" onClick={addTag} style={addTagButton} disabled={!tagInput.trim()}>Add</button>
         </div>}
       </div>
+      {selectedItem.source_url && <div style={informationBlock}>
+        <div style={informationTitle}>Information</div>
+        <div style={informationRow}><span style={informationLabel}>Source</span><span>{selectedItem.source_platform || "Web"}</span></div>
+        {selectedItem.source_title && <div style={informationRow}><span style={informationLabel}>Title</span><span>{selectedItem.source_title}</span></div>}
+        {selectedItem.source_creator && <div style={informationRow}><span style={informationLabel}>Creator</span><span>{selectedItem.source_creator}</span></div>}
+        <div style={informationRow}><span style={informationLabel}>Original link</span><a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={sourceLink}>View original <ExternalLink size={14} /></a></div>
+        <div style={informationRow}><span style={informationLabel}>Saved</span><span>{new Date(selectedItem.created_at).toLocaleString("en-US", { month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" })}</span></div>
+      </div>}
       <button style={deleteButton} onClick={() => { trackEvent("item_deleted", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type }); onDelete(); }}>Delete Item</button>
     </div>
   </div></div>;
@@ -71,6 +136,7 @@ const itemModalOverlay = { position: "fixed", inset: 0, background: "var(--overl
 const itemModalCard = { width: "100%", maxWidth: "430px", maxHeight: "90vh", overflowY: "scroll", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "28px", position: "relative", boxShadow: "var(--shadow)" };
 const itemModalClose = { position: "absolute", top: "18px", left: "14px", width: "32px", height: "32px", border: "none", background: "rgba(0,0,0,.45)", borderRadius: "999px", color: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 10, padding: 0 };
 const itemModalMedia = { width: "100%", maxHeight: "60vh", objectFit: "cover", display: "block", background: "var(--bg)" };
+const itemDetailEmbed = { width:"100%", height:"60vh", maxHeight:"620px", minHeight:"360px", border:0, display:"block", background:"black" };
 const itemModalContent = { padding: "20px", color: "var(--text-primary)" };
 const itemModalSpace = { color: "var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", margin: "0 0 8px" };
 const itemModalTimestamp = { color: "var(--text-muted)", fontSize:"var(--text-sm)", margin: "0 0 18px" };
@@ -89,3 +155,12 @@ const favoriteButton = { position: "absolute", top: "14px", right: "14px", width
 const deleteButton = { display:"block", margin:"34px auto 6px", padding:"6px 10px", border:"none", background:"transparent", color:"var(--danger)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-medium)", cursor:"pointer" };
 const fullscreenOverlay = { position: "fixed", inset: 0, background: "rgba(0,0,0,.95)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" };
 const fullscreenImage = { maxWidth: "100%", maxHeight: "100%", objectFit: "contain" };
+const linkMediaFallback = { width:"100%", minHeight:"240px", display:"flex", alignItems:"center", justifyContent:"center", background:"var(--surface-elevated)", color:"var(--brand)" };
+const informationBlock = { marginTop:"28px", padding:"18px", border:"1px solid var(--border)", borderRadius:"18px", background:"var(--surface-elevated)" };
+const informationTitle = { fontSize:"var(--text-md)", fontWeight:"var(--weight-bold)", marginBottom:"16px" };
+const informationRow = { display:"grid", gridTemplateColumns:"100px 1fr", gap:"14px", padding:"8px 0", fontSize:"var(--text-sm)", lineHeight:"var(--leading-normal)" };
+const informationLabel = { color:"var(--text-secondary)" };
+const sourceLink = { display:"inline-flex", alignItems:"center", gap:"5px", color:"var(--brand)", textDecoration:"none", fontWeight:"var(--weight-medium)" };
+
+const instagramDetailWrap = { width:"100%", minHeight:"420px", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", background:"var(--surface)" };
+const instagramDetailBlockquote = { width:"100%", minWidth:0, margin:"0 auto", background:"var(--surface)" };
