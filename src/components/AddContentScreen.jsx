@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, ChevronDown, Check, Images, Camera, Link2, ChevronRight, ArrowLeft } from "lucide-react";
+import { X, ChevronDown, Check, Images, Camera, Link2, ArrowLeft } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 import imageCompression from "browser-image-compression";
 import { trackEvent } from "../utils/trackEvent";
@@ -91,19 +91,16 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       <button type="button" style={primaryAddCard} onClick={() => libraryInputRef.current?.click()}>
         <Images size={32} strokeWidth={1.8} style={addMenuIcon} />
         <span style={addCardCopy}><strong style={addCardTitle}>Photos & videos</strong><span style={addCardSubtitle}>Choose from your library</span></span>
-        <ChevronRight size={22} style={addChevron} />
       </button>
 
       <div style={secondaryAddGrid}>
         <button type="button" style={secondaryAddCard} onClick={() => cameraInputRef.current?.click()}>
           <Camera size={30} strokeWidth={1.8} style={addMenuIcon} />
           <span style={addCardCopy}><strong style={addCardTitle}>Camera</strong><span style={addCardSubtitle}>Take a photo or video</span></span>
-          <ChevronRight size={20} style={addChevron} />
         </button>
         <button type="button" style={secondaryAddCard} onClick={() => setAddMode("link")}>
           <Link2 size={30} strokeWidth={1.8} style={addMenuIcon} />
           <span style={addCardCopy}><strong style={addCardTitle}>Paste a link</strong><span style={addCardSubtitle}>Save from anywhere</span></span>
-          <ChevronRight size={20} style={addChevron} />
         </button>
       </div>
     </div>;
@@ -165,7 +162,6 @@ const addMenuIcon = { color:"var(--brand)", flexShrink:0 };
 const addCardCopy = { display:"flex", flexDirection:"column", alignItems:"center", gap:"7px", width:"100%" };
 const addCardTitle = { fontSize:"var(--text-lg)", lineHeight:"var(--leading-tight)" };
 const addCardSubtitle = { color:"var(--text-secondary)", fontSize:"var(--text-sm)", lineHeight:"var(--leading-normal)" };
-const addChevron = { color:"var(--text-secondary)", position:"absolute", right:"18px", top:"50%", transform:"translateY(-50%)", pointerEvents:"none" };
 const backButton = { display:"inline-flex", alignItems:"center", gap:"7px", border:"none", background:"transparent", color:"var(--text-primary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-medium)", padding:"10px 0", cursor:"pointer" };
 const comingSoonPage = { color:"var(--text-primary)", padding:"24px 20px 110px" };
 const comingSoonCard = { marginTop:"28px", padding:"28px", border:"1px solid var(--border)", borderRadius:"24px", background:"var(--surface)" };
