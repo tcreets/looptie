@@ -13,6 +13,9 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   const [newSpaceName, setNewSpaceName] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [addMode, setAddMode] = useState("menu");
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkError, setLinkError] = useState("");
+  const [isSavingLink, setIsSavingLink] = useState(false);
   const libraryInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
   const handlePreviewWheel = (e) => { e.currentTarget.scrollLeft += e.deltaY * 2.2; };
@@ -106,10 +109,87 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     </div>;
   }
 
+  const normalizeUrl = (value) => {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    try {
+      const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+      return new URL(withProtocol);
+    } catch {
+      return null;
+    }
+  };
+
+  const getLinkPreview = (value) => {
+    const parsed = normalizeUrl(value);
+    if (!parsed) return null;
+    const host = parsed.hostname.replace(/^www\./, "");
+    const isYouTube = host === "youtube.com" || host === "youtu.be" || host.endsWith(".youtube.com");
+    let youtubeId = "";
+    if (isYouTube) {
+      youtubeId = host === "youtu.be" ? parsed.pathname.slice(1).split("/")[0] : parsed.searchParams.get("v") || (parsed.pathname.startsWith("/shorts/") ? parsed.pathname.split("/")[2] : "");
+    }
+    return {
+      url: parsed.href,
+      host,
+      source: isYouTube ? "YouTube" : host,
+      youtubeId,
+      thumbnail: youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : ""
+    };
+  };
+
+  const saveLink = async () => {
+    const preview = getLinkPreview(linkUrl);
+    const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
+    if (!preview) { setLinkError("Enter a valid link."); return; }
+    if (!selectedSpaceName) { setLinkError("Choose a Feed before saving."); return; }
+    setLinkError("");
+    setIsSavingLink(true);
+    const payload = {
+      user_id: user.id,
+      space: selectedSpaceName,
+      media_type: "link",
+      image_url: preview.thumbnail || null,
+      note: null,
+      favorite: false,
+      source_url: preview.url,
+      source_platform: preview.source,
+      source_title: preview.source === "YouTube" ? "YouTube video" : preview.host,
+      source_creator: null
+    };
+    const { data, error } = await supabase.from("items").insert(payload).select().single();
+    if (error) {
+      console.error("Error saving link:", error);
+      setLinkError(error.message.includes("column") ? "Link fields still need to be added to the database." : error.message);
+      setIsSavingLink(false);
+      return;
+    }
+    const formatted = { id:data.id, space:data.space, image:data.image_url, storage_path:data.storage_path, note:data.note, favorite:data.favorite, tags:data.tags || [], media_type:data.media_type, created_at:data.created_at, source_url:data.source_url, source_platform:data.source_platform, source_title:data.source_title, source_creator:data.source_creator };
+    setFeedItems((prev) => [formatted, ...prev]);
+    setActiveFeed(selectedSpaceName);
+    setIsSavingLink(false);
+    setLinkUrl("");
+    setShowSuccess(true);
+    setTimeout(() => { setShowSuccess(false); setTab("home"); }, 1200);
+  };
+
   if (addMode === "link") {
-    return <div style={comingSoonPage}>
-      <button type="button" style={backButton} onClick={() => setAddMode("menu")}><ArrowLeft size={20} /> Back</button>
-      <div style={comingSoonCard}><Link2 size={34} style={addMenuIcon} /><h2 style={{margin:"14px 0 8px"}}>Paste a link</h2><p style={{margin:0,color:"var(--text-secondary)"}}>Link saving is next. We’ll build this flow here.</p></div>
+    const linkPreview = getLinkPreview(linkUrl);
+    return <div style={linkPage}>
+      <button type="button" style={backButton} onClick={() => { setLinkError(""); setAddMode("menu"); }}><ArrowLeft size={20} /> Back</button>
+      <div style={linkHeader}><h1 style={addMenuTitle}>Paste a link</h1><p style={addMenuSubtitle}>Add a link from YouTube, TikTok, Instagram, articles, and more.</p></div>
+      <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { setLinkUrl(e.target.value); setLinkError(""); }} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>
+      {linkPreview && <div style={linkPreviewCard}>
+        {linkPreview.thumbnail ? <img src={linkPreview.thumbnail} alt="" style={linkPreviewImage} /> : <div style={linkPreviewFallback}><Link2 size={30} /></div>}
+        <div style={linkPreviewCopy}><strong>{linkPreview.source === "YouTube" ? "YouTube video" : linkPreview.host}</strong><span style={addCardSubtitle}>{linkPreview.source}</span></div>
+      </div>}
+      {linkPreview && <div style={linkSaveBlock}>
+        <label style={linkFieldLabel}>Save to Feed</label>
+        <div style={{position:"relative"}}><select value={uploadSpace} onChange={(e) => setUploadSpace(e.target.value)} style={{...modalInput,marginTop:"8px",paddingRight:"42px",appearance:"none"}}><option value="">Select a Feed</option>{spaces.map((space) => { const name = typeof space === "string" ? space : space.name; return <option key={name} value={name}>{name}</option>; })}</select><div style={selectChevron}><ChevronDown size={16} /></div></div>
+        {linkError && <p style={linkErrorStyle}>{linkError}</p>}
+        <button type="button" style={{...modalPrimaryButton,opacity:!uploadSpace || isSavingLink ? .5 : 1}} disabled={!uploadSpace || isSavingLink} onClick={saveLink}>{isSavingLink ? "Saving…" : "Save to Looptie"}</button>
+      </div>}
+      {!linkPreview && linkError && <p style={linkErrorStyle}>{linkError}</p>}
     </div>;
   }
 
@@ -163,8 +243,18 @@ const addCardCopy = { display:"flex", flexDirection:"column", alignItems:"center
 const addCardTitle = { fontSize:"var(--text-lg)", lineHeight:"var(--leading-tight)" };
 const addCardSubtitle = { color:"var(--text-secondary)", fontSize:"var(--text-sm)", lineHeight:"var(--leading-normal)" };
 const backButton = { display:"inline-flex", alignItems:"center", gap:"7px", border:"none", background:"transparent", color:"var(--text-primary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-medium)", padding:"10px 0", cursor:"pointer" };
-const comingSoonPage = { color:"var(--text-primary)", padding:"24px 20px 110px" };
-const comingSoonCard = { marginTop:"28px", padding:"28px", border:"1px solid var(--border)", borderRadius:"24px", background:"var(--surface)" };
+const linkPage = { color:"var(--text-primary)", height:"100%", overflowY:"auto", padding:"24px 20px 110px", boxSizing:"border-box" };
+const linkHeader = { textAlign:"center", maxWidth:"520px", margin:"12px auto 28px" };
+const linkInputWrap = { maxWidth:"620px", margin:"0 auto", display:"flex", alignItems:"center", gap:"10px", padding:"0 14px", border:"1px solid var(--border)", borderRadius:"16px", background:"var(--surface)" };
+const linkInput = { flex:1, minWidth:0, padding:"15px 0", border:"none", outline:"none", background:"transparent", color:"var(--text-primary)", fontSize:"var(--text-md)", fontFamily:"inherit" };
+const clearLinkButton = { width:"30px", height:"30px", display:"flex", alignItems:"center", justifyContent:"center", border:"none", background:"transparent", color:"var(--text-secondary)", cursor:"pointer" };
+const linkPreviewCard = { maxWidth:"620px", margin:"18px auto 0", overflow:"hidden", border:"1px solid var(--border)", borderRadius:"20px", background:"var(--surface)" };
+const linkPreviewImage = { width:"100%", aspectRatio:"16 / 9", objectFit:"cover", display:"block", background:"var(--surface-elevated)" };
+const linkPreviewFallback = { aspectRatio:"16 / 7", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--brand)", background:"var(--surface-elevated)" };
+const linkPreviewCopy = { display:"flex", flexDirection:"column", gap:"5px", padding:"16px" };
+const linkSaveBlock = { maxWidth:"620px", margin:"22px auto 0" };
+const linkFieldLabel = { fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)" };
+const linkErrorStyle = { color:"var(--danger)", fontSize:"var(--text-sm)", margin:"8px 0 12px" };
 
 const subtitleStyle = { color: "var(--text-secondary)", marginBottom: "24px" };
 const addGrid = { display: "grid", gap: "16px" };
