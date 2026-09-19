@@ -15,6 +15,17 @@ function getYouTubeId(url) {
   return "";
 }
 
+function getTikTokId(url) {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host !== "tiktok.com" && !host.endsWith(".tiktok.com")) return "";
+    return parsed.pathname.match(/\/video\/(\d+)/)?.[1] || "";
+  } catch {}
+  return "";
+}
+
 function SmartImage({ src, style }) {
   const [fit, setFit] = useState("cover");
   return <img src={src} loading="lazy" alt="" style={{ ...style, objectFit: fit, background: "var(--bg)" }} onLoad={(e) => {
@@ -27,10 +38,12 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
   const [mutedVideos, setMutedVideos] = useState({});
   const [pausedVideos, setPausedVideos] = useState({});
   const [mutedYouTube, setMutedYouTube] = useState({});
+  const [mutedTikTok, setMutedTikTok] = useState({});
   const [sortOrder, setSortOrder] = useState("newest");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const videoRefs = useRef({});
   const youtubeRefs = useRef({});
+  const tiktokRefs = useRef({});
   const handlePillWheel = (e) => { e.currentTarget.scrollLeft += e.deltaY; };
   const sortedFeedItems = [...filteredFeedItems].sort((a, b) => {
     if (sortOrder === "favorites") return Number(Boolean(b.favorite)) - Number(Boolean(a.favorite));
@@ -45,6 +58,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
         const itemId = entry.target.dataset.itemId;
         const video = videoRefs.current[itemId];
         const youtubeFrame = youtubeRefs.current[itemId];
+        const tiktokFrame = tiktokRefs.current[itemId];
         if (video) {
           if (entry.isIntersecting) { video.play().catch(console.error); setPausedVideos((prev) => ({ ...prev, [itemId]: false })); }
           else { video.pause(); setPausedVideos((prev) => ({ ...prev, [itemId]: true })); }
@@ -56,10 +70,18 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
             args: []
           }), "*");
         }
+        if (tiktokFrame?.contentWindow) {
+          tiktokFrame.contentWindow.postMessage({
+            type: entry.isIntersecting ? "play" : "pause",
+            value: undefined,
+            "x-tiktok-player": true
+          }, "*");
+        }
       });
     }, { root: feedRef.current, threshold: 0.7 });
     Object.values(videoRefs.current).forEach((video) => { if (video) observer.observe(video); });
     Object.values(youtubeRefs.current).forEach((frame) => { if (frame) observer.observe(frame); });
+    Object.values(tiktokRefs.current).forEach((frame) => { if (frame) observer.observe(frame); });
     return () => observer.disconnect();
   }, [filteredFeedItems, feedRef]);
 
@@ -88,7 +110,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
         {filteredFeedItems.length === 0 && <div style={emptyState}><h3>No items here yet</h3><p>Add something to this space to start building your feed.</p></div>}
         {sortedFeedItems.map((item) => (
           <div key={item.id} style={feedCard}>
-            {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) youtubeRefs.current[item.id] = el; }} src={`https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?enablejsapi=1&autoplay=1&mute=1&playsinline=1&rel=0`} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
+            {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) youtubeRefs.current[item.id] = el; }} src={`https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?enablejsapi=1&autoplay=1&mute=1&playsinline=1&rel=0`} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && getTikTokId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) tiktokRefs.current[item.id] = el; }} src={`https://www.tiktok.com/player/v1/${getTikTokId(item.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={item.source_title || "TikTok video"} style={youtubeEmbed} allow="autoplay; fullscreen" allowFullScreen /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
             <div style={overlayStyle} />
             {item.favorite && <div style={favoriteIndicator}><Heart fill="var(--favorite)" color="var(--favorite)" size={28} /></div>}
             <div style={floatingActions}>
@@ -105,6 +127,15 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
                 frame.contentWindow.postMessage(JSON.stringify({ event:"command", func:"playVideo", args:[] }), "*");
                 setMutedYouTube((prev) => ({ ...prev, [item.id]: !isUnmuted }));
               }}>{mutedYouTube[item.id] ? <Volume2 size={30} strokeWidth={2.5} /> : <VolumeX size={30} strokeWidth={2.5} />}</button>}
+              {item.media_type === "link" && getTikTokId(item.source_url) && <button type="button" style={floatingIconButton} aria-label={mutedTikTok[item.id] ? "Mute TikTok video" : "Unmute TikTok video"} title={mutedTikTok[item.id] ? "Mute" : "Unmute"} onClick={(e) => {
+                e.stopPropagation();
+                const frame = tiktokRefs.current[item.id];
+                if (!frame?.contentWindow) return;
+                const isUnmuted = Boolean(mutedTikTok[item.id]);
+                frame.contentWindow.postMessage({ type:isUnmuted ? "mute" : "unMute", value:undefined, "x-tiktok-player":true }, "*");
+                frame.contentWindow.postMessage({ type:"play", value:undefined, "x-tiktok-player":true }, "*");
+                setMutedTikTok((prev) => ({ ...prev, [item.id]: !isUnmuted }));
+              }}>{mutedTikTok[item.id] ? <Volume2 size={30} strokeWidth={2.5} /> : <VolumeX size={30} strokeWidth={2.5} />}</button>}
               <button type="button" style={floatingIconButton} onClick={() => { trackEvent("item_opened", { item_id: item.id, space: item.space, media_type: item.media_type }); setSelectedItem(item); }}><SquarePen size={32} strokeWidth={2.8} /></button>
             </div>
           </div>
