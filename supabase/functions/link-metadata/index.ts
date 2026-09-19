@@ -28,10 +28,27 @@ Deno.serve(async (req) => {
       return null;
     };
     const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-    const title = readMeta("og:title") || readMeta("twitter:title") || clean(titleMatch?.[1] || null);
-    const image = readMeta("og:image") || readMeta("twitter:image");
-    const siteName = readMeta("og:site_name") || parsed.hostname.replace(/^www\./, "");
-    const creator = readMeta("author") || readMeta("article:author") || null;
+    const isYouTube = parsed.hostname === "youtu.be" || parsed.hostname.endsWith("youtube.com");
+    let title = readMeta("og:title") || readMeta("twitter:title") || clean(titleMatch?.[1] || null);
+    let image = readMeta("og:image") || readMeta("twitter:image");
+    let siteName = readMeta("og:site_name") || parsed.hostname.replace(/^www\./, "");
+    let creator = readMeta("author") || readMeta("article:author") || null;
+
+    if (isYouTube) {
+      try {
+        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(parsed.href)}&format=json`;
+        const oembedResponse = await fetch(oembedUrl);
+        if (oembedResponse.ok) {
+          const oembed = await oembedResponse.json();
+          title = clean(oembed.title) || title;
+          creator = clean(oembed.author_name) || creator;
+          image = clean(oembed.thumbnail_url) || image;
+          siteName = "YouTube";
+        }
+      } catch (oembedError) {
+        console.warn("YouTube oEmbed metadata failed:", oembedError);
+      }
+    }
     return new Response(JSON.stringify({ url: response.url || parsed.href, title, image, siteName, creator }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
