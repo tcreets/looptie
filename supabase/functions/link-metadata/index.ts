@@ -99,6 +99,18 @@ Deno.serve(async (req) => {
     let image = absoluteUrl(readMeta("og:image:secure_url") || readMeta("og:image") || readMeta("twitter:image:src") || readMeta("twitter:image"), response.url || parsed.href);
     let siteName = readMeta("og:site_name") || (isInstagram ? "Instagram" : isTikTok ? "TikTok" : isLinkedIn ? "LinkedIn" : host);
     let creator = readMeta("author") || readMeta("article:author") || null;
+    if (isInstagram && !creator) {
+      const creatorCandidates = [
+        readMeta("twitter:creator"),
+        readMeta("profile:username"),
+        readMeta("al:ios:url"),
+        title,
+      ].filter(Boolean) as string[];
+      for (const candidate of creatorCandidates) {
+        const handle = candidate.match(/@([A-Za-z0-9._]+)/)?.[1];
+        if (handle) { creator = "@" + handle; break; }
+      }
+    }
 
     if (isYouTube) {
       try {
