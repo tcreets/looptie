@@ -36,6 +36,10 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       setLinkMetadata(null);
       setIsSharedLink(true);
       setAddMode("link");
+      setTimeout(() => {
+        const preview = getLinkPreview(sharedUrl);
+        if (preview) fetchLinkMetadata(preview);
+      }, 0);
       clearIncomingShare?.();
       return;
     }
@@ -206,17 +210,6 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     setIsLoadingMetadata(false);
     return data;
   };
-
-  useEffect(() => {
-    if (!isSharedLink || !linkUrl) return;
-    const preview = getLinkPreview(linkUrl);
-    if (!preview) {
-      setLinkError("Looptie couldn't read this shared link.");
-      return;
-    }
-    setLinkError("");
-    fetchLinkMetadata(preview);
-  }, [isSharedLink, linkUrl]);
 
   const saveLink = async () => {
     const preview = getLinkPreview(linkUrl);
