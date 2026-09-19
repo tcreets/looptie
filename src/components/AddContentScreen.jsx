@@ -58,8 +58,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       if (error) { alert("Error saving upload: " + error.message); return; }
       await trackEvent("content_uploaded", { count: data.length, space: selectedSpaceName, media_types: data.map((item) => item.media_type), duration_ms: Date.now() - uploadStart });
       const formattedItems = data.map((item) => ({ id: item.id, space: item.space, image: item.image_url, storagePath: item.storage_path, note: item.note, favorite: item.favorite, media_type: item.media_type, created_at: item.created_at }));
-      setFeedItems([...formattedItems, ...feedItems]); setSelectedFiles([]); setActiveFeed(selectedSpaceName); setShowSuccess(true);
-      setTimeout(() => { setShowSuccess(false); setTab("home"); }, 1200);
+      setFeedItems([...formattedItems, ...feedItems]); setSelectedFiles([]); setActiveFeed(selectedSpaceName); setShowSuccess(false); setTab("home");
     } catch (err) { console.error(err); alert(err.message); }
     finally { setIsUploading(false); setUploadProgress(""); }
   };
