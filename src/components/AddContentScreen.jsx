@@ -36,10 +36,6 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       setLinkMetadata(null);
       setIsSharedLink(true);
       setAddMode("link");
-      setTimeout(() => {
-        const preview = getLinkPreview(sharedUrl);
-        if (preview) fetchLinkMetadata(preview);
-      }, 0);
       clearIncomingShare?.();
       return;
     }
@@ -211,6 +207,12 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     return data;
   };
 
+  const loadSharedLinkMetadata = async () => {
+    const preview = getLinkPreview(linkUrl);
+    if (!preview || linkMetadata || isLoadingMetadata) return;
+    await fetchLinkMetadata(preview);
+  };
+
   const saveLink = async () => {
     const preview = getLinkPreview(linkUrl);
     const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
@@ -260,6 +262,9 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
 
   if (addMode === "link") {
     const linkPreview = getLinkPreview(linkUrl);
+    if (isSharedLink && linkPreview && !linkMetadata && !isLoadingMetadata) {
+      queueMicrotask(loadSharedLinkMetadata);
+    }
     return <div style={linkPage}>
       <button type="button" style={iconBackButton} aria-label="Back" title="Back" onClick={() => { setLinkError(""); setLinkUrl(""); setLinkMetadata(null); setIsSharedLink(false); setAddMode("menu"); }}><ArrowLeft size={22} /></button>
       <div style={linkHeader}><h1 style={addMenuTitle}>{isSharedLink ? "Save to Looptie" : "Paste a link"}</h1><p style={addMenuSubtitle}>{isSharedLink ? "Choose a Space for this item." : "Add a link from YouTube, TikTok, Instagram, articles, and more."}</p></div>
