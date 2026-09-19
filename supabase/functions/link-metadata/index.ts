@@ -12,6 +12,26 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const parsed = new URL(body.url);
     if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("Unsupported URL.");
+
+    const isYouTube = parsed.hostname === "youtu.be" || parsed.hostname === "youtube.com" || parsed.hostname.endsWith(".youtube.com");
+    if (isYouTube) {
+      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(parsed.href)}&format=json`;
+      const oembedResponse = await fetch(oembedUrl);
+      if (oembedResponse.ok) {
+        const oembed = await oembedResponse.json();
+        return new Response(JSON.stringify({
+          url: parsed.href,
+          title: clean(oembed.title),
+          image: clean(oembed.thumbnail_url),
+          siteName: "YouTube",
+          creator: clean(oembed.author_name),
+        }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      console.warn("YouTube oEmbed returned", oembedResponse.status);
+    }
+
     const response = await fetch(parsed.href, {
       redirect: "follow",
       headers: { "User-Agent": "Mozilla/5.0 (compatible; Looptie/1.0)" },
@@ -28,7 +48,6 @@ Deno.serve(async (req) => {
       return null;
     };
     const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-    const isYouTube = parsed.hostname === "youtu.be" || parsed.hostname.endsWith("youtube.com");
     let title = readMeta("og:title") || readMeta("twitter:title") || clean(titleMatch?.[1] || null);
     let image = readMeta("og:image") || readMeta("twitter:image");
     let siteName = readMeta("og:site_name") || parsed.hostname.replace(/^www\./, "");
