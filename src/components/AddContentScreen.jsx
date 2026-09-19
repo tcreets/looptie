@@ -18,6 +18,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   const [isSavingLink, setIsSavingLink] = useState(false);
   const [linkMetadata, setLinkMetadata] = useState(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
+  const [isSharedLink, setIsSharedLink] = useState(false);
   const libraryInputRef = React.useRef(null);
   const cameraInputRef = React.useRef(null);
   const metadataTimerRef = React.useRef(null);
@@ -33,6 +34,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       setLinkUrl(sharedUrl);
       setLinkError("");
       setLinkMetadata(null);
+      setIsSharedLink(true);
       setAddMode("link");
       clearIncomingShare?.();
       return;
@@ -130,7 +132,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
           <Camera size={30} strokeWidth={1.8} style={addMenuIcon} />
           <span style={addCardCopy}><strong style={addCardTitle}>Camera</strong><span style={addCardSubtitle}>Take a photo or video</span></span>
         </button>
-        <button type="button" style={secondaryAddCard} onClick={() => setAddMode("link")}>
+        <button type="button" style={secondaryAddCard} onClick={() => { setIsSharedLink(false); setAddMode("link"); }}>
           <Link2 size={30} strokeWidth={1.8} style={addMenuIcon} />
           <span style={addCardCopy}><strong style={addCardTitle}>Paste a link</strong><span style={addCardSubtitle}>Save from anywhere</span></span>
         </button>
@@ -205,6 +207,17 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     return data;
   };
 
+  useEffect(() => {
+    if (!isSharedLink || !linkUrl) return;
+    const preview = getLinkPreview(linkUrl);
+    if (!preview) {
+      setLinkError("Looptie couldn't read this shared link.");
+      return;
+    }
+    setLinkError("");
+    fetchLinkMetadata(preview);
+  }, [isSharedLink, linkUrl]);
+
   const saveLink = async () => {
     const preview = getLinkPreview(linkUrl);
     const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
@@ -247,6 +260,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     setActiveFeed(selectedSpaceName);
     setIsSavingLink(false);
     setLinkUrl("");
+    setIsSharedLink(false);
     setShowSuccess(false);
     setTab("home");
   };
@@ -254,9 +268,9 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   if (addMode === "link") {
     const linkPreview = getLinkPreview(linkUrl);
     return <div style={linkPage}>
-      <button type="button" style={iconBackButton} aria-label="Back" title="Back" onClick={() => { setLinkError(""); setAddMode("menu"); }}><ArrowLeft size={22} /></button>
-      <div style={linkHeader}><h1 style={addMenuTitle}>Paste a link</h1><p style={addMenuSubtitle}>Add a link from YouTube, TikTok, Instagram, articles, and more.</p></div>
-      <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { const value = e.target.value; setLinkUrl(value); setLinkError(""); setLinkMetadata(null); if (metadataTimerRef.current) clearTimeout(metadataTimerRef.current); const preview = getLinkPreview(value); if (!preview) { setIsLoadingMetadata(false); return; } setIsLoadingMetadata(true); metadataTimerRef.current = setTimeout(() => fetchLinkMetadata(preview), 450); }} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>
+      <button type="button" style={iconBackButton} aria-label="Back" title="Back" onClick={() => { setLinkError(""); setLinkUrl(""); setLinkMetadata(null); setIsSharedLink(false); setAddMode("menu"); }}><ArrowLeft size={22} /></button>
+      <div style={linkHeader}><h1 style={addMenuTitle}>{isSharedLink ? "Save to Looptie" : "Paste a link"}</h1><p style={addMenuSubtitle}>{isSharedLink ? "Choose a Space for this item." : "Add a link from YouTube, TikTok, Instagram, articles, and more."}</p></div>
+      {!isSharedLink && <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { const value = e.target.value; setLinkUrl(value); setLinkError(""); setLinkMetadata(null); if (metadataTimerRef.current) clearTimeout(metadataTimerRef.current); const preview = getLinkPreview(value); if (!preview) { setIsLoadingMetadata(false); return; } setIsLoadingMetadata(true); metadataTimerRef.current = setTimeout(() => fetchLinkMetadata(preview), 450); }} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>}
       {linkPreview && <div style={linkPreviewCard}>
         {(linkMetadata?.image || linkPreview.thumbnail) ? <img src={linkMetadata?.image || linkPreview.thumbnail} alt="" style={linkPreviewImage} /> : <div style={linkPreviewFallback}>{isLoadingMetadata ? <span>Getting preview…</span> : <Link2 size={30} />}</div>}
         <div style={linkPreviewCopy}><strong>{linkMetadata?.title || (linkPreview.source === "YouTube" ? "YouTube video" : linkPreview.host)}</strong><span style={addCardSubtitle}>{linkMetadata?.creator || linkMetadata?.siteName || linkPreview.source}</span></div>
