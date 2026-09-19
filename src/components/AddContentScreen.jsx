@@ -160,7 +160,13 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     const { data, error } = await supabase.from("items").insert(payload).select().single();
     if (error) {
       console.error("Error saving link:", error);
-      setLinkError(error.message.includes("column") ? "Link fields still need to be added to the database." : error.message);
+      console.error("Supabase link save details:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+      setLinkError(error.message || "Couldn't save this link.");
       setIsSavingLink(false);
       return;
     }
