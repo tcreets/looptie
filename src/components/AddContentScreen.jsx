@@ -154,7 +154,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     const preview = getLinkPreview(linkUrl);
     const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
     if (!preview) { setLinkError("Enter a valid link."); return; }
-    if (!selectedSpaceName) { setLinkError("Choose a Feed before saving."); return; }
+    if (!selectedSpaceName) { setLinkError("Choose a Space before saving."); return; }
     if (isLoadingMetadata) { setLinkError("Wait for the preview to finish loading."); return; }
     setLinkError("");
     setIsSavingLink(true);
@@ -203,13 +203,13 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
         <div style={linkPreviewCopy}><strong>{linkMetadata?.title || (linkPreview.source === "YouTube" ? "YouTube video" : linkPreview.host)}</strong><span style={addCardSubtitle}>{linkMetadata?.creator || linkMetadata?.siteName || linkPreview.source}</span></div>
       </div>}
       {linkPreview && <div style={linkSaveBlock}>
-        <label style={linkFieldLabel}>Save to Feed</label>
-        <div style={{position:"relative"}}><select value={uploadSpace} onChange={(e) => { if (e.target.value === "__new__") { setShowCreateSpaceModal(true); return; } setUploadSpace(e.target.value); }} style={{...modalInput,marginTop:"8px",paddingRight:"42px",appearance:"none"}}><option value="">Select a Feed</option>{spaces.map((space) => { const name = typeof space === "string" ? space : space.name; return <option key={name} value={name}>{name}</option>; })}<option value="__new__">Create New Feed</option></select><div style={selectChevron}><ChevronDown size={16} /></div></div>
+        <label style={linkFieldLabel}>Save to Space</label>
+        <div style={{position:"relative"}}><select value={uploadSpace} onChange={(e) => { if (e.target.value === "__new__") { setShowCreateSpaceModal(true); return; } setUploadSpace(e.target.value); }} style={{...modalInput,marginTop:"8px",paddingRight:"42px",appearance:"none"}}><option value="">Select a Space</option>{spaces.map((space) => { const name = typeof space === "string" ? space : space.name; return <option key={name} value={name}>{name}</option>; })}<option value="__new__">Create New Space</option></select><div style={selectChevron}><ChevronDown size={16} /></div></div>
         {linkError && <p style={linkErrorStyle}>{linkError}</p>}
         <button type="button" style={{...modalPrimaryButton,opacity:!uploadSpace || isSavingLink || isLoadingMetadata ? .5 : 1}} disabled={!uploadSpace || isSavingLink || isLoadingMetadata} onClick={saveLink}>{isLoadingMetadata ? "Getting preview…" : isSavingLink ? "Saving…" : "Save to Looptie"}</button>
       </div>}
       {!linkPreview && linkError && <p style={linkErrorStyle}>{linkError}</p>}
-      {showCreateSpaceModal && <div style={spaceModalOverlay}><div style={spaceModal}><h2 style={spaceModalTitle}>Create a Feed</h2><p style={spaceModalText}>What do you want to call this feed?</p><input style={modalInput} placeholder="Feed name" value={newSpaceName} onChange={(e) => setNewSpaceName(e.target.value)} /><button style={{ ...modalPrimaryButton, opacity: isCreatingSpace ? 0.5 : 1 }} disabled={isCreatingSpace} onClick={createSpace}>{isCreatingSpace ? "Creating..." : "Create Feed"}</button><button style={spaceCancelButton} onClick={() => { setNewSpaceName(""); setShowCreateSpaceModal(false); }}>Cancel</button></div></div>}
+      {showCreateSpaceModal && <div style={spaceModalOverlay}><div style={spaceModal}><h2 style={spaceModalTitle}>Create a Space</h2><p style={spaceModalText}>What do you want to call this space?</p><input style={modalInput} placeholder="Space name" value={newSpaceName} onChange={(e) => setNewSpaceName(e.target.value)} /><button style={{ ...modalPrimaryButton, opacity: isCreatingSpace ? 0.5 : 1 }} disabled={isCreatingSpace} onClick={createSpace}>{isCreatingSpace ? "Creating..." : "Create Feed"}</button><button style={spaceCancelButton} onClick={() => { setNewSpaceName(""); setShowCreateSpaceModal(false); }}>Cancel</button></div></div>}
     </div>;
   }
 
