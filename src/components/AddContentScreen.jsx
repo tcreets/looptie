@@ -140,6 +140,15 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     };
   };
 
+  React.useEffect(() => {
+    if (addMode !== "link") return;
+    const preview = getLinkPreview(linkUrl);
+    if (!preview) { setLinkMetadata(null); setIsLoadingMetadata(false); return; }
+    setIsLoadingMetadata(true);
+    const timer = setTimeout(() => fetchLinkMetadata(preview), 450);
+    return () => clearTimeout(timer);
+  }, [linkUrl, addMode]);
+
   const fetchLinkMetadata = async (preview) => {
     if (!preview) { setLinkMetadata(null); return; }
     setIsLoadingMetadata(true);
@@ -196,18 +205,19 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     return <div style={linkPage}>
       <button type="button" style={backButton} onClick={() => { setLinkError(""); setAddMode("menu"); }}><ArrowLeft size={20} /> Back</button>
       <div style={linkHeader}><h1 style={addMenuTitle}>Paste a link</h1><p style={addMenuSubtitle}>Add a link from YouTube, TikTok, Instagram, articles, and more.</p></div>
-      <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { setLinkUrl(e.target.value); setLinkError(""); setLinkMetadata(null); }} onBlur={() => fetchLinkMetadata(getLinkPreview(linkUrl))} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>
+      <div style={linkInputWrap}><Link2 size={19} style={addMenuIcon} /><input autoFocus value={linkUrl} onChange={(e) => { setLinkUrl(e.target.value); setLinkError(""); setLinkMetadata(null); }} placeholder="Paste your link here…" style={linkInput} />{linkUrl && <button type="button" onClick={() => setLinkUrl("")} style={clearLinkButton}><X size={17} /></button>}</div>
       {linkPreview && <div style={linkPreviewCard}>
         {(linkMetadata?.image || linkPreview.thumbnail) ? <img src={linkMetadata?.image || linkPreview.thumbnail} alt="" style={linkPreviewImage} /> : <div style={linkPreviewFallback}>{isLoadingMetadata ? <span>Getting preview…</span> : <Link2 size={30} />}</div>}
         <div style={linkPreviewCopy}><strong>{linkMetadata?.title || (linkPreview.source === "YouTube" ? "YouTube video" : linkPreview.host)}</strong><span style={addCardSubtitle}>{linkMetadata?.creator || linkMetadata?.siteName || linkPreview.source}</span></div>
       </div>}
       {linkPreview && <div style={linkSaveBlock}>
         <label style={linkFieldLabel}>Save to Feed</label>
-        <div style={{position:"relative"}}><select value={uploadSpace} onChange={(e) => setUploadSpace(e.target.value)} style={{...modalInput,marginTop:"8px",paddingRight:"42px",appearance:"none"}}><option value="">Select a Feed</option>{spaces.map((space) => { const name = typeof space === "string" ? space : space.name; return <option key={name} value={name}>{name}</option>; })}</select><div style={selectChevron}><ChevronDown size={16} /></div></div>
+        <div style={{position:"relative"}}><select value={uploadSpace} onChange={(e) => { if (e.target.value === "__new__") { setShowCreateSpaceModal(true); return; } setUploadSpace(e.target.value); }} style={{...modalInput,marginTop:"8px",paddingRight:"42px",appearance:"none"}}><option value="">Select a Feed</option>{spaces.map((space) => { const name = typeof space === "string" ? space : space.name; return <option key={name} value={name}>{name}</option>; })}<option value="__new__">Create New Feed</option></select><div style={selectChevron}><ChevronDown size={16} /></div></div>
         {linkError && <p style={linkErrorStyle}>{linkError}</p>}
         <button type="button" style={{...modalPrimaryButton,opacity:!uploadSpace || isSavingLink || isLoadingMetadata ? .5 : 1}} disabled={!uploadSpace || isSavingLink || isLoadingMetadata} onClick={saveLink}>{isLoadingMetadata ? "Getting preview…" : isSavingLink ? "Saving…" : "Save to Looptie"}</button>
       </div>}
       {!linkPreview && linkError && <p style={linkErrorStyle}>{linkError}</p>}
+      {showCreateSpaceModal && <div style={spaceModalOverlay}><div style={spaceModal}><h2 style={spaceModalTitle}>Create a Feed</h2><p style={spaceModalText}>What do you want to call this feed?</p><input style={modalInput} placeholder="Feed name" value={newSpaceName} onChange={(e) => setNewSpaceName(e.target.value)} /><button style={{ ...modalPrimaryButton, opacity: isCreatingSpace ? 0.5 : 1 }} disabled={isCreatingSpace} onClick={createSpace}>{isCreatingSpace ? "Creating..." : "Create Feed"}</button><button style={spaceCancelButton} onClick={() => { setNewSpaceName(""); setShowCreateSpaceModal(false); }}>Cancel</button></div></div>}
     </div>;
   }
 
