@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, ChevronDown, Check } from "lucide-react";
+import { X, ChevronDown, Check, Images, Camera, Link2, ChevronRight, ArrowLeft } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 import imageCompression from "browser-image-compression";
 import { trackEvent } from "../utils/trackEvent";
@@ -12,6 +12,9 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   const [showCreateSpaceModal, setShowCreateSpaceModal] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [addMode, setAddMode] = useState("menu");
+  const libraryInputRef = React.useRef(null);
+  const cameraInputRef = React.useRef(null);
   const handlePreviewWheel = (e) => { e.currentTarget.scrollLeft += e.deltaY * 2.2; };
 
   const handleUpload = async () => {
@@ -68,8 +71,54 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     setNewSpaceName(""); setShowCreateSpaceModal(false); setIsCreatingSpace(false);
   };
 
+  const handleFilesSelected = (files) => {
+    if (!files.length) return;
+    if (files.length > 10 && !window.confirm(`You've selected ${files.length} items. Uploading large batches may take longer. Continue?`)) return;
+    setSelectedFiles(files);
+    setAddMode("upload");
+  };
+
+  if (addMode === "menu") {
+    return <div style={addMenuPage}>
+      <div style={addMenuHeader}>
+        <h1 style={addMenuTitle}>Add to Looptie</h1>
+        <p style={addMenuSubtitle}>Save the things you want to loop back to.</p>
+      </div>
+
+      <input ref={libraryInputRef} type="file" accept="image/*,video/*" multiple style={{ display:"none" }} onChange={(e) => handleFilesSelected(Array.from(e.target.files || []))} />
+      <input ref={cameraInputRef} type="file" accept="image/*,video/*" capture="environment" style={{ display:"none" }} onChange={(e) => handleFilesSelected(Array.from(e.target.files || []))} />
+
+      <button type="button" style={primaryAddCard} onClick={() => libraryInputRef.current?.click()}>
+        <Images size={32} strokeWidth={1.8} style={addMenuIcon} />
+        <span style={addCardCopy}><strong style={addCardTitle}>Photos & videos</strong><span style={addCardSubtitle}>Choose from your library</span></span>
+        <ChevronRight size={22} style={addChevron} />
+      </button>
+
+      <div style={secondaryAddGrid}>
+        <button type="button" style={secondaryAddCard} onClick={() => cameraInputRef.current?.click()}>
+          <Camera size={30} strokeWidth={1.8} style={addMenuIcon} />
+          <span style={addCardCopy}><strong style={addCardTitle}>Camera</strong><span style={addCardSubtitle}>Take a photo or video</span></span>
+          <ChevronRight size={20} style={addChevron} />
+        </button>
+        <button type="button" style={secondaryAddCard} onClick={() => setAddMode("link")}>
+          <Link2 size={30} strokeWidth={1.8} style={addMenuIcon} />
+          <span style={addCardCopy}><strong style={addCardTitle}>Paste a link</strong><span style={addCardSubtitle}>Save from anywhere</span></span>
+          <ChevronRight size={20} style={addChevron} />
+        </button>
+      </div>
+    </div>;
+  }
+
+  if (addMode === "link") {
+    return <div style={comingSoonPage}>
+      <button type="button" style={backButton} onClick={() => setAddMode("menu")}><ArrowLeft size={20} /> Back</button>
+      <div style={comingSoonCard}><Link2 size={34} style={addMenuIcon} /><h2 style={{margin:"14px 0 8px"}}>Paste a link</h2><p style={{margin:0,color:"var(--text-secondary)"}}>Link saving is next. We’ll build this flow here.</p></div>
+    </div>;
+  }
+
   return <div style={{ color: "var(--text-primary)" }}>
-    <p style={subtitleStyle}>Add to Looptie</p>
+    <button type="button" style={backButton} onClick={() => { setSelectedFiles([]); setAddMode("menu"); }}><ArrowLeft size={20} /> Back</button>
+    <p style={subtitleStyle}>Choose a Space and save your media.</p>
     <div style={addGrid}>
       <label style={addCard}>
         <h2 style={uploadTitle}>Upload from Device</h2>
@@ -103,6 +152,23 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     {showSuccess && <div style={successOverlay}><div style={successCard}><Check size={22} strokeWidth={3} /><span>Saved to Looptie</span></div></div>}
   </div>;
 }
+
+
+const addMenuPage = { color:"var(--text-primary)", height:"100%", overflowY:"auto", padding:"32px 20px 110px", boxSizing:"border-box" };
+const addMenuHeader = { textAlign:"center", margin:"8px auto 30px" };
+const addMenuTitle = { margin:"0 0 8px", fontSize:"var(--text-xl)", fontWeight:"var(--weight-bold)" };
+const addMenuSubtitle = { margin:0, color:"var(--text-secondary)", fontSize:"var(--text-md)" };
+const primaryAddCard = { width:"100%", minHeight:"190px", display:"grid", gridTemplateColumns:"1fr auto", gridTemplateRows:"auto 1fr", textAlign:"left", padding:"28px", borderRadius:"26px", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text-primary)", cursor:"pointer", boxShadow:"0 8px 24px rgba(0,0,0,.04)" };
+const secondaryAddGrid = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px", marginTop:"14px" };
+const secondaryAddCard = { minHeight:"190px", position:"relative", display:"flex", flexDirection:"column", alignItems:"flex-start", textAlign:"left", padding:"24px", borderRadius:"24px", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text-primary)", cursor:"pointer", boxShadow:"0 8px 24px rgba(0,0,0,.04)" };
+const addMenuIcon = { color:"var(--brand)", gridColumn:"1 / 2" };
+const addCardCopy = { display:"flex", flexDirection:"column", gap:"7px", alignSelf:"end", gridColumn:"1 / 2" };
+const addCardTitle = { fontSize:"var(--text-lg)", lineHeight:"var(--leading-tight)" };
+const addCardSubtitle = { color:"var(--text-secondary)", fontSize:"var(--text-sm)", lineHeight:"var(--leading-normal)" };
+const addChevron = { color:"var(--text-secondary)", position:"absolute", right:"22px", top:"50%", transform:"translateY(-50%)" };
+const backButton = { display:"inline-flex", alignItems:"center", gap:"7px", border:"none", background:"transparent", color:"var(--text-primary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-medium)", padding:"10px 0", cursor:"pointer" };
+const comingSoonPage = { color:"var(--text-primary)", padding:"24px 20px 110px" };
+const comingSoonCard = { marginTop:"28px", padding:"28px", border:"1px solid var(--border)", borderRadius:"24px", background:"var(--surface)" };
 
 const subtitleStyle = { color: "var(--text-secondary)", marginBottom: "24px" };
 const addGrid = { display: "grid", gap: "16px" };
