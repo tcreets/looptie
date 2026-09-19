@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2 } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
@@ -38,6 +38,25 @@ function getInstagramEmbedUrl(url) {
     return `https://www.instagram.com/${type}/${match[2]}/embed/`;
   } catch {}
   return "";
+}
+
+function InstagramEmbed({ url, title }) {
+  const embedRef = useRef(null);
+  useEffect(() => {
+    const process = () => window.instgrm?.Embeds?.process?.();
+    const existing = document.querySelector('script[src="https://www.instagram.com/embed.js"]');
+    if (existing) { process(); return; }
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://www.instagram.com/embed.js";
+    script.onload = process;
+    document.body.appendChild(script);
+  }, [url]);
+  return <div ref={embedRef} style={instagramDetailWrap}>
+    <blockquote className="instagram-media" data-instgrm-permalink={url} data-instgrm-version="14" style={instagramDetailBlockquote}>
+      <a href={url} target="_blank" rel="noreferrer">{title || "View this post on Instagram"}</a>
+    </blockquote>
+  </div>;
 }
 
 export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNoteDraft, itemTagsDraft, setItemTagsDraft, onClose, onSaveMemo, onSaveTags, onToggleFavorite, itemFavoriteDraft, onDelete }) {
@@ -82,7 +101,7 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   return <div style={itemModalOverlay}><div style={itemModalCard} className="pretty-scroll">
     <button onClick={onClose} style={itemModalClose}><ArrowLeft size={22} strokeWidth={2.5} /></button>
     <button type="button" onClick={() => { trackEvent("favorite_clicked", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type, new_value: !itemFavoriteDraft }); onToggleFavorite(); }} style={{ ...favoriteButton, color: itemFavoriteDraft ? "var(--favorite)" : "white" }}><Heart size={28} fill={itemFavoriteDraft ? "var(--favorite)" : "transparent"} color={itemFavoriteDraft ? "var(--favorite)" : "white"} /></button>
-    {selectedItem.media_type === "video" ? <video src={selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : selectedItem.media_type === "link" && getYouTubeId(selectedItem.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(selectedItem.source_url)}?autoplay=1&playsinline=1&rel=0`} title={selectedItem.source_title || "YouTube video"} style={itemDetailEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : selectedItem.media_type === "link" && getTikTokId(selectedItem.source_url) ? <iframe src={`https://www.tiktok.com/player/v1/${getTikTokId(selectedItem.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={selectedItem.source_title || "TikTok video"} style={itemDetailEmbed} allow="autoplay; fullscreen" allowFullScreen /> : selectedItem.media_type === "link" && getInstagramEmbedUrl(selectedItem.source_url) ? <iframe src={getInstagramEmbedUrl(selectedItem.source_url)} title={selectedItem.source_title || "Instagram post"} style={itemDetailEmbed} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : selectedItem.media_type === "link" ? (selectedItem.image ? <img src={selectedItem.image} alt="" style={{...itemModalMedia,objectFit:"cover"}} /> : <div style={linkMediaFallback}><Link2 size={42} /></div>) : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
+    {selectedItem.media_type === "video" ? <video src={selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : selectedItem.media_type === "link" && getYouTubeId(selectedItem.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(selectedItem.source_url)}?autoplay=1&playsinline=1&rel=0`} title={selectedItem.source_title || "YouTube video"} style={itemDetailEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : selectedItem.media_type === "link" && getTikTokId(selectedItem.source_url) ? <iframe src={`https://www.tiktok.com/player/v1/${getTikTokId(selectedItem.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={selectedItem.source_title || "TikTok video"} style={itemDetailEmbed} allow="autoplay; fullscreen" allowFullScreen /> : selectedItem.media_type === "link" && getInstagramEmbedUrl(selectedItem.source_url) ? <InstagramEmbed url={selectedItem.source_url} title={selectedItem.source_title} /> : selectedItem.media_type === "link" ? (selectedItem.image ? <img src={selectedItem.image} alt="" style={{...itemModalMedia,objectFit:"cover"}} /> : <div style={linkMediaFallback}><Link2 size={42} /></div>) : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
     {showFullscreen && <div style={fullscreenOverlay} onClick={() => setShowFullscreen(false)}><img src={selectedItem.image} alt="" style={fullscreenImage} /></div>}
     <div style={itemModalContent}>
       <p style={itemModalSpace}>{selectedItem.space}</p>
@@ -142,3 +161,6 @@ const informationTitle = { fontSize:"var(--text-md)", fontWeight:"var(--weight-b
 const informationRow = { display:"grid", gridTemplateColumns:"100px 1fr", gap:"14px", padding:"8px 0", fontSize:"var(--text-sm)", lineHeight:"var(--leading-normal)" };
 const informationLabel = { color:"var(--text-secondary)" };
 const sourceLink = { display:"inline-flex", alignItems:"center", gap:"5px", color:"var(--brand)", textDecoration:"none", fontWeight:"var(--weight-medium)" };
+
+const instagramDetailWrap = { width:"100%", minHeight:"420px", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", background:"var(--surface)" };
+const instagramDetailBlockquote = { width:"100%", minWidth:0, margin:"0 auto", background:"var(--surface)" };
