@@ -29,6 +29,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
   const [sortOrder, setSortOrder] = useState("newest");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const videoRefs = useRef({});
+  const youtubeRefs = useRef({});
   const handlePillWheel = (e) => { e.currentTarget.scrollLeft += e.deltaY; };
   const sortedFeedItems = [...filteredFeedItems].sort((a, b) => {
     if (sortOrder === "favorites") return Number(Boolean(b.favorite)) - Number(Boolean(a.favorite));
@@ -42,12 +43,22 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
       entries.forEach((entry) => {
         const itemId = entry.target.dataset.itemId;
         const video = videoRefs.current[itemId];
-        if (!video) return;
-        if (entry.isIntersecting) { video.play().catch(console.error); setPausedVideos((prev) => ({ ...prev, [itemId]: false })); }
-        else { video.pause(); setPausedVideos((prev) => ({ ...prev, [itemId]: true })); }
+        const youtubeFrame = youtubeRefs.current[itemId];
+        if (video) {
+          if (entry.isIntersecting) { video.play().catch(console.error); setPausedVideos((prev) => ({ ...prev, [itemId]: false })); }
+          else { video.pause(); setPausedVideos((prev) => ({ ...prev, [itemId]: true })); }
+        }
+        if (youtubeFrame?.contentWindow) {
+          youtubeFrame.contentWindow.postMessage(JSON.stringify({
+            event: "command",
+            func: entry.isIntersecting ? "playVideo" : "pauseVideo",
+            args: []
+          }), "*");
+        }
       });
     }, { root: feedRef.current, threshold: 0.7 });
     Object.values(videoRefs.current).forEach((video) => { if (video) observer.observe(video); });
+    Object.values(youtubeRefs.current).forEach((frame) => { if (frame) observer.observe(frame); });
     return () => observer.disconnect();
   }, [filteredFeedItems, feedRef]);
 
@@ -76,7 +87,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
         {filteredFeedItems.length === 0 && <div style={emptyState}><h3>No items here yet</h3><p>Add something to this space to start building your feed.</p></div>}
         {sortedFeedItems.map((item) => (
           <div key={item.id} style={feedCard}>
-            {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?playsinline=1&rel=0`} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
+            {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) youtubeRefs.current[item.id] = el; }} src={`https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?enablejsapi=1&autoplay=1&mute=1&playsinline=1&rel=0`} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
             <div style={overlayStyle} />
             {item.favorite && <div style={favoriteIndicator}><Heart fill="var(--favorite)" color="var(--favorite)" size={28} /></div>}
             <div style={floatingActions}>
