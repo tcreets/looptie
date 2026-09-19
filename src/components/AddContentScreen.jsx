@@ -217,15 +217,10 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     <button type="button" style={backButton} onClick={() => { setSelectedFiles([]); setAddMode("menu"); }}><ArrowLeft size={20} /> Back</button>
     <p style={subtitleStyle}>Choose a Space and save your media.</p>
     <div style={addGrid}>
-      <label style={addCard}>
-        <h2 style={uploadTitle}>Upload from Device</h2>
-        <div style={chooseMediaButton}>Choose Photos or Videos{selectedFiles.length > 0 && <p style={selectedCount}>{selectedFiles.length} item{selectedFiles.length > 1 ? "s" : ""} selected</p>}</div>
-        <input type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={(e) => {
-          const files = Array.from(e.target.files); if (!files.length) return;
-          if (files.length > 10 && !window.confirm(`You've selected ${files.length} items. Uploading large batches may take longer. Continue?`)) return;
-          setSelectedFiles(files);
-        }} />
-      </label>
+      {selectedFiles.length > 0 && <div style={uploadPreviewGrid} className="horizontal-pretty-scrollbar" onWheel={handlePreviewWheel}>{selectedFiles.map((file, index) => {
+        const previewUrl = URL.createObjectURL(file); const isVideo = file.type.startsWith("video");
+        return <div key={index} style={uploadPreviewCard} onClick={() => setPreviewFile(file)}><button type="button" style={removePreviewButton} onClick={(e) => { e.stopPropagation(); setSelectedFiles((prev) => prev.filter((_, fileIndex) => fileIndex !== index)); }}><X size={14} strokeWidth={3} /></button>{isVideo ? <video src={previewUrl} style={uploadPreviewMedia} muted /> : <img src={previewUrl} alt="" style={uploadPreviewMedia} />}</div>;
+      })}</div>}
 
       <div style={{ position: "relative" }}>
         <select value={uploadSpace} onChange={(e) => { if (e.target.value === "__new__") { setShowCreateSpaceModal(true); return; } setUploadSpace(e.target.value); }} style={{ ...modalInput, paddingRight: "42px", appearance: "none", WebkitAppearance: "none" }}>
@@ -236,11 +231,6 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
 
       <button style={{ ...modalPrimaryButton, opacity: !selectedFiles.length || isUploading || !uploadSpace ? 0.5 : 1 }} disabled={!selectedFiles.length || isUploading || !uploadSpace} onClick={handleUpload}>{isUploading ? <><span style={spinner} />{uploadProgress}</> : selectedFiles.length > 0 ? `Save ${selectedFiles.length} item${selectedFiles.length > 1 ? "s" : ""} to Looptie` : "Select files first"}</button>
       <p style={uploadLimitText}>Save what matters. Videos may take a minute. Keep this page open while Looptie saves them.</p>
-
-      {selectedFiles.length > 0 && <div style={uploadPreviewGrid} className="horizontal-pretty-scrollbar" onWheel={handlePreviewWheel}>{selectedFiles.map((file, index) => {
-        const previewUrl = URL.createObjectURL(file); const isVideo = file.type.startsWith("video");
-        return <div key={index} style={uploadPreviewCard} onClick={() => setPreviewFile(file)}><button type="button" style={removePreviewButton} onClick={(e) => { e.stopPropagation(); setSelectedFiles((prev) => prev.filter((_, fileIndex) => fileIndex !== index)); }}><X size={14} strokeWidth={3} /></button>{isVideo ? <video src={previewUrl} style={uploadPreviewMedia} muted /> : <img src={previewUrl} alt="" style={uploadPreviewMedia} />}</div>;
-      })}</div>}
 
       {previewFile && <div style={previewOverlay} onClick={() => setPreviewFile(null)}>{previewFile.type.startsWith("video") ? <video src={URL.createObjectURL(previewFile)} controls autoPlay style={previewModalMedia} /> : <img src={URL.createObjectURL(previewFile)} alt="" style={previewModalMedia} />}</div>}
     </div>
