@@ -188,8 +188,8 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     setActiveFeed(selectedSpaceName);
     setIsSavingLink(false);
     setLinkUrl("");
-    setShowSuccess(true);
-    setTimeout(() => { setShowSuccess(false); setTab("home"); }, 1200);
+    setShowSuccess(false);
+    setTab("home");
   };
 
   if (addMode === "link") {
