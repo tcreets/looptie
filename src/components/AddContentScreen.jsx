@@ -141,13 +141,42 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     };
   };
 
+  const fetchYouTubeMetadata = async (preview) => {
+    if (!preview?.youtubeId) return null;
+    try {
+      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(preview.url)}&format=json`;
+      const response = await fetch(oembedUrl);
+      if (!response.ok) throw new Error(`YouTube metadata returned ${response.status}`);
+      const data = await response.json();
+      return {
+        url: preview.url,
+        title: data.title || null,
+        image: data.thumbnail_url || preview.thumbnail || null,
+        siteName: "YouTube",
+        creator: data.author_name || null
+      };
+    } catch (error) {
+      console.warn("Could not fetch YouTube metadata directly:", error);
+      return null;
+    }
+  };
+
   const fetchLinkMetadata = async (preview) => {
-    if (!preview) { setLinkMetadata(null); return; }
+    if (!preview) { setLinkMetadata(null); return null; }
     setIsLoadingMetadata(true);
+    if (preview.source === "YouTube") {
+      const youtubeMetadata = await fetchYouTubeMetadata(preview);
+      if (youtubeMetadata) {
+        setLinkMetadata(youtubeMetadata);
+        setIsLoadingMetadata(false);
+        return youtubeMetadata;
+      }
+    }
     const { data, error } = await supabase.functions.invoke("link-metadata", { body: { url: preview.url } });
-    if (error) { console.warn("Could not fetch link metadata:", error); setLinkMetadata(null); }
-    else setLinkMetadata(data);
+    if (error) { console.warn("Could not fetch link metadata:", error); setLinkMetadata(null); setIsLoadingMetadata(false); return null; }
+    setLinkMetadata(data);
     setIsLoadingMetadata(false);
+    return data;
   };
 
   const saveLink = async () => {
@@ -160,13 +189,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     setIsSavingLink(true);
     let metadata = linkMetadata;
     if (preview.source === "YouTube" && (!metadata?.title || !metadata?.creator)) {
-      const { data: freshMetadata, error: metadataError } = await supabase.functions.invoke("link-metadata", { body: { url: preview.url } });
-      if (!metadataError && freshMetadata) {
-        metadata = freshMetadata;
-        setLinkMetadata(freshMetadata);
-      } else if (metadataError) {
-        console.warn("Could not refresh YouTube metadata before save:", metadataError);
-      }
+      metadata = await fetchYouTubeMetadata(preview) || await fetchLinkMetadata(preview) || metadata;
     }
     const payload = {
       user_id: user.id,
