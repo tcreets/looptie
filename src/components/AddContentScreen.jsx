@@ -154,6 +154,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
     if (!preview) { setLinkError("Enter a valid link."); return; }
     if (!selectedSpaceName) { setLinkError("Choose a Feed before saving."); return; }
+    if (isLoadingMetadata) { setLinkError("Wait for the preview to finish loading."); return; }
     setLinkError("");
     setIsSavingLink(true);
     const payload = {
@@ -204,7 +205,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
         <label style={linkFieldLabel}>Save to Feed</label>
         <div style={{position:"relative"}}><select value={uploadSpace} onChange={(e) => setUploadSpace(e.target.value)} style={{...modalInput,marginTop:"8px",paddingRight:"42px",appearance:"none"}}><option value="">Select a Feed</option>{spaces.map((space) => { const name = typeof space === "string" ? space : space.name; return <option key={name} value={name}>{name}</option>; })}</select><div style={selectChevron}><ChevronDown size={16} /></div></div>
         {linkError && <p style={linkErrorStyle}>{linkError}</p>}
-        <button type="button" style={{...modalPrimaryButton,opacity:!uploadSpace || isSavingLink ? .5 : 1}} disabled={!uploadSpace || isSavingLink} onClick={saveLink}>{isSavingLink ? "Saving…" : "Save to Looptie"}</button>
+        <button type="button" style={{...modalPrimaryButton,opacity:!uploadSpace || isSavingLink || isLoadingMetadata ? .5 : 1}} disabled={!uploadSpace || isSavingLink || isLoadingMetadata} onClick={saveLink}>{isLoadingMetadata ? "Getting preview…" : isSavingLink ? "Saving…" : "Save to Looptie"}</button>
       </div>}
       {!linkPreview && linkError && <p style={linkErrorStyle}>{linkError}</p>}
     </div>;
