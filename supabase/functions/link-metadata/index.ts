@@ -34,7 +34,11 @@ Deno.serve(async (req) => {
     const parsed = new URL(body.url);
     if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("Unsupported URL.");
 
-    const isYouTube = parsed.hostname === "youtu.be" || parsed.hostname === "youtube.com" || parsed.hostname.endsWith(".youtube.com");
+    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+    const isYouTube = host === "youtu.be" || host === "youtube.com" || host.endsWith(".youtube.com");
+    const isTikTok = host === "tiktok.com" || host.endsWith(".tiktok.com");
+    const isInstagram = host === "instagram.com" || host.endsWith(".instagram.com");
+    const isLinkedIn = host === "linkedin.com" || host.endsWith(".linkedin.com");
     if (isYouTube) {
       const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(parsed.href)}&format=json`;
       const oembedResponse = await fetch(oembedUrl);
@@ -51,6 +55,28 @@ Deno.serve(async (req) => {
         });
       }
       console.warn("YouTube oEmbed returned", oembedResponse.status);
+    }
+
+    if (isTikTok) {
+      try {
+        const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(parsed.href)}`;
+        const oembedResponse = await fetch(oembedUrl, { headers: { "User-Agent": "Mozilla/5.0 (compatible; Looptie/1.0)" } });
+        if (oembedResponse.ok) {
+          const oembed = await oembedResponse.json();
+          return new Response(JSON.stringify({
+            url: parsed.href,
+            title: clean(oembed.title),
+            image: absoluteUrl(oembed.thumbnail_url, parsed.href),
+            siteName: "TikTok",
+            creator: clean(oembed.author_name),
+          }), {
+            status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        console.warn("TikTok oEmbed returned", oembedResponse.status);
+      } catch (oembedError) {
+        console.warn("TikTok oEmbed metadata failed:", oembedError);
+      }
     }
 
     const response = await fetch(parsed.href, {
@@ -71,7 +97,7 @@ Deno.serve(async (req) => {
     const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
     let title = readMeta("og:title") || readMeta("twitter:title") || clean(titleMatch?.[1] || null);
     let image = absoluteUrl(readMeta("og:image:secure_url") || readMeta("og:image") || readMeta("twitter:image:src") || readMeta("twitter:image"), response.url || parsed.href);
-    let siteName = readMeta("og:site_name") || parsed.hostname.replace(/^www\./, "");
+    let siteName = readMeta("og:site_name") || (isInstagram ? "Instagram" : isTikTok ? "TikTok" : isLinkedIn ? "LinkedIn" : host);
     let creator = readMeta("author") || readMeta("article:author") || null;
 
     if (isYouTube) {
