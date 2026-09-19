@@ -4,7 +4,28 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const clean = (value: string | null) => value?.replace(/\s+/g, " ").trim() || null;
+const decodeHtml = (value: string | null) => {
+  if (!value) return null;
+  const named: Record<string, string> = { amp: "&", quot: '"', apos: "'", lt: "<", gt: ">", nbsp: " " };
+  return value.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, entity) => {
+    const key = String(entity).toLowerCase();
+    if (key.startsWith("#x")) {
+      const code = Number.parseInt(key.slice(2), 16);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+    }
+    if (key.startsWith("#")) {
+      const code = Number.parseInt(key.slice(1), 10);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+    }
+    return named[key] ?? match;
+  });
+};
+const clean = (value: string | null) => decodeHtml(value)?.replace(/\s+/g, " ").trim() || null;
+const absoluteUrl = (value: string | null, base: string) => {
+  const cleaned = clean(value);
+  if (!cleaned) return null;
+  try { return new URL(cleaned, base).href; } catch { return null; }
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -49,7 +70,7 @@ Deno.serve(async (req) => {
     };
     const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
     let title = readMeta("og:title") || readMeta("twitter:title") || clean(titleMatch?.[1] || null);
-    let image = readMeta("og:image") || readMeta("twitter:image");
+    let image = absoluteUrl(readMeta("og:image:secure_url") || readMeta("og:image") || readMeta("twitter:image:src") || readMeta("twitter:image"), response.url || parsed.href);
     let siteName = readMeta("og:site_name") || parsed.hostname.replace(/^www\./, "");
     let creator = readMeta("author") || readMeta("article:author") || null;
 
@@ -61,7 +82,7 @@ Deno.serve(async (req) => {
           const oembed = await oembedResponse.json();
           title = clean(oembed.title) || title;
           creator = clean(oembed.author_name) || creator;
-          image = clean(oembed.thumbnail_url) || image;
+          image = absoluteUrl(oembed.thumbnail_url, parsed.href) || image;
           siteName = "YouTube";
         }
       } catch (oembedError) {
