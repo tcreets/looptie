@@ -40,6 +40,25 @@ function getInstagramEmbedUrl(url) {
   return "";
 }
 
+function InstagramEmbed({ url, title, style }) {
+  const embedRef = useRef(null);
+  useEffect(() => {
+    const process = () => window.instgrm?.Embeds?.process?.();
+    const existing = document.querySelector('script[src="https://www.instagram.com/embed.js"]');
+    if (existing) { process(); return; }
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://www.instagram.com/embed.js";
+    script.onload = process;
+    document.body.appendChild(script);
+  }, [url]);
+  return <div ref={embedRef} style={style}>
+    <blockquote className="instagram-media" data-instgrm-permalink={url} data-instgrm-version="14" style={instagramBlockquote}>
+      <a href={url} target="_blank" rel="noreferrer">{title || "View this post on Instagram"}</a>
+    </blockquote>
+  </div>;
+}
+
 function SmartImage({ src, style }) {
   const [fit, setFit] = useState("cover");
   return <img src={src} loading="lazy" alt="" style={{ ...style, objectFit: fit, background: "var(--bg)" }} onLoad={(e) => {
@@ -124,7 +143,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
         {filteredFeedItems.length === 0 && <div style={emptyState}><h3>No items here yet</h3><p>Add something to this space to start building your feed.</p></div>}
         {sortedFeedItems.map((item) => (
           <div key={item.id} style={feedCard}>
-            {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) youtubeRefs.current[item.id] = el; }} src={`https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?enablejsapi=1&autoplay=1&mute=1&playsinline=1&rel=0`} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && getTikTokId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) tiktokRefs.current[item.id] = el; }} src={`https://www.tiktok.com/player/v1/${getTikTokId(item.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={item.source_title || "TikTok video"} style={youtubeEmbed} allow="autoplay; fullscreen" allowFullScreen /> : item.media_type === "link" && getInstagramEmbedUrl(item.source_url) ? <iframe src={getInstagramEmbedUrl(item.source_url)} title={item.source_title || "Instagram post"} style={youtubeEmbed} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
+            {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) youtubeRefs.current[item.id] = el; }} src={`https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?enablejsapi=1&autoplay=1&mute=1&playsinline=1&rel=0`} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && getTikTokId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) tiktokRefs.current[item.id] = el; }} src={`https://www.tiktok.com/player/v1/${getTikTokId(item.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={item.source_title || "TikTok video"} style={youtubeEmbed} allow="autoplay; fullscreen" allowFullScreen /> : item.media_type === "link" && getInstagramEmbedUrl(item.source_url) ? <InstagramEmbed url={item.source_url} title={item.source_title} style={instagramEmbedWrap} /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
             <div style={overlayStyle} />
             {item.favorite && <div style={favoriteIndicator}><Heart fill="var(--favorite)" color="var(--favorite)" size={28} /></div>}
             <div style={floatingActions}>
@@ -182,3 +201,6 @@ const linkFallbackSource = { color:"var(--text-secondary)", fontSize:"var(--text
 const linkFallbackTitle = { margin:0, maxWidth:"520px", color:"var(--text-primary)", fontSize:"var(--text-xl)", lineHeight:"var(--leading-tight)" };
 
 const youtubeEmbed = { width:"100%", height:"100%", minHeight:"calc(100vh - 118px)", border:0, display:"block", background:"black" };
+
+const instagramEmbedWrap = { width:"100%", minHeight:"calc(100vh - 118px)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"auto", background:"var(--surface)" };
+const instagramBlockquote = { width:"100%", minWidth:0, margin:"0 auto", background:"var(--surface)" };
