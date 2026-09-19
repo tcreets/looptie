@@ -26,6 +26,7 @@ function SmartImage({ src, style }) {
 export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, filteredFeedItems, setSelectedItem }) {
   const [mutedVideos, setMutedVideos] = useState({});
   const [pausedVideos, setPausedVideos] = useState({});
+  const [mutedYouTube, setMutedYouTube] = useState({});
   const [sortOrder, setSortOrder] = useState("newest");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const videoRefs = useRef({});
@@ -95,6 +96,15 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
                 <button type="button" style={floatingIconButton} onClick={async (e) => { e.stopPropagation(); const video = videoRefs.current[item.id]; if (!video) return; if (video.paused) { await video.play(); setPausedVideos((prev) => ({ ...prev, [item.id]: false })); } else { video.pause(); setPausedVideos((prev) => ({ ...prev, [item.id]: true })); } }}>{pausedVideos[item.id] ? <Play size={30} strokeWidth={2.5} /> : <Pause size={30} strokeWidth={2.5} />}</button>
                 <button type="button" style={floatingIconButton} onClick={async (e) => { e.stopPropagation(); const video = videoRefs.current[item.id]; if (!video) return; const isCurrentlyMuted = video.muted; video.muted = !isCurrentlyMuted; video.volume = isCurrentlyMuted ? 1 : 0; await video.play(); setMutedVideos((prev) => ({ ...prev, [item.id]: !isCurrentlyMuted })); }}>{mutedVideos[item.id] === false ? <Volume2 size={30} strokeWidth={2.5} /> : <VolumeX size={30} strokeWidth={2.5} />}</button>
               </>}
+              {item.media_type === "link" && getYouTubeId(item.source_url) && <button type="button" style={floatingIconButton} aria-label={mutedYouTube[item.id] ? "Mute YouTube video" : "Unmute YouTube video"} title={mutedYouTube[item.id] ? "Mute" : "Unmute"} onClick={(e) => {
+                e.stopPropagation();
+                const frame = youtubeRefs.current[item.id];
+                if (!frame?.contentWindow) return;
+                const isUnmuted = Boolean(mutedYouTube[item.id]);
+                frame.contentWindow.postMessage(JSON.stringify({ event:"command", func:isUnmuted ? "mute" : "unMute", args:[] }), "*");
+                frame.contentWindow.postMessage(JSON.stringify({ event:"command", func:"playVideo", args:[] }), "*");
+                setMutedYouTube((prev) => ({ ...prev, [item.id]: !isUnmuted }));
+              }}>{mutedYouTube[item.id] ? <Volume2 size={30} strokeWidth={2.5} /> : <VolumeX size={30} strokeWidth={2.5} />}</button>}
               <button type="button" style={floatingIconButton} onClick={() => { trackEvent("item_opened", { item_id: item.id, space: item.space, media_type: item.media_type }); setSelectedItem(item); }}><SquarePen size={32} strokeWidth={2.8} /></button>
             </div>
           </div>
