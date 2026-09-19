@@ -19,6 +19,8 @@ import { useItemModal } from "./hooks/useItemModal";
 import { useSearch } from "./hooks/useSearch";
 import { useAuth } from "./hooks/useAuth";
 import { trackEvent } from "./utils/trackEvent";
+import { Capacitor } from "@capacitor/core";
+import { CapacitorShareTarget } from "@capgo/capacitor-share-target";
 
 export default function App() {
   const [tab, setTab] = useState("home");
@@ -26,6 +28,7 @@ export default function App() {
   const [newSpaceName, setNewSpaceName] = useState("");
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [incomingShare, setIncomingShare] = useState(null);
   const feedRef = useRef(null);
 
   const { user, setUser, authLoading } = useAuth();
@@ -42,6 +45,22 @@ export default function App() {
     if (!user) return;
     trackEvent("app_opened", { source: "app_start" });
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let listener;
+    const listenForShares = async () => {
+      listener = await CapacitorShareTarget.addListener("shareReceived", (event) => {
+        console.log("Looptie received shared content:", event);
+        setIncomingShare(event);
+        setTab("add");
+      });
+    };
+
+    listenForShares();
+    return () => { listener?.remove?.(); };
+  }, []);
 
   if (authLoading) return null;
   if (!user) return <AuthScreen setUser={setUser} />;
@@ -62,7 +81,7 @@ export default function App() {
         {tab === "home" && <HomeFeed spaces={spaces} activeFeed={currentFeed} setActiveFeed={setActiveFeed} feedRef={feedRef} filteredFeedItems={filteredFeedItems} setSelectedItem={openItemModal} />}
         {tab === "spaces" && <Spaces spaces={spaces} defaultFeed={defaultFeed} setDefaultFeed={saveDefaultFeed} selectedSpace={selectedSpace} setSelectedSpace={setSelectedSpace} feedItems={feedItems} setFeedItems={setFeedItems} setSelectedItem={openItemModal} setShowNewSpaceForm={setShowNewSpaceForm} setUploadSpace={setUploadSpace} setTab={setTab} renameSpace={renameSpace} onDeleteSpace={(spaceName) => deleteSpace(spaceName, feedItems, setFeedItems, setSelectedSpace)} />}
         {tab === "search" && <SearchScreen searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchResults={searchResults} setSelectedItem={openItemModal} spaces={spaces} />}
-        {tab === "add" && <AddContentScreen user={user} spaces={spaces} setSpaces={setSpaces} defaultFeed={defaultFeed} uploadSpace={uploadSpace} setUploadSpace={setUploadSpace} selectedFiles={selectedFiles} setSelectedFiles={setSelectedFiles} feedItems={feedItems} setFeedItems={setFeedItems} setActiveFeed={setActiveFeed} setTab={setTab} />}
+        {tab === "add" && <AddContentScreen user={user} spaces={spaces} setSpaces={setSpaces} defaultFeed={defaultFeed} uploadSpace={uploadSpace} setUploadSpace={setUploadSpace} selectedFiles={selectedFiles} setSelectedFiles={setSelectedFiles} feedItems={feedItems} setFeedItems={setFeedItems} setActiveFeed={setActiveFeed} setTab={setTab} incomingShare={incomingShare} clearIncomingShare={() => setIncomingShare(null)} />}
         {tab === "profile" && <Profile items={feedItems} spaces={spaces} setSelectedItem={openItemModal} setTab={setTab} profile={profile} />}
         {tab === "settings" && <SettingsScreen profile={profile} spaces={spaces} defaultFeed={defaultFeed} setDefaultFeed={setDefaultFeed} setActiveFeed={setActiveFeed} setProfile={setProfile} setTab={setTab} user={user} deleteAllUserItemsAndStorage={deleteAllUserItemsAndStorage} />}
         {showNewSpaceForm && <CreateSpaceModal user={user} newSpaceName={newSpaceName} setNewSpaceName={setNewSpaceName} spaces={spaces} setSpaces={setSpaces} setSelectedSpace={setSelectedSpace} setShowNewSpaceForm={setShowNewSpaceForm} setTab={setTab} />}
