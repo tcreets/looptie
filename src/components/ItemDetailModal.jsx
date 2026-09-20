@@ -147,7 +147,6 @@ const articleWebChrome = { height:"42px", flex:"0 0 42px", padding:"0 14px", dis
 const articleWebSource = { fontSize:"var(--text-xs)", color:"var(--text-secondary)", fontWeight:"var(--weight-semibold)" };
 const articleWebExternal = { display:"inline-flex", alignItems:"center", gap:"4px", fontSize:"var(--text-xs)", color:"var(--text-secondary)", textDecoration:"none" };
 const articleWebFrame = { width:"100%", flex:1, border:0, background:"white" };
-const articleWebFallback = { margin:"0 0 18px", padding:"10px 12px", borderRadius:"12px", background:"var(--surface)", color:"var(--text-secondary)", fontSize:"var(--text-xs)", lineHeight:1.5 };
 const itemDetailEmbed = { width:"100%", height:"58vh", minHeight:"360px", border:0, display:"block", background:"black" };
 const itemModalContent = { width:"min(760px, 100%)", boxSizing:"border-box", margin:"0 auto", padding:"22px 20px 110px", color: "var(--text-primary)" };
 const itemModalSpace = { color: "var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", margin: "0 0 8px" };
