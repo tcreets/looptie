@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { supabase } from "../utils/supabaseClient";
 import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2 } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
@@ -64,7 +65,10 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
-  const [memoSaveStatus, setMemoSaveStatus] = useState("saved");
+  const [notes, setNotes] = useState([]);
+  const [noteDraft, setNoteDraft] = useState("");
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [notesLoading, setNotesLoading] = useState(false);
   const addTag = async () => {
     const tag = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-").toLowerCase();
     if (!tag || itemTagsDraft.includes(tag)) { setTagInput(""); return; }
@@ -85,17 +89,37 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   };
   useEffect(() => { if (selectedItem) trackEvent("item_viewed", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type }); }, [selectedItem?.id]);
   useEffect(() => {
-    if (!selectedItem || itemNoteDraft === (selectedItem.note || "")) {
-      setMemoSaveStatus("saved");
-      return;
+    if (!selectedItem) return;
+    let cancelled = false;
+    setNotesLoading(true);
+    supabase.from("item_notes").select("*").eq("item_id", selectedItem.id).order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) console.error("Error loading notes:", error);
+        else setNotes(data || []);
+        setNotesLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [selectedItem?.id]);
+
+  const saveNote = async () => {
+    const content = noteDraft.trim();
+    if (!content) return;
+    if (editingNoteId) {
+      const { data, error } = await supabase.from("item_notes").update({ content, updated_at: new Date().toISOString() }).eq("id", editingNoteId).select().single();
+      if (!error) setNotes(prev => prev.map(note => note.id === editingNoteId ? data : note));
+    } else {
+      const { data, error } = await supabase.from("item_notes").insert({ item_id: selectedItem.id, user_id: selectedItem.user_id || (await supabase.auth.getUser()).data.user?.id, content }).select().single();
+      if (!error) setNotes(prev => [data, ...prev]);
     }
-    setMemoSaveStatus("saving");
-    const timer = setTimeout(async () => {
-      const saved = await onSaveMemo(itemNoteDraft);
-      setMemoSaveStatus(saved ? "saved" : "error");
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [itemNoteDraft, selectedItem?.id]);
+    setNoteDraft("");
+    setEditingNoteId(null);
+  };
+
+  const deleteNote = async (id) => {
+    const { error } = await supabase.from("item_notes").delete().eq("id", id);
+    if (!error) setNotes(prev => prev.filter(note => note.id !== id));
+  };
     if (!selectedItem) return null;
 
   const isArticle = selectedItem.media_type === "link" && !getYouTubeId(selectedItem.source_url) && !getTikTokId(selectedItem.source_url) && !getInstagramEmbedUrl(selectedItem.source_url);
@@ -111,9 +135,24 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
       {selectedItem.source_title && <h1 style={itemTitle}>{selectedItem.source_title}</h1>}
       {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
       {isArticle && <div style={articleWebFallback}>If this publisher blocks the web preview during browser development, the native Looptie app will use an in-app WebView instead.</div>}
-      <div id="looptie-notes" style={notesHeading}><span>Notes</span><span style={notesHint}>Your note</span></div>
-      <textarea data-gramm="false" placeholder="Add a note..." value={itemNoteDraft} onChange={(e) => setItemNoteDraft(e.target.value)} style={itemModalNote} />
-      <div style={saveStatus}>{memoSaveStatus === "saving" ? "Saving…" : memoSaveStatus === "error" ? "Couldn’t save" : "Saved"}</div>
+      <div id="looptie-notes" style={notesBlock}>
+        <div style={notesHeading}><span>Notes</span><span style={notesHint}>{notes.length} ${notes.length === 1 ? "note" : "notes"}</span></div>
+        <div style={noteComposer}>
+          <textarea data-gramm="false" placeholder={editingNoteId ? "Edit note..." : "Add a note..."} value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} style={noteComposerInput} />
+          <div style={noteComposerActions}>
+            {editingNoteId && <button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(null); setNoteDraft(""); }}>Cancel</button>}
+            <button type="button" style={noteSaveButton} disabled={!noteDraft.trim()} onClick={saveNote}>{editingNoteId ? "Save" : "Add note"}</button>
+          </div>
+        </div>
+        {notesLoading ? <p style={emptyNotes}>Loading notes…</p> : notes.length === 0 ? <p style={emptyNotes}>No notes yet.</p> :
+          <div style={notesList}>{notes.map(note => <div key={note.id} style={noteCard}>
+            <p style={noteContent}>{note.content}</p>
+            <div style={noteMetaRow}>
+              <span>{new Date(note.created_at).toLocaleString("en-US", { month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" })}{note.updated_at !== note.created_at ? " · Edited" : ""}</span>
+              <span style={noteActions}><button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(note.id); setNoteDraft(note.content); }}>Edit</button><button type="button" style={noteDeleteButton} onClick={() => deleteNote(note.id)}>Delete</button></span>
+            </div>
+          </div>)}</div>}
+      </div>
       <div id="looptie-tags" style={tagBlock}>
         <div style={tagLabel}>Tags</div>
         <div style={tagSection}>
@@ -187,3 +226,17 @@ const articleLaunchContent = { width:"min(760px, 100%)", margin:"0 auto", paddin
 const articleLaunchImage = { width:"100%", maxHeight:"48vh", objectFit:"cover", display:"block", marginBottom:"24px" };
 const articleOpenButton = { margin:"20px 20px 8px", width:"calc(100% - 40px)", minHeight:"48px", border:0, borderRadius:"999px", background:"var(--accent)", color:"white", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)", cursor:"pointer" };
 const articleLaunchHint = { margin:"0 20px", color:"var(--text-secondary)", fontSize:"var(--text-xs)", lineHeight:1.5, textAlign:"center" };
+
+const notesBlock = { margin:"2px 0 8px" };
+const noteComposer = { border:"1px solid var(--border)", borderRadius:"16px", background:"var(--surface-elevated)", padding:"12px", marginBottom:"18px" };
+const noteComposerInput = { width:"100%", minHeight:"84px", boxSizing:"border-box", border:0, outline:"none", resize:"vertical", background:"transparent", color:"var(--text-primary)", fontFamily:"inherit", fontSize:"var(--text-md)", lineHeight:1.5 };
+const noteComposerActions = { display:"flex", justifyContent:"flex-end", alignItems:"center", gap:"8px", marginTop:"8px" };
+const noteSaveButton = { border:0, borderRadius:"999px", padding:"9px 14px", background:"var(--brand)", color:"white", fontWeight:"var(--weight-semibold)", cursor:"pointer" };
+const noteTextButton = { border:0, background:"transparent", color:"var(--brand)", padding:"4px", cursor:"pointer", fontWeight:"var(--weight-medium)" };
+const noteDeleteButton = { border:0, background:"transparent", color:"var(--danger)", padding:"4px", cursor:"pointer", fontWeight:"var(--weight-medium)" };
+const notesList = { display:"flex", flexDirection:"column", gap:"10px" };
+const noteCard = { borderBottom:"1px solid var(--border)", padding:"4px 2px 14px" };
+const noteContent = { margin:"0 0 9px", whiteSpace:"pre-wrap", color:"var(--text-primary)", fontSize:"var(--text-md)", lineHeight:1.55 };
+const noteMetaRow = { display:"flex", justifyContent:"space-between", alignItems:"center", gap:"10px", color:"var(--text-muted)", fontSize:"var(--text-xs)" };
+const noteActions = { display:"inline-flex", gap:"8px", flexShrink:0 };
+const emptyNotes = { color:"var(--text-muted)", fontSize:"var(--text-sm)", margin:"4px 0 18px" };
