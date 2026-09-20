@@ -77,7 +77,13 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
   const videoRefs = useRef({});
   const youtubeRefs = useRef({});
   const tiktokRefs = useRef({});
-  const handlePillWheel = (e) => { e.currentTarget.scrollLeft += e.deltaY; };
+  const handlePillWheel = (e) => {
+    const scroller = e.currentTarget;
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (!delta) return;
+    scroller.scrollLeft += delta;
+    e.preventDefault();
+  };
   const sortedFeedItems = [...filteredFeedItems].sort((a, b) => {
     if (sortOrder === "favorites") return Number(Boolean(b.favorite)) - Number(Boolean(a.favorite));
     const aTime = new Date(a.created_at || a.createdAt || 0).getTime();
