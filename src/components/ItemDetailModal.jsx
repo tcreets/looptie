@@ -129,9 +129,14 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
       <p style={itemModalTimestamp}>Added {new Date(selectedItem.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
       {selectedItem.source_title && <h1 style={itemTitle}>{selectedItem.source_title}</h1>}
       {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
-      {isArticle && <div style={articleActions}>
-        <button type="button" style={readInLooptieButton} onClick={() => setReaderOpen(true)}><BookOpen size={18} /> Read in Looptie</button>
-        <a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={originalSourceButton}>View original source <ExternalLink size={16} /></a>
+      {isArticle && <div style={articleReaderSection}>
+        <div style={articleReaderBar}>
+          <span style={articleReaderLabel}>Reading</span>
+          <a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={articleReaderSource}>Original <ExternalLink size={14} /></a>
+        </div>
+        {articleLoading ? <div style={articleState}>Loading article…</div>
+          : articleText ? <div style={articleBody}>{articleText.split(/\n{2,}/).filter(Boolean).map((paragraph, index) => <p key={index} style={articleParagraph}>{paragraph}</p>)}</div>
+          : <div style={articleState}>This publisher doesn’t provide readable content to Looptie yet. <a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={sourceLink}>View original source <ExternalLink size={14} /></a></div>}
       </div>}
       <div style={notesHeading}><span>Notes</span><span style={notesHint}>Your note</span></div>
       <textarea data-gramm="false" placeholder="Add a note..." value={itemNoteDraft} onChange={(e) => setItemNoteDraft(e.target.value)} style={itemModalNote} />
