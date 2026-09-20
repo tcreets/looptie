@@ -100,25 +100,6 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
 
   const isArticle = selectedItem.media_type === "link" && !getYouTubeId(selectedItem.source_url) && !getTikTokId(selectedItem.source_url) && !getInstagramEmbedUrl(selectedItem.source_url);
 
-  if (isArticle) {
-    const openArticle = () => {
-      // On the native app this route should be handled by Capacitor's in-app browser/WebView.
-      // Browser development cannot embed publishers that block framing, so open the real page directly.
-      window.location.href = selectedItem.source_url;
-    };
-    return <div style={articleLaunchPage}>
-      <button onClick={onClose} style={articleLaunchBack}><ArrowLeft size={22} strokeWidth={2.5} /></button>
-      <div style={articleLaunchContent}>
-        {selectedItem.image && <img src={selectedItem.image} alt="" style={articleLaunchImage} />}
-        <p style={itemModalSpace}>{selectedItem.space}</p>
-        {selectedItem.source_title && <h1 style={itemTitle}>{selectedItem.source_title}</h1>}
-        {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
-        <button type="button" onClick={openArticle} style={articleOpenButton}>Open article</button>
-        <p style={articleLaunchHint}>On mobile, articles will open as a scrollable webpage inside Looptie.</p>
-      </div>
-    </div>;
-  }
-
   return <div style={itemModalOverlay}><div style={itemModalCard} className="pretty-scroll">
     <button onClick={onClose} style={itemModalClose}><ArrowLeft size={22} strokeWidth={2.5} /></button>
     <button type="button" onClick={() => { trackEvent("favorite_clicked", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type, new_value: !itemFavoriteDraft }); onToggleFavorite(); }} style={{ ...favoriteButton, color: itemFavoriteDraft ? "var(--favorite)" : "white" }}><Heart size={28} fill={itemFavoriteDraft ? "var(--favorite)" : "transparent"} color={itemFavoriteDraft ? "var(--favorite)" : "white"} /></button>
@@ -129,6 +110,10 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
       <p style={itemModalTimestamp}>Added {new Date(selectedItem.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
       {selectedItem.source_title && <h1 style={itemTitle}>{selectedItem.source_title}</h1>}
       {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
+      {isArticle && <>
+        <button type="button" onClick={() => { window.location.href = selectedItem.source_url; }} style={articleOpenButton}>Open article</button>
+        <p style={articleLaunchHint}>On mobile, articles will open as a scrollable webpage inside Looptie.</p>
+      </>}
       <div style={notesHeading}><span>Notes</span><span style={notesHint}>Your note</span></div>
       <textarea data-gramm="false" placeholder="Add a note..." value={itemNoteDraft} onChange={(e) => setItemNoteDraft(e.target.value)} style={itemModalNote} />
       <div style={saveStatus}>{memoSaveStatus === "saving" ? "Saving…" : memoSaveStatus === "error" ? "Couldn’t save" : "Saved"}</div>
