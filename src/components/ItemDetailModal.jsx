@@ -60,7 +60,7 @@ function InstagramEmbed({ url, title }) {
   </div>;
 }
 
-export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNoteDraft, itemTagsDraft, setItemTagsDraft, onClose, onSaveMemo, onSaveTags, onToggleFavorite, itemFavoriteDraft, onDelete }) {
+export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTagsDraft, onClose, onSaveTags, onToggleFavorite, itemFavoriteDraft, onDelete }) {
   const [mediaFit, setMediaFit] = useState("cover");
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [tagInput, setTagInput] = useState("");
@@ -197,8 +197,6 @@ const itemDetailEmbed = { width:"100%", height:"58vh", minHeight:"360px", border
 const itemModalContent = { width:"min(760px, 100%)", boxSizing:"border-box", margin:"0 auto", padding:"22px 20px 110px", color: "var(--text-primary)" };
 const itemModalSpace = { color: "var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", margin: "0 0 8px" };
 const itemModalTimestamp = { color: "var(--text-muted)", fontSize:"var(--text-sm)", margin: "0 0 18px" };
-const itemModalNote = { width: "100%", minHeight: "190px", boxSizing: "border-box", padding: "14px", borderRadius: "16px", border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", fontSize:"var(--text-md)", lineHeight: 1.5, paddingBottom: "24px", resize: "none", outline: "none", fontFamily: "inherit" };
-const saveStatus = { marginTop:"6px", textAlign:"right", color:"var(--text-muted)", fontSize:"var(--text-xs)" };
 const tagBlock = { marginTop:"20px" };
 const tagLabel = { fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", marginBottom:"10px" };
 const tagSection = { display:"flex", flexWrap:"wrap", alignItems:"center", gap:"8px" };
