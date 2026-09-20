@@ -136,7 +136,7 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
       {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
       {isArticle && <div style={articleWebFallback}>If this publisher blocks the web preview during browser development, the native Looptie app will use an in-app WebView instead.</div>}
       <div id="looptie-notes" style={notesBlock}>
-        <div style={notesHeading}><span>Notes</span><span style={notesHint}>{notes.length} ${notes.length === 1 ? "note" : "notes"}</span></div>
+        <div style={notesHeading}><span>Notes</span><span style={notesHint}>{notes.length} {notes.length === 1 ? "note" : "notes"}</span></div>
         <div style={noteComposer}>
           <textarea data-gramm="false" placeholder={editingNoteId ? "Edit note..." : "Add a note..."} value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} style={noteComposerInput} />
           <div style={noteComposerActions}>
