@@ -31,7 +31,6 @@ export function useItems(user) {
         space: item.space,
         image: item.image_url,
         storage_path: item.storage_path,
-        note: item.note,
         favorite: item.favorite,
         tags: item.tags,
         caption: item.caption,
@@ -49,31 +48,6 @@ export function useItems(user) {
 
     fetchItems();
   }, [user]);
-
-  const saveItemMemo = async (selectedItem, itemNoteDraft) => {
-    if (!selectedItem || !user) return false;
-
-    const { error } = await supabase
-      .from("items")
-      .update({ note: itemNoteDraft })
-      .eq("id", selectedItem.id)
-      .eq("user_id", user.id);
-
-    if (error) {
-      console.error("Error saving memo:", error);
-      return false;
-    }
-
-    setFeedItems((prev) =>
-      prev.map((item) =>
-        item.id === selectedItem.id
-          ? { ...item, note: itemNoteDraft }
-          : item
-      )
-    );
-
-    return true;
-  };
 
   const saveItemTags = async (selectedItem, tags) => {
     if (!selectedItem || !user) return false;
@@ -209,7 +183,6 @@ export function useItems(user) {
     feedItems,
     setFeedItems,
     itemsLoading,
-    saveItemMemo,
     saveItemTags,
     toggleFavorite,
     deleteItem,
