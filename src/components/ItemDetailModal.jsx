@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
-import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2 } from "lucide-react";
+import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2, MoreHorizontal } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
 function getYouTubeId(url) {
@@ -69,6 +69,7 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   const [noteDraft, setNoteDraft] = useState("");
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [notesLoading, setNotesLoading] = useState(false);
+  const [openNoteMenuId, setOpenNoteMenuId] = useState(null);
   const addTag = async () => {
     const tag = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-").toLowerCase();
     if (!tag || itemTagsDraft.includes(tag)) { setTagInput(""); return; }
@@ -114,6 +115,7 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
     }
     setNoteDraft("");
     setEditingNoteId(null);
+    setOpenNoteMenuId(null);
   };
 
   const deleteNote = async (id) => {
@@ -138,9 +140,17 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
         <div style={notesHeading}><span>Notes</span><span style={notesHint}>{notes.length} {notes.length === 1 ? "note" : "notes"}</span></div>
         {notesLoading ? <p style={emptyNotes}>Loading notes…</p> : notes.length === 0 ? <p style={emptyNotes}>No notes yet.</p> :
           <div style={notesList}>{notes.map(note => <div key={note.id} style={noteCard}>
-            <div style={noteAuthorRow}><span style={noteAuthor}>You</span><span style={noteTimestamp}>{new Date(note.created_at).toLocaleString("en-US", { month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" })}{note.updated_at !== note.created_at ? " · Edited" : ""}</span></div>
+            <div style={noteTopRow}>
+              <div style={noteAuthorRow}><span style={noteAuthor}>You</span><span style={noteTimestamp}>{new Date(note.created_at).toLocaleString("en-US", { month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" })}{note.updated_at !== note.created_at ? " · Edited" : ""}</span></div>
+              <div style={noteMenuWrap}>
+                <button type="button" aria-label="Note options" style={noteMenuButton} onClick={() => setOpenNoteMenuId(openNoteMenuId === note.id ? null : note.id)}><MoreHorizontal size={18} /></button>
+                {openNoteMenuId === note.id && <div style={noteMenu}>
+                  <button type="button" style={noteMenuEdit} onClick={() => { setEditingNoteId(note.id); setNoteDraft(note.content); setOpenNoteMenuId(null); }}>Edit</button>
+                  <button type="button" style={noteMenuDelete} onClick={() => { setOpenNoteMenuId(null); deleteNote(note.id); }}>Delete</button>
+                </div>}
+              </div>
+            </div>
             <p style={noteContent}>{note.content}</p>
-            <div style={noteActions}><button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(note.id); setNoteDraft(note.content); }}>Edit</button><button type="button" style={noteDeleteButton} onClick={() => deleteNote(note.id)}>Delete</button></div>
           </div>)}</div>}
         <div style={noteComposer}>
           <textarea rows={1} data-gramm="false" placeholder={editingNoteId ? "Edit note..." : "Add a note…"} value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} style={noteComposerInput} />
@@ -234,8 +244,13 @@ const noteDeleteButton = { border:0, background:"transparent", color:"var(--dang
 const notesList = { display:"flex", flexDirection:"column", gap:"10px" };
 const noteCard = { position:"relative", borderBottom:"1px solid var(--border)", padding:"6px 2px 12px" };
 const noteContent = { margin:"7px 0 5px", whiteSpace:"pre-wrap", color:"var(--text-primary)", fontSize:"var(--text-md)", lineHeight:1.55 };
+const noteTopRow = { display:"flex", alignItems:"center", justifyContent:"space-between", gap:"10px" };
 const noteAuthorRow = { display:"flex", alignItems:"baseline", gap:"7px" };
 const noteAuthor = { color:"var(--text-primary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)" };
 const noteTimestamp = { color:"var(--text-muted)", fontSize:"var(--text-xs)" };
-const noteActions = { display:"flex", justifyContent:"flex-end", gap:"8px" };
+const noteMenuWrap = { position:"relative", flexShrink:0 };
+const noteMenuButton = { width:"30px", height:"30px", border:0, borderRadius:"999px", background:"transparent", color:"var(--text-secondary)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", padding:0 };
+const noteMenu = { position:"absolute", top:"30px", right:0, zIndex:20, minWidth:"112px", padding:"6px", border:"1px solid var(--border)", borderRadius:"12px", background:"var(--surface-elevated)", boxShadow:"0 10px 30px rgba(0,0,0,.28)" };
+const noteMenuEdit = { width:"100%", border:0, borderRadius:"8px", background:"transparent", color:"var(--text-primary)", textAlign:"left", padding:"9px 10px", fontSize:"var(--text-sm)", cursor:"pointer" };
+const noteMenuDelete = { ...noteMenuEdit, color:"var(--danger)" };
 const emptyNotes = { color:"var(--text-muted)", fontSize:"var(--text-sm)", margin:"4px 0 18px" };
