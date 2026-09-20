@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { supabase } from "../utils/supabaseClient";
 import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2 } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
@@ -66,9 +65,6 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
   const [memoSaveStatus, setMemoSaveStatus] = useState("saved");
-  const [articleText, setArticleText] = useState("");
-  const [articleLoading, setArticleLoading] = useState(false);
-  const [articleError, setArticleError] = useState(false);
   const addTag = async () => {
     const tag = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-").toLowerCase();
     if (!tag || itemTagsDraft.includes(tag)) { setTagInput(""); return; }
@@ -100,24 +96,28 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
     }, 800);
     return () => clearTimeout(timer);
   }, [itemNoteDraft, selectedItem?.id]);
-  useEffect(() => {
-    let cancelled = false;
-    const url = selectedItem?.source_url;
-    const isReadableLink = selectedItem?.media_type === "link" && url && !getYouTubeId(url) && !getTikTokId(url) && !getInstagramEmbedUrl(url);
-    if (!isReadableLink) { setArticleText(""); setArticleError(false); return; }
-    setArticleLoading(true); setArticleError(false); setArticleText("");
-    supabase.functions.invoke("link-metadata", { body: { url } }).then(({ data, error }) => {
-      if (cancelled) return;
-      if (error || !data?.articleText) { setArticleError(true); setArticleText(""); }
-      else setArticleText(data.articleText);
-      setArticleLoading(false);
-    });
-    return () => { cancelled = true; };
-  }, [selectedItem?.id, selectedItem?.source_url]);
-
     if (!selectedItem) return null;
 
   const isArticle = selectedItem.media_type === "link" && !getYouTubeId(selectedItem.source_url) && !getTikTokId(selectedItem.source_url) && !getInstagramEmbedUrl(selectedItem.source_url);
+
+  if (isArticle) {
+    const openArticle = () => {
+      // On the native app this route should be handled by Capacitor's in-app browser/WebView.
+      // Browser development cannot embed publishers that block framing, so open the real page directly.
+      window.location.href = selectedItem.source_url;
+    };
+    return <div style={articleLaunchPage}>
+      <button onClick={onClose} style={articleLaunchBack}><ArrowLeft size={22} strokeWidth={2.5} /></button>
+      <div style={articleLaunchContent}>
+        {selectedItem.image && <img src={selectedItem.image} alt="" style={articleLaunchImage} />}
+        <p style={itemModalSpace}>{selectedItem.space}</p>
+        {selectedItem.source_title && <h1 style={itemTitle}>{selectedItem.source_title}</h1>}
+        {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
+        <button type="button" onClick={openArticle} style={articleOpenButton}>Open article</button>
+        <p style={articleLaunchHint}>On mobile, articles will open as a scrollable webpage inside Looptie.</p>
+      </div>
+    </div>;
+  }
 
   return <div style={itemModalOverlay}><div style={itemModalCard} className="pretty-scroll">
     <button onClick={onClose} style={itemModalClose}><ArrowLeft size={22} strokeWidth={2.5} /></button>
@@ -129,15 +129,6 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
       <p style={itemModalTimestamp}>Added {new Date(selectedItem.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
       {selectedItem.source_title && <h1 style={itemTitle}>{selectedItem.source_title}</h1>}
       {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
-      {isArticle && <div style={articleReaderSection}>
-        <div style={articleReaderBar}>
-          <span style={articleReaderLabel}>Reading</span>
-          <a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={articleReaderSource}>Original <ExternalLink size={14} /></a>
-        </div>
-        {articleLoading ? <div style={articleState}>Loading article…</div>
-          : articleText ? <div style={articleBody}>{articleText.split(/\n{2,}/).filter(Boolean).map((paragraph, index) => <p key={index} style={articleParagraph}>{paragraph}</p>)}</div>
-          : <div style={articleState}>This publisher doesn’t provide readable content to Looptie yet. <a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={sourceLink}>View original source <ExternalLink size={14} /></a></div>}
-      </div>}
       <div style={notesHeading}><span>Notes</span><span style={notesHint}>Your note</span></div>
       <textarea data-gramm="false" placeholder="Add a note..." value={itemNoteDraft} onChange={(e) => setItemNoteDraft(e.target.value)} style={itemModalNote} />
       <div style={saveStatus}>{memoSaveStatus === "saving" ? "Saving…" : memoSaveStatus === "error" ? "Couldn’t save" : "Saved"}</div>
@@ -203,10 +194,9 @@ const itemCreator = { margin:"0 0 18px", color:"var(--text-secondary)", fontSize
 const notesHeading = { display:"flex", justifyContent:"space-between", alignItems:"center", margin:"2px 0 10px", fontSize:"var(--text-md)", fontWeight:"var(--weight-bold)" };
 const notesHint = { color:"var(--text-muted)", fontSize:"var(--text-xs)", fontWeight:"var(--weight-medium)" };
 
-const articleReaderSection = { margin:"8px 0 30px", borderTop:"1px solid var(--border)", borderBottom:"1px solid var(--border)", background:"var(--surface)" };
-const articleReaderBar = { height:"44px", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 4px", color:"var(--text-secondary)" };
-const articleReaderLabel = { fontSize:"var(--text-xs)", fontWeight:"var(--weight-semibold)", textTransform:"uppercase", letterSpacing:".08em" };
-const articleReaderSource = { display:"inline-flex", alignItems:"center", gap:"5px", color:"var(--text-secondary)", textDecoration:"none", fontSize:"var(--text-xs)", fontWeight:"var(--weight-medium)" };
-const articleState = { padding:"34px 4px", color:"var(--text-secondary)", fontSize:"var(--text-sm)", lineHeight:1.6 };
-const articleBody = { padding:"10px 2px 26px", maxWidth:"680px", margin:"0 auto", color:"var(--text-primary)" };
-const articleParagraph = { margin:"0 0 20px", fontSize:"17px", lineHeight:1.75 };
+const articleLaunchPage = { position:"fixed", inset:0, zIndex:200, overflowY:"auto", background:"var(--bg)" };
+const articleLaunchBack = { position:"fixed", top:"18px", left:"14px", width:"36px", height:"36px", border:"none", background:"rgba(0,0,0,.55)", borderRadius:"999px", color:"white", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", zIndex:10 };
+const articleLaunchContent = { width:"min(760px, 100%)", margin:"0 auto", paddingBottom:"48px" };
+const articleLaunchImage = { width:"100%", maxHeight:"48vh", objectFit:"cover", display:"block", marginBottom:"24px" };
+const articleOpenButton = { margin:"20px 20px 8px", width:"calc(100% - 40px)", minHeight:"48px", border:0, borderRadius:"999px", background:"var(--accent)", color:"white", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)", cursor:"pointer" };
+const articleLaunchHint = { margin:"0 20px", color:"var(--text-secondary)", fontSize:"var(--text-xs)", lineHeight:1.5, textAlign:"center" };
