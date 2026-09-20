@@ -21,7 +21,6 @@ const decodeHtml = (value: string | null) => {
   });
 };
 const clean = (value: string | null) => decodeHtml(value)?.replace(/\s+/g, " ").trim() || null;
-const stripTags = (value: string) => clean(value.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "));
 const absoluteUrl = (value: string | null, base: string) => {
   const cleaned = clean(value);
   if (!cleaned) return null;
@@ -128,22 +127,7 @@ Deno.serve(async (req) => {
         console.warn("YouTube oEmbed metadata failed:", oembedError);
       }
     }
-    // Best-effort readable article extraction for Looptie's in-app reader.
-    // Prefer semantic article/main content and preserve paragraph boundaries.
-    let articleText: string | null = null;
-    const articleMatch = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/i)
-      || html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
-    if (articleMatch?.[1]) {
-      const readable = articleMatch[1]
-        .replace(/<(br|\/p|\/div|\/li|\/h[1-6])\s*[^>]*>/gi, "\n")
-        .replace(/<script[\s\S]*?<\/script>/gi, " ")
-        .replace(/<style[\s\S]*?<\/style>/gi, " ")
-        .replace(/<[^>]+>/g, " ");
-      articleText = decodeHtml(readable)?.replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n\n").trim() || null;
-      if (articleText && articleText.length < 240) articleText = null;
-    }
-
-    return new Response(JSON.stringify({ url: response.url || parsed.href, title, image, siteName, creator, articleText }), {
+    return new Response(JSON.stringify({ url: response.url || parsed.href, title, image, siteName, creator }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
