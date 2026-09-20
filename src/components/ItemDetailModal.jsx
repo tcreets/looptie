@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2 } from "lucide-react";
+import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2, BookOpen } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
 function getYouTubeId(url) {
@@ -65,6 +65,7 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
   const [memoSaveStatus, setMemoSaveStatus] = useState("saved");
+  const [readerOpen, setReaderOpen] = useState(false);
   const addTag = async () => {
     const tag = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-").toLowerCase();
     if (!tag || itemTagsDraft.includes(tag)) { setTagInput(""); return; }
@@ -98,6 +99,17 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   }, [itemNoteDraft, selectedItem?.id]);
   if (!selectedItem) return null;
 
+  if (readerOpen && selectedItem.source_url) return <div style={readerPage}>
+    <div style={readerHeader}>
+      <button onClick={() => setReaderOpen(false)} style={readerBack}><ArrowLeft size={22} /></button>
+      <div style={readerHeaderTitle}>{selectedItem.source_title || "Reader"}</div>
+      <a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={readerOriginal} aria-label="View original source"><ExternalLink size={19} /></a>
+    </div>
+    <iframe src={selectedItem.source_url} title={selectedItem.source_title || "Article"} style={readerFrame} />
+  </div>;
+
+  const isArticle = selectedItem.media_type === "link" && !getYouTubeId(selectedItem.source_url) && !getTikTokId(selectedItem.source_url) && !getInstagramEmbedUrl(selectedItem.source_url);
+
   return <div style={itemModalOverlay}><div style={itemModalCard} className="pretty-scroll">
     <button onClick={onClose} style={itemModalClose}><ArrowLeft size={22} strokeWidth={2.5} /></button>
     <button type="button" onClick={() => { trackEvent("favorite_clicked", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type, new_value: !itemFavoriteDraft }); onToggleFavorite(); }} style={{ ...favoriteButton, color: itemFavoriteDraft ? "var(--favorite)" : "white" }}><Heart size={28} fill={itemFavoriteDraft ? "var(--favorite)" : "transparent"} color={itemFavoriteDraft ? "var(--favorite)" : "white"} /></button>
@@ -106,7 +118,14 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
     <div style={itemModalContent}>
       <p style={itemModalSpace}>{selectedItem.space}</p>
       <p style={itemModalTimestamp}>Added {new Date(selectedItem.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
-      <textarea data-gramm="false" placeholder="Add a memo, note, or comment..." value={itemNoteDraft} onChange={(e) => setItemNoteDraft(e.target.value)} style={itemModalNote} />
+      {selectedItem.source_title && <h1 style={itemTitle}>{selectedItem.source_title}</h1>}
+      {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
+      {isArticle && <div style={articleActions}>
+        <button type="button" style={readInLooptieButton} onClick={() => setReaderOpen(true)}><BookOpen size={18} /> Read in Looptie</button>
+        <a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={originalSourceButton}>View original source <ExternalLink size={16} /></a>
+      </div>}
+      <div style={notesHeading}><span>Notes</span><span style={notesHint}>Your note</span></div>
+      <textarea data-gramm="false" placeholder="Add a note..." value={itemNoteDraft} onChange={(e) => setItemNoteDraft(e.target.value)} style={itemModalNote} />
       <div style={saveStatus}>{memoSaveStatus === "saving" ? "Saving…" : memoSaveStatus === "error" ? "Couldn’t save" : "Saved"}</div>
       <div style={tagBlock}>
         <div style={tagLabel}>Tags</div>
@@ -132,12 +151,12 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   </div></div>;
 }
 
-const itemModalOverlay = { position: "fixed", inset: 0, background: "var(--overlay)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "18px" };
-const itemModalCard = { width: "100%", maxWidth: "430px", maxHeight: "90vh", overflowY: "scroll", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "28px", position: "relative", boxShadow: "var(--shadow)" };
+const itemModalOverlay = { position: "fixed", inset: 0, background: "var(--bg)", zIndex: 200, display: "block", padding: 0 };
+const itemModalCard = { width: "100%", height: "100dvh", overflowY: "auto", background: "var(--bg)", position: "relative" };
 const itemModalClose = { position: "absolute", top: "18px", left: "14px", width: "32px", height: "32px", border: "none", background: "rgba(0,0,0,.45)", borderRadius: "999px", color: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 10, padding: 0 };
-const itemModalMedia = { width: "100%", maxHeight: "60vh", objectFit: "cover", display: "block", background: "var(--bg)" };
-const itemDetailEmbed = { width:"100%", height:"60vh", maxHeight:"620px", minHeight:"360px", border:0, display:"block", background:"black" };
-const itemModalContent = { padding: "20px", color: "var(--text-primary)" };
+const itemModalMedia = { width: "100%", maxHeight: "58vh", objectFit: "cover", display: "block", background: "var(--surface)" };
+const itemDetailEmbed = { width:"100%", height:"58vh", minHeight:"360px", border:0, display:"block", background:"black" };
+const itemModalContent = { width:"min(760px, 100%)", boxSizing:"border-box", margin:"0 auto", padding:"22px 20px 110px", color: "var(--text-primary)" };
 const itemModalSpace = { color: "var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", margin: "0 0 8px" };
 const itemModalTimestamp = { color: "var(--text-muted)", fontSize:"var(--text-sm)", margin: "0 0 18px" };
 const itemModalNote = { width: "100%", minHeight: "190px", boxSizing: "border-box", padding: "14px", borderRadius: "16px", border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", fontSize:"var(--text-md)", lineHeight: 1.5, paddingBottom: "24px", resize: "none", outline: "none", fontFamily: "inherit" };
@@ -164,3 +183,17 @@ const sourceLink = { display:"inline-flex", alignItems:"center", gap:"5px", colo
 
 const instagramDetailWrap = { width:"100%", minHeight:"420px", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", background:"var(--surface)" };
 const instagramDetailBlockquote = { width:"100%", minWidth:0, margin:"0 auto", background:"var(--surface)" };
+
+const itemTitle = { margin:"4px 0 6px", fontSize:"clamp(24px, 5vw, 34px)", lineHeight:1.12, letterSpacing:"-.02em", fontWeight:"var(--weight-bold)" };
+const itemCreator = { margin:"0 0 18px", color:"var(--text-secondary)", fontSize:"var(--text-sm)" };
+const articleActions = { display:"flex", flexWrap:"wrap", gap:"10px", margin:"4px 0 26px" };
+const readInLooptieButton = { display:"inline-flex", alignItems:"center", gap:"8px", border:"none", borderRadius:"999px", background:"var(--brand)", color:"white", padding:"11px 16px", fontWeight:"var(--weight-semibold)", cursor:"pointer" };
+const originalSourceButton = { display:"inline-flex", alignItems:"center", gap:"7px", border:"1px solid var(--border)", borderRadius:"999px", color:"var(--text-primary)", padding:"10px 15px", textDecoration:"none", fontSize:"var(--text-sm)", fontWeight:"var(--weight-medium)" };
+const notesHeading = { display:"flex", justifyContent:"space-between", alignItems:"center", margin:"2px 0 10px", fontSize:"var(--text-md)", fontWeight:"var(--weight-bold)" };
+const notesHint = { color:"var(--text-muted)", fontSize:"var(--text-xs)", fontWeight:"var(--weight-medium)" };
+const readerPage = { position:"fixed", inset:0, zIndex:400, background:"var(--bg)", display:"flex", flexDirection:"column" };
+const readerHeader = { height:"58px", flex:"0 0 58px", display:"grid", gridTemplateColumns:"44px 1fr 44px", alignItems:"center", borderBottom:"1px solid var(--border)", background:"var(--surface)", padding:"0 8px" };
+const readerBack = { width:"40px", height:"40px", border:"none", borderRadius:"999px", background:"transparent", color:"var(--text-primary)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" };
+const readerHeaderTitle = { overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", textAlign:"center", color:"var(--text-primary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)" };
+const readerOriginal = { width:"40px", height:"40px", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--brand)", textDecoration:"none" };
+const readerFrame = { flex:1, width:"100%", border:0, background:"white" };
