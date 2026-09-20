@@ -234,6 +234,8 @@ const noteDeleteButton = { border:0, background:"transparent", color:"var(--dang
 const notesList = { display:"flex", flexDirection:"column", gap:"10px" };
 const noteCard = { position:"relative", borderBottom:"1px solid var(--border)", padding:"6px 2px 12px" };
 const noteContent = { margin:"7px 0 5px", whiteSpace:"pre-wrap", color:"var(--text-primary)", fontSize:"var(--text-md)", lineHeight:1.55 };
-const noteAuthorRow = { display:"flex", alignItems:"baseline", gap:"7px" };\nconst noteAuthor = { color:"var(--text-primary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)" };\nconst noteTimestamp = { color:"var(--text-muted)", fontSize:"var(--text-xs)" };
+const noteAuthorRow = { display:"flex", alignItems:"baseline", gap:"7px" };
+const noteAuthor = { color:"var(--text-primary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)" };
+const noteTimestamp = { color:"var(--text-muted)", fontSize:"var(--text-xs)" };
 const noteActions = { display:"flex", justifyContent:"flex-end", gap:"8px" };
 const emptyNotes = { color:"var(--text-muted)", fontSize:"var(--text-sm)", margin:"4px 0 18px" };
