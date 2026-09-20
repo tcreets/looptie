@@ -44,7 +44,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       const { error: uploadError } = await supabase.storage.from("looptie-uploads").upload(filePath, fileToUpload, { cacheControl: "3600", upsert: false, contentType: fileToUpload.type });
       if (uploadError) throw new Error(`Upload failed for ${file.name}: ${uploadError.message}`);
       const { data: publicUrlData } = supabase.storage.from("looptie-uploads").getPublicUrl(filePath);
-      return { user_id: user.id, space: selectedSpaceName, media_type: mediaType, image_url: publicUrlData.publicUrl, storage_path: filePath, note: null, favorite: false };
+      return { user_id: user.id, space: selectedSpaceName, media_type: mediaType, image_url: publicUrlData.publicUrl, storage_path: filePath, favorite: false };
     };
 
     try {
@@ -57,7 +57,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       const { data, error } = await supabase.from("items").insert(uploadedItems).select();
       if (error) { alert("Error saving upload: " + error.message); return; }
       await trackEvent("content_uploaded", { count: data.length, space: selectedSpaceName, media_types: data.map((item) => item.media_type), duration_ms: Date.now() - uploadStart });
-      const formattedItems = data.map((item) => ({ id: item.id, space: item.space, image: item.image_url, storagePath: item.storage_path, note: item.note, favorite: item.favorite, media_type: item.media_type, created_at: item.created_at }));
+      const formattedItems = data.map((item) => ({ id: item.id, space: item.space, image: item.image_url, storagePath: item.storage_path, favorite: item.favorite, media_type: item.media_type, created_at: item.created_at }));
       setFeedItems([...formattedItems, ...feedItems]); setSelectedFiles([]); setActiveFeed(selectedSpaceName); setShowSuccess(false); setTab("home");
     } catch (err) { console.error(err); alert(err.message); }
     finally { setIsUploading(false); setUploadProgress(""); }
@@ -195,7 +195,6 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       space: selectedSpaceName,
       media_type: "link",
       image_url: metadata?.image || preview.thumbnail || null,
-      note: null,
       favorite: false,
       source_url: preview.url,
       source_platform: metadata?.siteName || preview.source,
@@ -215,7 +214,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       setIsSavingLink(false);
       return;
     }
-    const formatted = { id:data.id, space:data.space, image:data.image_url, storage_path:data.storage_path, note:data.note, favorite:data.favorite, tags:data.tags || [], media_type:data.media_type, created_at:data.created_at, source_url:data.source_url, source_platform:data.source_platform, source_title:data.source_title, source_creator:data.source_creator };
+    const formatted = { id:data.id, space:data.space, image:data.image_url, storage_path:data.storage_path, favorite:data.favorite, tags:data.tags || [], media_type:data.media_type, created_at:data.created_at, source_url:data.source_url, source_platform:data.source_platform, source_title:data.source_title, source_creator:data.source_creator };
     setFeedItems((prev) => [formatted, ...prev]);
     setActiveFeed(selectedSpaceName);
     setIsSavingLink(false);
