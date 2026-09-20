@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { supabase } from "../utils/supabaseClient";
 import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2 } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
@@ -65,6 +66,9 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
   const [tagInput, setTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
   const [memoSaveStatus, setMemoSaveStatus] = useState("saved");
+  const [articleText, setArticleText] = useState("");
+  const [articleLoading, setArticleLoading] = useState(false);
+  const [articleError, setArticleError] = useState(false);
   const addTag = async () => {
     const tag = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-").toLowerCase();
     if (!tag || itemTagsDraft.includes(tag)) { setTagInput(""); return; }
@@ -96,7 +100,22 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
     }, 800);
     return () => clearTimeout(timer);
   }, [itemNoteDraft, selectedItem?.id]);
-  if (!selectedItem) return null;
+  useEffect(() => {
+    let cancelled = false;
+    const url = selectedItem?.source_url;
+    const isReadableLink = selectedItem?.media_type === "link" && url && !getYouTubeId(url) && !getTikTokId(url) && !getInstagramEmbedUrl(url);
+    if (!isReadableLink) { setArticleText(""); setArticleError(false); return; }
+    setArticleLoading(true); setArticleError(false); setArticleText("");
+    supabase.functions.invoke("link-metadata", { body: { url } }).then(({ data, error }) => {
+      if (cancelled) return;
+      if (error || !data?.articleText) { setArticleError(true); setArticleText(""); }
+      else setArticleText(data.articleText);
+      setArticleLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [selectedItem?.id, selectedItem?.source_url]);
+
+    if (!selectedItem) return null;
 
   const isArticle = selectedItem.media_type === "link" && !getYouTubeId(selectedItem.source_url) && !getTikTokId(selectedItem.source_url) && !getInstagramEmbedUrl(selectedItem.source_url);
 
@@ -183,4 +202,6 @@ const articleReaderSection = { margin:"8px 0 30px", borderTop:"1px solid var(--b
 const articleReaderBar = { height:"44px", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 4px", color:"var(--text-secondary)" };
 const articleReaderLabel = { fontSize:"var(--text-xs)", fontWeight:"var(--weight-semibold)", textTransform:"uppercase", letterSpacing:".08em" };
 const articleReaderSource = { display:"inline-flex", alignItems:"center", gap:"5px", color:"var(--text-secondary)", textDecoration:"none", fontSize:"var(--text-xs)", fontWeight:"var(--weight-medium)" };
-const articleInlineFrame = { width:"100%", height:"70vh", minHeight:"520px", border:0, display:"block", background:"white" };
+const articleState = { padding:"34px 4px", color:"var(--text-secondary)", fontSize:"var(--text-sm)", lineHeight:1.6 };
+const articleBody = { padding:"10px 2px 26px", maxWidth:"680px", margin:"0 auto", color:"var(--text-primary)" };
+const articleParagraph = { margin:"0 0 20px", fontSize:"17px", lineHeight:1.75 };
