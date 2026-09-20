@@ -30,6 +30,7 @@ export function useItems(user) {
         id: item.id,
         space: item.space,
         image: item.image_url,
+        media_url: item.media_url,
         storage_path: item.storage_path,
         favorite: item.favorite,
         tags: item.tags,
