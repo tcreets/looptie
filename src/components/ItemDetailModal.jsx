@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 import { ArrowLeft, Heart, Plus, X, ExternalLink, Link2, MoreHorizontal } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
+import { canUseNativeArticleReader, mountNativeArticleReader, updateNativeArticleReaderFrame, unmountNativeArticleReader } from "../utils/nativeArticleReader";
 
 function getYouTubeId(url) {
   if (!url) return "";
@@ -71,6 +72,7 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
   const [notesLoading, setNotesLoading] = useState(false);
   const [openNoteMenuId, setOpenNoteMenuId] = useState(null);
   const noteInputRef = useRef(null);
+  const articleReaderRef = useRef(null);
   const addTag = async () => {
     const tag = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-").toLowerCase();
     if (!tag || itemTagsDraft.includes(tag)) { setTagInput(""); return; }
@@ -136,11 +138,30 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
     if (!selectedItem) return null;
 
   const isArticle = selectedItem.media_type === "link" && !getYouTubeId(selectedItem.source_url) && !getTikTokId(selectedItem.source_url) && !getInstagramEmbedUrl(selectedItem.source_url);
+  const nativeArticleReader = isArticle && canUseNativeArticleReader();
+
+  useEffect(() => {
+    if (!nativeArticleReader || !articleReaderRef.current || !selectedItem?.source_url) return;
+    const syncReader = () => {
+      const rect = articleReaderRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      updateNativeArticleReaderFrame(rect);
+    };
+    const rect = articleReaderRef.current.getBoundingClientRect();
+    mountNativeArticleReader({ url: selectedItem.source_url, rect }).catch((error) => console.error("Native article reader failed:", error));
+    window.addEventListener("resize", syncReader);
+    window.addEventListener("scroll", syncReader, true);
+    return () => {
+      window.removeEventListener("resize", syncReader);
+      window.removeEventListener("scroll", syncReader, true);
+      unmountNativeArticleReader();
+    };
+  }, [nativeArticleReader, selectedItem?.source_url]);
 
   return <div style={itemModalOverlay}><div style={itemModalCard} className="pretty-scroll">
     <button onClick={onClose} style={itemModalClose}><ArrowLeft size={22} strokeWidth={2.5} /></button>
     <button type="button" onClick={() => { trackEvent("favorite_clicked", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type, new_value: !itemFavoriteDraft }); onToggleFavorite(); }} style={{ ...favoriteButton, color: itemFavoriteDraft ? "var(--favorite)" : "white" }}><Heart size={28} fill={itemFavoriteDraft ? "var(--favorite)" : "transparent"} color={itemFavoriteDraft ? "var(--favorite)" : "white"} /></button>
-    {selectedItem.media_type === "video" ? <video src={selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : selectedItem.media_type === "link" && getYouTubeId(selectedItem.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(selectedItem.source_url)}?autoplay=1&playsinline=1&rel=0`} title={selectedItem.source_title || "YouTube video"} style={itemDetailEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : selectedItem.media_type === "link" && getTikTokId(selectedItem.source_url) ? <iframe src={`https://www.tiktok.com/player/v1/${getTikTokId(selectedItem.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={selectedItem.source_title || "TikTok video"} style={itemDetailEmbed} allow="autoplay; fullscreen" allowFullScreen /> : selectedItem.media_type === "link" && getInstagramEmbedUrl(selectedItem.source_url) ? <InstagramEmbed url={selectedItem.source_url} title={selectedItem.source_title} /> : selectedItem.media_type === "link" ? <div style={articleWebWrap}><div style={articleWebChrome}><span style={articleWebSource}>{selectedItem.source_platform || "Web"}</span><a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={articleWebExternal}>Open externally <ExternalLink size={13} /></a></div><iframe src={selectedItem.source_url} title={selectedItem.source_title || "Article"} style={articleWebFrame} /></div> : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
+    {selectedItem.media_type === "video" ? <video src={selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : selectedItem.media_type === "link" && getYouTubeId(selectedItem.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(selectedItem.source_url)}?autoplay=1&playsinline=1&rel=0`} title={selectedItem.source_title || "YouTube video"} style={itemDetailEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : selectedItem.media_type === "link" && getTikTokId(selectedItem.source_url) ? <iframe src={`https://www.tiktok.com/player/v1/${getTikTokId(selectedItem.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={selectedItem.source_title || "TikTok video"} style={itemDetailEmbed} allow="autoplay; fullscreen" allowFullScreen /> : selectedItem.media_type === "link" && getInstagramEmbedUrl(selectedItem.source_url) ? <InstagramEmbed url={selectedItem.source_url} title={selectedItem.source_title} /> : selectedItem.media_type === "link" ? <div style={articleWebWrap}><div style={articleWebChrome}><span style={articleWebSource}>{selectedItem.source_platform || "Web"}</span><a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={articleWebExternal}>Open externally <ExternalLink size={13} /></a></div>{nativeArticleReader ? <div ref={articleReaderRef} style={nativeArticleSlot} aria-label="Article reader" /> : <div style={articleDevFallback}><div style={articleDevFallbackTitle}>Article reader</div><div style={articleDevFallbackText}>The real webpage will render here in the native Looptie app. Browser development cannot embed sites that block framing.</div><a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={articleDevFallbackLink}>Preview original <ExternalLink size={14} /></a></div>}</div> : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
     {showFullscreen && <div style={fullscreenOverlay} onClick={() => setShowFullscreen(false)}><img src={selectedItem.image} alt="" style={fullscreenImage} /></div>}
     <div style={itemModalContent}>
       <p style={itemModalSpace}>{selectedItem.space}</p>
@@ -203,7 +224,11 @@ const articleWebWrap = { width:"100%", height:"72vh", minHeight:"560px", backgro
 const articleWebChrome = { height:"42px", flex:"0 0 42px", padding:"0 14px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid var(--border)", background:"var(--bg)" };
 const articleWebSource = { fontSize:"var(--text-xs)", color:"var(--text-secondary)", fontWeight:"var(--weight-semibold)" };
 const articleWebExternal = { display:"inline-flex", alignItems:"center", gap:"4px", fontSize:"var(--text-xs)", color:"var(--text-secondary)", textDecoration:"none" };
-const articleWebFrame = { width:"100%", flex:1, border:0, background:"white" };
+const nativeArticleSlot = { width:"100%", flex:1, minHeight:0, background:"var(--surface)" };
+const articleDevFallback = { flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"10px", padding:"28px", textAlign:"center", background:"var(--surface)" };
+const articleDevFallbackTitle = { color:"var(--text-primary)", fontSize:"var(--text-md)", fontWeight:"var(--weight-bold)" };
+const articleDevFallbackText = { maxWidth:"420px", color:"var(--text-secondary)", fontSize:"var(--text-sm)", lineHeight:1.5 };
+const articleDevFallbackLink = { display:"inline-flex", alignItems:"center", gap:"5px", marginTop:"4px", color:"var(--brand)", textDecoration:"none", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)" };
 const itemDetailEmbed = { width:"100%", height:"58vh", minHeight:"360px", border:0, display:"block", background:"black" };
 const itemModalContent = { width:"min(760px, 100%)", boxSizing:"border-box", margin:"0 auto", padding:"22px 20px 110px", color: "var(--text-primary)" };
 const itemModalSpace = { color: "var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", margin: "0 0 8px" };
