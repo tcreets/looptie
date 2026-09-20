@@ -195,6 +195,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       space: selectedSpaceName,
       media_type: "link",
       image_url: metadata?.image || preview.thumbnail || null,
+      media_url: metadata?.mediaUrl || null,
       favorite: false,
       source_url: preview.url,
       source_platform: metadata?.siteName || preview.source,
@@ -214,7 +215,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       setIsSavingLink(false);
       return;
     }
-    const formatted = { id:data.id, space:data.space, image:data.image_url, storage_path:data.storage_path, favorite:data.favorite, tags:data.tags || [], media_type:data.media_type, created_at:data.created_at, source_url:data.source_url, source_platform:data.source_platform, source_title:data.source_title, source_creator:data.source_creator };
+    const formatted = { id:data.id, space:data.space, image:data.image_url, media_url:data.media_url, storage_path:data.storage_path, favorite:data.favorite, tags:data.tags || [], media_type:data.media_type, created_at:data.created_at, source_url:data.source_url, source_platform:data.source_platform, source_title:data.source_title, source_creator:data.source_creator };
     setFeedItems((prev) => [formatted, ...prev]);
     setActiveFeed(selectedSpaceName);
     setIsSavingLink(false);
