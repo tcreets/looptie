@@ -98,6 +98,7 @@ Deno.serve(async (req) => {
     let title = readMeta("og:title") || readMeta("twitter:title") || clean(titleMatch?.[1] || null);
     let image = absoluteUrl(readMeta("og:image:secure_url") || readMeta("og:image") || readMeta("twitter:image:src") || readMeta("twitter:image"), response.url || parsed.href);
     let siteName = readMeta("og:site_name") || (isInstagram ? "Instagram" : isTikTok ? "TikTok" : isLinkedIn ? "LinkedIn" : host);
+    const mediaUrl = absoluteUrl(readMeta("og:video:secure_url") || readMeta("og:video:url") || readMeta("og:video") || readMeta("twitter:player:stream"), response.url || parsed.href);
     let creator = readMeta("author") || readMeta("article:author") || null;
     if (isInstagram && !creator) {
       const creatorCandidates = [
@@ -127,7 +128,7 @@ Deno.serve(async (req) => {
         console.warn("YouTube oEmbed metadata failed:", oembedError);
       }
     }
-    return new Response(JSON.stringify({ url: response.url || parsed.href, title, image, siteName, creator }), {
+    return new Response(JSON.stringify({ url: response.url || parsed.href, title, image, siteName, creator, mediaUrl }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
