@@ -136,21 +136,19 @@ export default function ItemDetailModal({ selectedItem, itemNoteDraft, setItemNo
       {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
       <div id="looptie-notes" style={notesBlock}>
         <div style={notesHeading}><span>Notes</span><span style={notesHint}>{notes.length} {notes.length === 1 ? "note" : "notes"}</span></div>
-        <div style={noteComposer}>
-          <textarea data-gramm="false" placeholder={editingNoteId ? "Edit note..." : "Add a note..."} value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} style={noteComposerInput} />
-          <div style={noteComposerActions}>
-            {editingNoteId && <button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(null); setNoteDraft(""); }}>Cancel</button>}
-            <button type="button" style={noteSaveButton} disabled={!noteDraft.trim()} onClick={saveNote}>{editingNoteId ? "Save" : "Add note"}</button>
-          </div>
-        </div>
         {notesLoading ? <p style={emptyNotes}>Loading notes…</p> : notes.length === 0 ? <p style={emptyNotes}>No notes yet.</p> :
           <div style={notesList}>{notes.map(note => <div key={note.id} style={noteCard}>
+            <div style={noteAuthorRow}><span style={noteAuthor}>You</span><span style={noteTimestamp}>{new Date(note.created_at).toLocaleString("en-US", { month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" })}{note.updated_at !== note.created_at ? " · Edited" : ""}</span></div>
             <p style={noteContent}>{note.content}</p>
-            <div style={noteMetaRow}>
-              <span>{new Date(note.created_at).toLocaleString("en-US", { month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" })}{note.updated_at !== note.created_at ? " · Edited" : ""}</span>
-              <span style={noteActions}><button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(note.id); setNoteDraft(note.content); }}>Edit</button><button type="button" style={noteDeleteButton} onClick={() => deleteNote(note.id)}>Delete</button></span>
-            </div>
+            <div style={noteActions}><button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(note.id); setNoteDraft(note.content); }}>Edit</button><button type="button" style={noteDeleteButton} onClick={() => deleteNote(note.id)}>Delete</button></div>
           </div>)}</div>}
+        <div style={noteComposer}>
+          <textarea rows={1} data-gramm="false" placeholder={editingNoteId ? "Edit note..." : "Add a note…"} value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} style={noteComposerInput} />
+          <div style={noteComposerActions}>
+            {editingNoteId && <button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(null); setNoteDraft(""); }}>Cancel</button>}
+            <button type="button" style={noteSaveButton} disabled={!noteDraft.trim()} onClick={saveNote}>{editingNoteId ? "Save" : "Add"}</button>
+          </div>
+        </div>
       </div>
       <div id="looptie-tags" style={tagBlock}>
         <div style={tagLabel}>Tags</div>
@@ -227,15 +225,15 @@ const articleOpenButton = { margin:"20px 20px 8px", width:"calc(100% - 40px)", m
 const articleLaunchHint = { margin:"0 20px", color:"var(--text-secondary)", fontSize:"var(--text-xs)", lineHeight:1.5, textAlign:"center" };
 
 const notesBlock = { margin:"2px 0 8px" };
-const noteComposer = { border:"1px solid var(--border)", borderRadius:"16px", background:"var(--surface-elevated)", padding:"12px", marginBottom:"18px" };
-const noteComposerInput = { width:"100%", minHeight:"84px", boxSizing:"border-box", border:0, outline:"none", resize:"vertical", background:"transparent", color:"var(--text-primary)", fontFamily:"inherit", fontSize:"var(--text-md)", lineHeight:1.5 };
-const noteComposerActions = { display:"flex", justifyContent:"flex-end", alignItems:"center", gap:"8px", marginTop:"8px" };
-const noteSaveButton = { border:0, borderRadius:"999px", padding:"9px 14px", background:"var(--brand)", color:"white", fontWeight:"var(--weight-semibold)", cursor:"pointer" };
+const noteComposer = { display:"flex", alignItems:"flex-end", gap:"8px", border:"1px solid var(--border)", borderRadius:"14px", background:"var(--surface-elevated)", padding:"8px 8px 8px 12px", marginTop:"12px", marginBottom:"18px" };
+const noteComposerInput = { flex:1, width:"100%", minHeight:"24px", maxHeight:"120px", boxSizing:"border-box", border:0, outline:"none", resize:"none", background:"transparent", color:"var(--text-primary)", fontFamily:"inherit", fontSize:"var(--text-sm)", lineHeight:1.5, padding:"5px 0" };
+const noteComposerActions = { display:"flex", alignItems:"center", gap:"4px", flexShrink:0 };
+const noteSaveButton = { border:0, borderRadius:"999px", padding:"8px 12px", background:"var(--brand)", color:"white", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)", cursor:"pointer" };
 const noteTextButton = { border:0, background:"transparent", color:"var(--brand)", padding:"4px", cursor:"pointer", fontWeight:"var(--weight-medium)" };
 const noteDeleteButton = { border:0, background:"transparent", color:"var(--danger)", padding:"4px", cursor:"pointer", fontWeight:"var(--weight-medium)" };
 const notesList = { display:"flex", flexDirection:"column", gap:"10px" };
-const noteCard = { borderBottom:"1px solid var(--border)", padding:"4px 2px 14px" };
-const noteContent = { margin:"0 0 9px", whiteSpace:"pre-wrap", color:"var(--text-primary)", fontSize:"var(--text-md)", lineHeight:1.55 };
-const noteMetaRow = { display:"flex", justifyContent:"space-between", alignItems:"center", gap:"10px", color:"var(--text-muted)", fontSize:"var(--text-xs)" };
-const noteActions = { display:"inline-flex", gap:"8px", flexShrink:0 };
+const noteCard = { position:"relative", borderBottom:"1px solid var(--border)", padding:"6px 2px 12px" };
+const noteContent = { margin:"7px 0 5px", whiteSpace:"pre-wrap", color:"var(--text-primary)", fontSize:"var(--text-md)", lineHeight:1.55 };
+const noteAuthorRow = { display:"flex", alignItems:"baseline", gap:"7px" };\nconst noteAuthor = { color:"var(--text-primary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)" };\nconst noteTimestamp = { color:"var(--text-muted)", fontSize:"var(--text-xs)" };
+const noteActions = { display:"flex", justifyContent:"flex-end", gap:"8px" };
 const emptyNotes = { color:"var(--text-muted)", fontSize:"var(--text-sm)", margin:"4px 0 18px" };
