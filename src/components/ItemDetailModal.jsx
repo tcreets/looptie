@@ -70,6 +70,7 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [notesLoading, setNotesLoading] = useState(false);
   const [openNoteMenuId, setOpenNoteMenuId] = useState(null);
+  const noteInputRef = useRef(null);
   const addTag = async () => {
     const tag = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-").toLowerCase();
     if (!tag || itemTagsDraft.includes(tag)) { setTagInput(""); return; }
@@ -102,6 +103,16 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
       });
     return () => { cancelled = true; };
   }, [selectedItem?.id]);
+
+  const resizeNoteInput = (element) => {
+    if (!element) return;
+    element.style.height = "auto";
+    element.style.height = `${Math.min(element.scrollHeight, 160)}px`;
+  };
+
+  useEffect(() => {
+    resizeNoteInput(noteInputRef.current);
+  }, [noteDraft]);
 
   const saveNote = async () => {
     const content = noteDraft.trim();
@@ -153,7 +164,7 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
             <p style={noteContent}>{note.content}</p>
           </div>)}</div>}
         <div style={noteComposer}>
-          <textarea rows={1} data-gramm="false" placeholder={editingNoteId ? "Edit note..." : "Add a note…"} value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} style={noteComposerInput} />
+          <textarea ref={noteInputRef} rows={1} data-gramm="false" placeholder={editingNoteId ? "Edit note..." : "Add a note…"} value={noteDraft} onChange={(e) => { setNoteDraft(e.target.value); resizeNoteInput(e.currentTarget); }} style={noteComposerInput} />
           <div style={noteComposerActions}>
             {editingNoteId && <button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(null); setNoteDraft(""); }}>Cancel</button>}
             <button type="button" style={noteSaveButton} disabled={!noteDraft.trim()} onClick={saveNote}>{editingNoteId ? "Save" : "Add"}</button>
@@ -234,7 +245,7 @@ const articleLaunchHint = { margin:"0 20px", color:"var(--text-secondary)", font
 
 const notesBlock = { margin:"2px 0 8px" };
 const noteComposer = { display:"flex", alignItems:"flex-end", gap:"8px", border:"1px solid var(--border)", borderRadius:"14px", background:"var(--surface-elevated)", padding:"8px 8px 8px 12px", marginTop:"12px", marginBottom:"18px" };
-const noteComposerInput = { flex:1, width:"100%", minHeight:"24px", maxHeight:"120px", boxSizing:"border-box", border:0, outline:"none", resize:"none", background:"transparent", color:"var(--text-primary)", fontFamily:"inherit", fontSize:"var(--text-sm)", lineHeight:1.5, padding:"5px 0" };
+const noteComposerInput = { flex:1, width:"100%", minHeight:"24px", maxHeight:"160px", boxSizing:"border-box", border:0, outline:"none", resize:"none", background:"transparent", color:"var(--text-primary)", fontFamily:"inherit", fontSize:"var(--text-sm)", lineHeight:1.5, padding:"5px 0" };
 const noteComposerActions = { display:"flex", alignItems:"center", gap:"4px", flexShrink:0 };
 const noteSaveButton = { border:0, borderRadius:"999px", padding:"8px 12px", background:"var(--brand)", color:"white", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)", cursor:"pointer" };
 const noteTextButton = { border:0, background:"transparent", color:"var(--brand)", padding:"4px", cursor:"pointer", fontWeight:"var(--weight-medium)" };
