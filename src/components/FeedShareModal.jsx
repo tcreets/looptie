@@ -16,7 +16,18 @@ export default function FeedShareModal({ feed, onClose }) {
     setLoading(false);
   };
 
-  useEffect(() => { loadPeople(); }, [feed.id]);
+  useEffect(() => {
+    loadPeople();
+    const refreshPeople = () => loadPeople();
+    const interval = window.setInterval(refreshPeople, 5000);
+    window.addEventListener("focus", refreshPeople);
+    document.addEventListener("visibilitychange", refreshPeople);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshPeople);
+      document.removeEventListener("visibilitychange", refreshPeople);
+    };
+  }, [feed.id]);
 
   const createLink = async () => {
     setCreating(true);
