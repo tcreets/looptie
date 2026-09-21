@@ -1,5 +1,5 @@
 -- Collaborative Feeds foundation
--- Existing Feeds remain private. Sharing is opt-in through feed_members/feed_invitations.
+-- Existing Feeds remain private. Owners can create a share link; opening it adds the signed-in user as an editor.
 
 create table if not exists public.feed_members (
   feed_id uuid not null references public.spaces(id) on delete cascade,
@@ -10,15 +10,13 @@ create table if not exists public.feed_members (
   primary key (feed_id, user_id)
 );
 
-create table if not exists public.feed_invitations (
+create table if not exists public.feed_share_links (
   id uuid primary key default gen_random_uuid(),
   feed_id uuid not null references public.spaces(id) on delete cascade,
-  email text not null,
-  role text not null default 'editor' check (role in ('editor', 'viewer')),
-  invited_by uuid not null references auth.users(id) on delete cascade,
+  token uuid not null default gen_random_uuid() unique,
+  created_by uuid not null references auth.users(id) on delete cascade,
   created_at timestamptz not null default now(),
-  accepted_at timestamptz,
-  unique (feed_id, email)
+  revoked_at timestamptz
 );
 
 alter table public.items add column if not exists space_id uuid references public.spaces(id) on delete cascade;
@@ -72,7 +70,7 @@ create trigger add_feed_owner_membership
 after insert on public.spaces for each row execute function public.add_feed_owner_membership();
 
 alter table public.feed_members enable row level security;
-alter table public.feed_invitations enable row level security;
+alter table public.feed_share_links enable row level security;
 
 drop policy if exists "Feed members can view memberships" on public.feed_members;
 create policy "Feed members can view memberships" on public.feed_members for select
@@ -82,13 +80,9 @@ drop policy if exists "Feed owners can manage memberships" on public.feed_member
 create policy "Feed owners can manage memberships" on public.feed_members for all
 using (public.is_feed_owner(feed_id)) with check (public.is_feed_owner(feed_id));
 
-drop policy if exists "Feed owners can view invitations" on public.feed_invitations;
-create policy "Feed owners can view invitations" on public.feed_invitations for select
-using (public.is_feed_owner(feed_id));
-
-drop policy if exists "Invitees can view invitations" on public.feed_invitations;
-create policy "Invitees can view invitations" on public.feed_invitations for select
-using (lower(email) = lower(coalesce(auth.jwt() ->> 'email', '')));
+drop policy if exists "Feed owners can manage share links" on public.feed_share_links;
+create policy "Feed owners can manage share links" on public.feed_share_links for all
+using (public.is_feed_owner(feed_id)) with check (public.is_feed_owner(feed_id));
 
 drop policy if exists "Feed members can view feeds" on public.spaces;
 create policy "Feed members can view feeds" on public.spaces for select
@@ -111,74 +105,84 @@ drop policy if exists "Contributors can delete their items" on public.items;
 create policy "Contributors can delete their items" on public.items for delete
 using (user_id = auth.uid() or public.is_feed_owner(space_id));
 
-create or replace function public.invite_feed_member(target_feed_id uuid, invite_email text)
-returns jsonb language plpgsql security definer set search_path = public set row_security = off
+create or replace function public.create_feed_share_link(target_feed_id uuid)
+returns text language plpgsql security definer set search_path = public set row_security = off
 as $$
-declare
-  clean_email text := lower(trim(invite_email));
-  invited_user_id uuid;
-  invited_name text;
+declare share_token uuid;
 begin
   if not public.is_feed_owner(target_feed_id, auth.uid()) then
-    raise exception 'Only the Feed owner can invite people.';
-  end if;
-  if clean_email = '' then raise exception 'Enter an email address.'; end if;
-
-  select user_id, display_name into invited_user_id, invited_name
-  from public.profiles where lower(email) = clean_email limit 1;
-
-  if invited_user_id = auth.uid() then raise exception 'You already own this Feed.'; end if;
-
-  if invited_user_id is not null then
-    insert into public.feed_members (feed_id, user_id, role, invited_by)
-    values (target_feed_id, invited_user_id, 'editor', auth.uid())
-    on conflict (feed_id, user_id) do update set role = 'editor';
-    delete from public.feed_invitations where feed_id = target_feed_id and lower(email) = clean_email;
-    return jsonb_build_object('status', 'added', 'display_name', invited_name, 'email', clean_email);
+    raise exception 'Only the Feed owner can create a share link.';
   end if;
 
-  insert into public.feed_invitations (feed_id, email, role, invited_by)
-  values (target_feed_id, clean_email, 'editor', auth.uid())
-  on conflict (feed_id, email) do nothing;
-  return jsonb_build_object('status', 'pending', 'email', clean_email);
+  select token into share_token from public.feed_share_links
+  where feed_id = target_feed_id and revoked_at is null
+  order by created_at desc limit 1;
+
+  if share_token is null then
+    insert into public.feed_share_links (feed_id, created_by)
+    values (target_feed_id, auth.uid())
+    returning token into share_token;
+  end if;
+
+  return share_token::text;
 end;
 $$;
 
-create or replace function public.claim_feed_invitations()
-returns integer language plpgsql security definer set search_path = public set row_security = off
+create or replace function public.join_feed_by_token(share_token text)
+returns jsonb language plpgsql security definer set search_path = public set row_security = off
 as $$
-declare claimed integer := 0; current_email text := lower(coalesce(auth.jwt() ->> 'email', ''));
+declare target_feed public.spaces%rowtype;
 begin
-  if auth.uid() is null or current_email = '' then return 0; end if;
+  if auth.uid() is null then raise exception 'Sign in to join this Feed.'; end if;
+
+  select s.* into target_feed
+  from public.feed_share_links l
+  join public.spaces s on s.id = l.feed_id
+  where l.token::text = share_token and l.revoked_at is null
+  limit 1;
+
+  if target_feed.id is null then raise exception 'This share link is invalid or no longer active.'; end if;
+  if target_feed.user_id = auth.uid() then
+    return jsonb_build_object('status', 'owner', 'feed_id', target_feed.id, 'feed_name', target_feed.name);
+  end if;
+
   insert into public.feed_members (feed_id, user_id, role, invited_by)
-  select feed_id, auth.uid(), role, invited_by
-  from public.feed_invitations
-  where lower(email) = current_email and accepted_at is null
-  on conflict (feed_id, user_id) do nothing;
-  get diagnostics claimed = row_count;
-  update public.feed_invitations set accepted_at = now()
-  where lower(email) = current_email and accepted_at is null;
-  return claimed;
+  values (target_feed.id, auth.uid(), 'editor', target_feed.user_id)
+  on conflict (feed_id, user_id) do update set role = 'editor';
+
+  return jsonb_build_object('status', 'joined', 'feed_id', target_feed.id, 'feed_name', target_feed.name);
 end;
 $$;
 
 create or replace function public.get_feed_people(target_feed_id uuid)
-returns table (user_id uuid, display_name text, email text, role text, status text)
+returns table (user_id uuid, display_name text, role text)
 language sql stable security definer set search_path = public set row_security = off
 as $$
-  select fm.user_id, coalesce(p.display_name, 'Looptie member'), p.email, fm.role, 'member'
-  from public.feed_members fm left join public.profiles p on p.user_id = fm.user_id
+  select fm.user_id, coalesce(p.display_name, 'Looptie member'), fm.role
+  from public.feed_members fm
+  left join public.profiles p on p.user_id = fm.user_id
   where fm.feed_id = target_feed_id and public.is_feed_member(target_feed_id, auth.uid())
-  union all
-  select null::uuid, null::text, fi.email, fi.role, 'pending'
-  from public.feed_invitations fi
-  where fi.feed_id = target_feed_id and fi.accepted_at is null and public.is_feed_owner(target_feed_id, auth.uid());
+  order by case fm.role when 'owner' then 0 else 1 end, fm.created_at;
 $$;
 
-grant execute on function public.invite_feed_member(uuid, text) to authenticated;
-grant execute on function public.claim_feed_invitations() to authenticated;
+create or replace function public.remove_feed_member(target_feed_id uuid, target_user_id uuid)
+returns void language plpgsql security definer set search_path = public set row_security = off
+as $$
+begin
+  if not public.is_feed_owner(target_feed_id, auth.uid()) then
+    raise exception 'Only the Feed owner can remove contributors.';
+  end if;
+  if public.is_feed_owner(target_feed_id, target_user_id) then
+    raise exception 'The Feed owner cannot be removed.';
+  end if;
+  delete from public.feed_members where feed_id = target_feed_id and user_id = target_user_id;
+end;
+$$;
+
+grant execute on function public.create_feed_share_link(uuid) to authenticated;
+grant execute on function public.join_feed_by_token(text) to authenticated;
 grant execute on function public.get_feed_people(uuid) to authenticated;
+grant execute on function public.remove_feed_member(uuid, uuid) to authenticated;
 
 create index if not exists feed_members_user_idx on public.feed_members(user_id);
-create index if not exists feed_invitations_email_idx on public.feed_invitations(lower(email));
 create index if not exists items_space_id_idx on public.items(space_id);
