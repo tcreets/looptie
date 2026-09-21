@@ -61,7 +61,7 @@ function InstagramEmbed({ url, title }) {
   </div>;
 }
 
-export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTagsDraft, onClose, onSaveTags, onToggleFavorite, itemFavoriteDraft, onDelete }) {
+export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTagsDraft, onClose, onSaveTags, onToggleFavorite, itemFavoriteDraft, onDelete, canDeleteItem = false }) {
   const [mediaFit, setMediaFit] = useState("cover");
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [tagInput, setTagInput] = useState("");
@@ -218,7 +218,7 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
         <div style={informationRow}><span style={informationLabel}>Original link</span><a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={sourceLink}>View original <ExternalLink size={14} /></a></div>
         <div style={informationRow}><span style={informationLabel}>Saved</span><span>{new Date(selectedItem.created_at).toLocaleString("en-US", { month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" })}</span></div>
       </div>}
-      <button style={deleteButton} onClick={() => { trackEvent("item_deleted", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type }); onDelete(); }}>Delete Item</button>
+      {canDeleteItem && <button style={deleteButton} onClick={() => { trackEvent("item_deleted", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type }); onDelete(); }}>Delete Item</button>}
     </div>
   </div></div>;
 }
