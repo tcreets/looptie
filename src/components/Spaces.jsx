@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Plus, Star, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, Star, MoreVertical, Pencil, Trash2, Share2, Users } from "lucide-react";
 import SpaceDetail from "./SpaceDetail";
+import FeedShareModal from "./FeedShareModal";
 import { trackEvent } from "../utils/trackEvent";
 
 function SpaceCover({ items }) {
@@ -18,10 +19,11 @@ function SpaceCover({ items }) {
   </div>;
 }
 
-export default function Spaces({ spaces, defaultFeed, setDefaultFeed, selectedSpace, setSelectedSpace, feedItems, setFeedItems, setSelectedItem, setShowNewSpaceForm, setUploadSpace, setTab, onDeleteSpace, renameSpace }) {
+export default function Spaces({ user, spaces, defaultFeed, setDefaultFeed, selectedSpace, setSelectedSpace, feedItems, setFeedItems, setSelectedItem, setShowNewSpaceForm, setUploadSpace, setTab, onDeleteSpace, renameSpace }) {
   const [openMenuSpaceId, setOpenMenuSpaceId] = useState(null);
   const [renamingSpace, setRenamingSpace] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
+  const [sharingFeed, setSharingFeed] = useState(null);
   if (selectedSpace !== null) return <SpaceDetail selectedSpace={selectedSpace} setSelectedSpace={setSelectedSpace} spaces={spaces} feedItems={feedItems} setFeedItems={setFeedItems} setSelectedItem={setSelectedItem} setUploadSpace={setUploadSpace} setTab={setTab} />;
 
   return <div style={spacesPage}>
@@ -35,10 +37,11 @@ export default function Spaces({ spaces, defaultFeed, setDefaultFeed, selectedSp
           <button aria-label={defaultFeed === space.name ? `${space.name} is your default space` : `Make ${space.name} your default space`} onClick={(e) => { e.stopPropagation(); setDefaultFeed(space.name); trackEvent("default_space_changed", { space: space.name, source: "spaces_tab" }); }} style={{ ...starButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><Star size={21} strokeWidth={2.2} fill={defaultFeed === space.name ? "var(--brand)" : "transparent"} color={defaultFeed === space.name ? "var(--brand)" : (spaceItems.length === 0 ? "var(--text-muted)" : "white")} /></button>
           <button aria-label={`More options for ${space.name}`} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(openMenuSpaceId === space.id ? null : space.id); }} style={{ ...menuButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><MoreVertical size={20} /></button>
           {openMenuSpaceId === space.id && <div style={spaceMenu}>
-            <button style={spaceMenuItem} onClick={(e) => { e.stopPropagation(); setRenamingSpace(space); setRenameDraft(space.name); setOpenMenuSpaceId(null); }}><Pencil size={15} strokeWidth={2.5} /><span>Rename</span></button>
-            <button style={{ ...spaceMenuItem, color: "var(--danger)" }} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(null); onDeleteSpace(space.name); }}><Trash2 size={15} strokeWidth={2.5} /><span>Delete</span></button>
+            {space.user_id === user?.id && <button style={spaceMenuItem} onClick={(e) => { e.stopPropagation(); setSharingFeed(space); setOpenMenuSpaceId(null); }}><Share2 size={15} strokeWidth={2.5} /><span>Share Feed</span></button>}
+            {space.user_id === user?.id && <button style={spaceMenuItem} onClick={(e) => { e.stopPropagation(); setRenamingSpace(space); setRenameDraft(space.name); setOpenMenuSpaceId(null); }}><Pencil size={15} strokeWidth={2.5} /><span>Rename</span></button>}
+            {space.user_id === user?.id && <button style={{ ...spaceMenuItem, color: "var(--danger)" }} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(null); onDeleteSpace(space.name); }}><Trash2 size={15} strokeWidth={2.5} /><span>Delete</span></button>}
           </div>}
-          <div style={{ ...spaceContent, ...(spaceItems.length === 0 ? emptySpaceContent : {}) }}><h3 style={{ ...spaceName, ...(spaceItems.length === 0 ? emptySpaceName : {}) }}>{space.name}</h3><p style={{ ...spaceItemsText, ...(spaceItems.length === 0 ? emptySpaceItemsText : {}) }}>{spaceItems.length} items</p></div>
+          <div style={{ ...spaceContent, ...(spaceItems.length === 0 ? emptySpaceContent : {}) }}><h3 style={{ ...spaceName, ...(spaceItems.length === 0 ? emptySpaceName : {}) }}>{space.name}</h3><p style={{ ...spaceItemsText, ...(spaceItems.length === 0 ? emptySpaceItemsText : {}) }}>{space.user_id !== user?.id && <><Users size={13} /> Shared · </>}{spaceItems.length} items</p></div>
         </div>;
       })}
       <div style={newSpaceCard} onClick={() => { trackEvent("new_space_clicked", { source: "spaces_tab" }); setShowNewSpaceForm(true); }}>
@@ -46,6 +49,8 @@ export default function Spaces({ spaces, defaultFeed, setDefaultFeed, selectedSp
         <h3 style={newSpaceLabel}>New Space</h3>
       </div>
     </div>
+
+    {sharingFeed && <FeedShareModal feed={sharingFeed} onClose={() => setSharingFeed(null)} />}
 
     {renamingSpace && <div style={modalOverlay}><div style={modalCard}>
       <h2 style={modalTitle}>Rename Space</h2><p style={modalSubtitle}>Update the name for this space.</p>
@@ -74,7 +79,7 @@ const spaceMenu = { position:"absolute", top:"54px", left:"10px", background:"va
 const spaceMenuItem = { display:"flex", alignItems:"center", gap:"8px", width:"100%", padding:"10px 14px", border:"none", background:"transparent", color:"var(--text-primary)", textAlign:"left", cursor:"pointer" };
 const spaceContent = { position:"absolute", left:"16px", right:"16px", bottom:"14px", display:"flex", flexDirection:"column", alignItems:"flex-start", gap:"3px", zIndex:3, textAlign:"left" };
 const spaceName = { margin:0, fontSize:"var(--text-lg)", fontWeight:"var(--weight-bold)", color:"white", textShadow:"0 1px 8px rgba(0,0,0,.45)" };
-const spaceItemsText = { color:"rgba(255,255,255,.78)", margin:0, fontSize:"var(--text-sm)", textShadow:"0 1px 6px rgba(0,0,0,.45)" };
+const spaceItemsText = { display:"flex", alignItems:"center", gap:"4px", color:"rgba(255,255,255,.78)", margin:0, fontSize:"var(--text-sm)", textShadow:"0 1px 6px rgba(0,0,0,.45)" };
 const newSpaceCard = { ...spaceCard, minHeight:"170px", border:"1px dashed var(--text-muted)", background:"transparent", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"10px" };
 const newSpacePlus = { width:"42px", height:"42px", borderRadius:"999px", background:"var(--surface-elevated)", color:"var(--brand)", display:"flex", alignItems:"center", justifyContent:"center" };
 const newSpaceLabel = { margin:0, fontSize:"var(--text-md)", fontWeight:"var(--weight-semibold)", color:"var(--text-primary)" };
