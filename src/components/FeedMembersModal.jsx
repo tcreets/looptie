@@ -30,7 +30,7 @@ export default function FeedMembersModal({ feed, onClose, onMembershipChange }) 
   }, [feed.id]);
 
   const removePerson = async (person) => {
-    if (!window.confirm(`Remove ${person.display_name} from this Feed?`)) return;
+    if (!window.confirm(`Remove ${person.display_name} from this Feed? Your current share link will also stop working.`)) return;
     const { error } = await supabase.rpc("remove_feed_member", { target_feed_id: feed.id, target_user_id: person.user_id });
     if (error) { alert(error.message); return; }
     const remaining = people.filter((entry) => entry.user_id !== person.user_id);
