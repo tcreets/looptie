@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, BookmarkPlus, Layers3, Play } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, Layers3, Share2, Upload, Link2 } from "lucide-react";
 import { supabase } from "../utils/supabaseClient";
 
 const introScreens = [
@@ -14,9 +14,14 @@ const introScreens = [
     body: "Organize what you save into personal Feeds like Motivation, Recipes, Writing, or anything else.",
   },
   {
-    icon: Play,
-    title: "Loop back when you need it.",
-    body: "Scroll through what you chose to keep in one calm, private place.",
+    icon: Share2,
+    title: "Save from anywhere.",
+    body: "Bring the things you want to revisit into Looptie.",
+    methods: [
+      { icon: Share2, title: "Share from an app", detail: "TikTok, Instagram, YouTube, and more" },
+      { icon: Upload, title: "Upload from your device", detail: "Photos, videos, and screenshots" },
+      { icon: Link2, title: "Paste a link", detail: "Articles, recipes, videos, or anything online" },
+    ],
   },
 ];
 
@@ -60,10 +65,20 @@ export default function AuthScreen({ setUser }) {
     return <div style={page}>
       <div style={introCard}>
         <div style={brand}>looptie</div>
-        <div style={visual}><Icon size={48} strokeWidth={1.7} /></div>
+        {!screen.methods && <div style={visual}><Icon size={48} strokeWidth={1.7} /></div>}
         <div style={dots}>{introScreens.map((_, index) => <span key={index} style={{ ...dot, opacity: index === introStep ? 1 : 0.22, width: index === introStep ? "24px" : "8px" }} />)}</div>
         <h1 style={title}>{screen.title}</h1>
         <p style={body}>{screen.body}</p>
+        {screen.methods && <div style={methodList}>
+          {screen.methods.map((method) => {
+            const MethodIcon = method.icon;
+            return <div key={method.title} style={methodCard}>
+              <div style={methodIcon}><MethodIcon size={21} strokeWidth={1.9} /></div>
+              <div><div style={methodTitle}>{method.title}</div><div style={methodDetail}>{method.detail}</div></div>
+            </div>;
+          })}
+          <div style={saveFlow}>Choose a Feed <span>→</span> Save</div>
+        </div>}
         <button style={primaryButton} onClick={() => isLast ? openAuth("signup") : setIntroStep((step) => step + 1)}>
           {isLast ? "Create your Looptie" : "Continue"}
         </button>
@@ -103,6 +118,12 @@ const authCard = { width:"100%", maxWidth:"430px", position:"relative" };
 const brand = { color:"var(--brand)", fontSize:"22px", fontWeight:"var(--weight-bold)", letterSpacing:"-.5px", marginBottom:"36px" };
 const visual = { width:"104px", height:"104px", borderRadius:"30px", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--brand)", background:"var(--accent-bg)", marginBottom:"34px" };
 const dots = { display:"flex", alignItems:"center", gap:"7px", marginBottom:"22px" };
+const methodList = { display:"grid", gap:"10px", margin:"-12px 0 24px" };
+const methodCard = { display:"flex", alignItems:"center", gap:"12px", padding:"11px 13px", border:"1px solid var(--border)", borderRadius:"16px", background:"var(--surface)" };
+const methodIcon = { width:"38px", height:"38px", flexShrink:0, borderRadius:"12px", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--brand)", background:"var(--accent-bg)" };
+const methodTitle = { fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", color:"var(--text-primary)", lineHeight:"1.25" };
+const methodDetail = { fontSize:"var(--text-xs)", color:"var(--text-secondary)", lineHeight:"1.35", marginTop:"2px" };
+const saveFlow = { textAlign:"center", color:"var(--brand)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-bold)", paddingTop:"3px" };
 const dot = { height:"8px", borderRadius:"999px", background:"var(--brand)", transition:"width .2s ease, opacity .2s ease" };
 const title = { margin:"0 0 16px", fontSize:"38px", lineHeight:"1.08", letterSpacing:"-1px" };
 const authTitle = { margin:"0 0 12px", fontSize:"34px", lineHeight:"1.1" };
