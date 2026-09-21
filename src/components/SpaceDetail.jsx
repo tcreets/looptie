@@ -6,7 +6,8 @@ export default function SpaceDetail({ selectedSpace, setSelectedSpace, spaces, f
   const [isSelectingItems, setIsSelectingItems] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState([]);
   const [showMoveMenu, setShowMoveMenu] = useState(false);
-  const selectedSpaceItems = feedItems.filter((item) => item.space === selectedSpace);
+  const selectedSpaceRecord = spaces.find((feed) => feed.name === selectedSpace);
+  const selectedSpaceItems = feedItems.filter((item) => selectedSpaceRecord && item.space_id ? item.space_id === selectedSpaceRecord.id : item.space === selectedSpace);
 
   const moveSelectedItems = async (newSpaceName) => {
     if (!selectedItemIds.length) return;
