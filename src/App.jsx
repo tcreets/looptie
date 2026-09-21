@@ -59,7 +59,7 @@ export default function App() {
   return (
     <div style={appStyle}>
       <div style={contentStyle}>
-        {tab === "home" && <HomeFeed spaces={spaces} activeFeed={currentFeed} setActiveFeed={setActiveFeed} feedRef={feedRef} filteredFeedItems={filteredFeedItems} setSelectedItem={openItemModal} />}
+        {tab === "home" && <HomeFeed spaces={spaces} activeFeed={currentFeed} setActiveFeed={setActiveFeed} feedRef={feedRef} filteredFeedItems={filteredFeedItems} setSelectedItem={openItemModal} onAddContent={() => setTab("add")} />}
         {tab === "spaces" && <Spaces spaces={spaces} defaultFeed={defaultFeed} setDefaultFeed={saveDefaultFeed} selectedSpace={selectedSpace} setSelectedSpace={setSelectedSpace} feedItems={feedItems} setFeedItems={setFeedItems} setSelectedItem={openItemModal} setShowNewSpaceForm={setShowNewSpaceForm} setUploadSpace={setUploadSpace} setTab={setTab} renameSpace={renameSpace} onDeleteSpace={(spaceName) => deleteSpace(spaceName, feedItems, setFeedItems, setSelectedSpace)} />}
         {tab === "search" && <SearchScreen searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchResults={searchResults} setSelectedItem={openItemModal} spaces={spaces} />}
         {tab === "add" && <AddContentScreen user={user} spaces={spaces} setSpaces={setSpaces} defaultFeed={defaultFeed} uploadSpace={uploadSpace} setUploadSpace={setUploadSpace} selectedFiles={selectedFiles} setSelectedFiles={setSelectedFiles} feedItems={feedItems} setFeedItems={setFeedItems} setActiveFeed={setActiveFeed} setTab={setTab} />}
