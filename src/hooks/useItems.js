@@ -14,10 +14,7 @@ export function useItems(user) {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("items")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.rpc("get_my_feed_items");
 
       if (error) {
         console.error("Error fetching items:", error);
