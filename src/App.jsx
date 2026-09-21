@@ -94,7 +94,7 @@ export default function App() {
         {showNewSpaceForm && <CreateSpaceModal user={user} newSpaceName={newSpaceName} setNewSpaceName={setNewSpaceName} spaces={spaces} setSpaces={setSpaces} setSelectedSpace={setSelectedSpace} setShowNewSpaceForm={setShowNewSpaceForm} setTab={setTab} />}
         {selectedItem && <ItemDetailModal selectedItem={selectedItem} itemTagsDraft={itemTagsDraft} setItemTagsDraft={setItemTagsDraft} onClose={closeItemModal} itemFavoriteDraft={itemFavoriteDraft} setItemFavoriteDraft={setItemFavoriteDraft} onToggleFavorite={async () => { const nextFavorite = !itemFavoriteDraft; setItemFavoriteDraft(nextFavorite); await toggleFavorite(selectedItem, nextFavorite); }} onSaveTags={(tags) => saveItemTags(selectedItem, tags)} onDelete={() => deleteItem({ selectedItem, closeItemModal })} />}
       </div>
-      <BottomNav defaultFeed={defaultFeed} setActiveFeed={setActiveFeed} setTab={setTab} setSelectedSpace={setSelectedSpace} />
+      <BottomNav setTab={setTab} setSelectedSpace={setSelectedSpace} />
     </div>
   );
 }
