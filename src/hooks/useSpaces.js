@@ -34,7 +34,7 @@ export function useSpaces(user) {
         data?.find((space) => space.user_id === user.id) || data?.[0];
 
       if (defaultSpace) {
-       setDefaultFeed(defaultSpace.name);
+       setDefaultFeed((prev) => prev || defaultSpace.name);
        setActiveFeed((prev) => prev || defaultSpace.name);
        setUploadSpace((prev) => prev || defaultSpace.name);
       }
