@@ -9,6 +9,7 @@ export default function FeedShareModal({ feed, onClose }) {
 
   const createLink = async () => {
     setCreating(true);
+    setCopied(false);
     const { data: token, error } = await supabase.rpc("create_feed_share_link", { target_feed_id: feed.id });
     setCreating(false);
     if (error) { alert(error.message); return; }
@@ -40,17 +41,21 @@ export default function FeedShareModal({ feed, onClose }) {
         <div><div style={eyebrow}>COLLABORATIVE FEED</div><h2 style={title}>Share {feed.name}</h2></div>
         <button type="button" style={iconButton} onClick={onClose} aria-label="Close"><X size={20} /></button>
       </div>
-      <p style={copy}>Anyone with your link can join this Feed and add things worth revisiting.</p>
+      <p style={copy}>Each invite lets one person join this Feed and expires after 48 hours.</p>
 
       {!shareUrl ? (
         <button type="button" style={primaryButton} onClick={createLink} disabled={creating}>
-          <Share2 size={18} />{creating ? "Creating link…" : "Create share link"}
+          <Share2 size={18} />{creating ? "Creating invite…" : "Create invite link"}
         </button>
       ) : (
         <div style={linkBlock}>
           <div style={linkPreview}>{shareUrl}</div>
+          <div style={expiryNote}>One person · Expires in 48 hours</div>
           <button type="button" style={primaryButton} onClick={shareLink}>
-            {copied ? <Check size={18} /> : <Copy size={18} />}{copied ? "Copied" : (navigator.share ? "Share link" : "Copy link")}
+            {copied ? <Check size={18} /> : <Copy size={18} />}{copied ? "Copied" : (navigator.share ? "Share invite" : "Copy invite")}
+          </button>
+          <button type="button" style={secondaryButton} onClick={createLink} disabled={creating}>
+            <Share2 size={17} />{creating ? "Creating invite…" : "Create another invite"}
           </button>
         </div>
       )}
@@ -68,3 +73,5 @@ const copy = { color:"var(--text-secondary)", lineHeight:"var(--leading-normal)"
 const primaryButton = { width:"100%", minHeight:"48px", border:0, borderRadius:"999px", background:"var(--brand)", color:"white", fontWeight:"var(--weight-bold)", display:"flex", alignItems:"center", justifyContent:"center", gap:"8px", cursor:"pointer" };
 const linkBlock = { display:"grid", gap:"10px" };
 const linkPreview = { padding:"12px 14px", borderRadius:"14px", border:"1px solid var(--border)", background:"var(--bg)", color:"var(--text-secondary)", fontSize:"var(--text-xs)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" };
+const expiryNote = { color:"var(--text-secondary)", fontSize:"var(--text-xs)", textAlign:"center" };
+const secondaryButton = { width:"100%", minHeight:"44px", border:"1px solid var(--border)", borderRadius:"999px", background:"var(--surface-elevated)", color:"var(--text-primary)", fontWeight:"var(--weight-semibold)", display:"flex", alignItems:"center", justifyContent:"center", gap:"8px", cursor:"pointer" };
