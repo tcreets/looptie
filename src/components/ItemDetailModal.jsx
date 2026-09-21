@@ -184,15 +184,20 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
                 </div>}
               </div>}
             </div>
-            <p style={noteContent}>{note.content}</p>
+            {editingNoteId === note.id ? <div style={inlineNoteEditor}>
+              <textarea autoFocus ref={noteInputRef} rows={1} data-gramm="false" value={noteDraft} onChange={(e) => { setNoteDraft(e.target.value); resizeNoteInput(e.currentTarget); }} style={noteComposerInput} />
+              <div style={noteComposerActions}>
+                <button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(null); setNoteDraft(""); }}>Cancel</button>
+                <button type="button" style={noteSaveButton} disabled={!noteDraft.trim()} onClick={saveNote}>Save</button>
+              </div>
+            </div> : <p style={noteContent}>{note.content}</p>}
           </div>)}</div>}
-        <div style={noteComposer}>
-          <textarea ref={noteInputRef} rows={1} data-gramm="false" placeholder={editingNoteId ? "Edit note..." : "Add a note…"} value={noteDraft} onChange={(e) => { setNoteDraft(e.target.value); resizeNoteInput(e.currentTarget); }} style={noteComposerInput} />
+        {!editingNoteId && <div style={noteComposer}>
+          <textarea ref={noteInputRef} rows={1} data-gramm="false" placeholder="Add a note…" value={noteDraft} onChange={(e) => { setNoteDraft(e.target.value); resizeNoteInput(e.currentTarget); }} style={noteComposerInput} />
           <div style={noteComposerActions}>
-            {editingNoteId && <button type="button" style={noteTextButton} onClick={() => { setEditingNoteId(null); setNoteDraft(""); }}>Cancel</button>}
-            <button type="button" style={noteSaveButton} disabled={!noteDraft.trim()} onClick={saveNote}>{editingNoteId ? "Save" : "Add"}</button>
+            <button type="button" style={noteSaveButton} disabled={!noteDraft.trim()} onClick={saveNote}>Add</button>
           </div>
-        </div>
+        </div>}
       </div>
       <div id="looptie-tags" style={tagBlock}>
         <div style={tagLabel}>Tags</div>
@@ -272,6 +277,7 @@ const articleLaunchHint = { margin:"0 20px", color:"var(--text-secondary)", font
 
 const notesBlock = { margin:"2px 0 8px" };
 const noteComposer = { display:"flex", alignItems:"flex-end", gap:"8px", border:"1px solid var(--border)", borderRadius:"14px", background:"var(--surface-elevated)", padding:"8px 8px 8px 12px", marginTop:"12px", marginBottom:"18px" };
+const inlineNoteEditor = { display:"flex", alignItems:"flex-end", gap:"8px", border:"1px solid var(--border)", borderRadius:"14px", background:"var(--surface-elevated)", padding:"8px 8px 8px 12px", marginTop:"7px", marginBottom:"5px" };
 const noteComposerInput = { flex:1, width:"100%", minHeight:"24px", maxHeight:"160px", boxSizing:"border-box", border:0, outline:"none", resize:"none", background:"transparent", color:"var(--text-primary)", fontFamily:"inherit", fontSize:"var(--text-sm)", lineHeight:1.5, padding:"5px 0" };
 const noteComposerActions = { display:"flex", alignItems:"center", gap:"4px", flexShrink:0 };
 const noteSaveButton = { border:0, borderRadius:"999px", padding:"8px 12px", background:"var(--brand)", color:"white", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)", cursor:"pointer" };
