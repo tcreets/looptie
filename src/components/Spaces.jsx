@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Plus, Star, MoreVertical, Pencil, Trash2, Share2, Users } from "lucide-react";
+import { Plus, Star, MoreVertical, Pencil, Trash2, Share2, Users, LogOut } from "lucide-react";
 import SpaceDetail from "./SpaceDetail";
 import FeedShareModal from "./FeedShareModal";
 import { trackEvent } from "../utils/trackEvent";
+import { supabase } from "../utils/supabaseClient";
 
 function SpaceCover({ items }) {
   const coverItems = items.slice(0, 3);
@@ -34,6 +35,21 @@ export default function Spaces({ user, spaces, defaultFeed, setDefaultFeed, sele
     return () => document.removeEventListener("pointerdown", closeMenu);
   }, [openMenuSpaceId]);
 
+  const leaveFeed = async (feed) => {
+    if (!window.confirm(`Leave the ${feed.name} Feed? You’ll lose access unless someone shares it with you again.`)) return;
+    const { error } = await supabase.rpc("leave_feed", { target_feed_id: feed.id });
+    if (error) { alert(error.message); return; }
+
+    const remainingFeeds = spaces.filter((space) => space.id !== feed.id);
+    setSpaces(remainingFeeds);
+    setFeedItems((prev) => prev.filter((item) => item.space_id ? item.space_id !== feed.id : item.space !== feed.name));
+    setOpenMenuSpaceId(null);
+
+    if (defaultFeed === feed.name && remainingFeeds.length > 0) {
+      await setDefaultFeed(remainingFeeds[0].name);
+    }
+  };
+
   if (selectedSpace !== null) return <SpaceDetail selectedSpace={selectedSpace} setSelectedSpace={setSelectedSpace} spaces={spaces} feedItems={feedItems} setFeedItems={setFeedItems} setSelectedItem={setSelectedItem} setUploadSpace={setUploadSpace} setTab={setTab} />;
 
   return <div style={spacesPage}>
@@ -44,12 +60,13 @@ export default function Spaces({ user, spaces, defaultFeed, setDefaultFeed, sele
         return <div key={space.id} onClick={() => { if (openMenuSpaceId !== null) { setOpenMenuSpaceId(null); return; } trackEvent("space_opened", { space: space.name, source: "spaces_tab_card" }); setSelectedSpace(space.name); }} style={{ ...spaceCard, ...(spaceItems.length === 0 ? emptySpaceCard : {}) }}>
           {spaceItems.length > 0 && <SpaceCover items={spaceItems} />}
           {spaceItems.length > 0 && <div style={coverShade} />}
-          {space.user_id === user?.id && <button aria-label={defaultFeed === space.name ? `${space.name} is your default space` : `Make ${space.name} your default space`} onClick={(e) => { e.stopPropagation(); setDefaultFeed(space.name); trackEvent("default_space_changed", { space: space.name, source: "spaces_tab" }); }} style={{ ...starButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><Star size={21} strokeWidth={2.2} fill={defaultFeed === space.name ? "var(--brand)" : "transparent"} color={defaultFeed === space.name ? "var(--brand)" : (spaceItems.length === 0 ? "var(--text-muted)" : "white")} /></button>}
-          {space.user_id === user?.id && <button data-feed-menu aria-label={`More options for ${space.name}`} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(openMenuSpaceId === space.id ? null : space.id); }} style={{ ...menuButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><MoreVertical size={20} /></button>}
+          <button aria-label={defaultFeed === space.name ? `${space.name} is your default space` : `Make ${space.name} your default space`} onClick={(e) => { e.stopPropagation(); setDefaultFeed(space.name); trackEvent("default_space_changed", { space: space.name, source: "spaces_tab" }); }} style={{ ...starButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><Star size={21} strokeWidth={2.2} fill={defaultFeed === space.name ? "var(--brand)" : "transparent"} color={defaultFeed === space.name ? "var(--brand)" : (spaceItems.length === 0 ? "var(--text-muted)" : "white")} /></button>
+          <button data-feed-menu aria-label={`More options for ${space.name}`} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(openMenuSpaceId === space.id ? null : space.id); }} style={{ ...menuButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><MoreVertical size={20} /></button>
           {openMenuSpaceId === space.id && <div data-feed-menu style={spaceMenu}>
             {space.user_id === user?.id && <button style={spaceMenuItem} onClick={(e) => { e.stopPropagation(); setSharingFeed(space); setOpenMenuSpaceId(null); }}><Share2 size={15} strokeWidth={2.5} /><span>Share Feed</span></button>}
             {space.user_id === user?.id && <button style={spaceMenuItem} onClick={(e) => { e.stopPropagation(); setRenamingSpace(space); setRenameDraft(space.name); setOpenMenuSpaceId(null); }}><Pencil size={15} strokeWidth={2.5} /><span>Rename</span></button>}
             {space.user_id === user?.id && <button style={{ ...spaceMenuItem, color: "var(--danger)" }} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(null); onDeleteSpace(space.name); }}><Trash2 size={15} strokeWidth={2.5} /><span>Delete</span></button>}
+            {space.user_id !== user?.id && <button style={{ ...spaceMenuItem, color: "var(--danger)" }} onClick={(e) => { e.stopPropagation(); leaveFeed(space); }}><LogOut size={15} strokeWidth={2.5} /><span>Leave Feed</span></button>}
           </div>}
           <div style={{ ...spaceContent, ...(spaceItems.length === 0 ? emptySpaceContent : {}) }}><h3 style={{ ...spaceName, ...(spaceItems.length === 0 ? emptySpaceName : {}) }}>{space.name}</h3><p style={{ ...spaceItemsText, ...(spaceItems.length === 0 ? emptySpaceItemsText : {}) }}>{space.user_id !== user?.id && <><Users size={13} /> Shared · </>}{spaceItems.length} items</p></div>
         </div>;
