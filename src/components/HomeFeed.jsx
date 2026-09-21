@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX, Pause, Play, SquarePen, Heart, ArrowDownUp, Check, Link2 } from "lucide-react";
+import { Volume2, VolumeX, Pause, Play, SquarePen, Heart, ArrowDownUp, Check, Link2, BookmarkPlus } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
 function getYouTubeId(url) {
@@ -63,7 +63,7 @@ function SmartImage({ src, style }) {
   return <img src={src} loading="lazy" alt="" style={{ ...style, objectFit: "cover", background: "var(--bg)" }} />;
 }
 
-export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, filteredFeedItems, setSelectedItem }) {
+export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, filteredFeedItems, setSelectedItem, onAddContent }) {
   const [mutedVideos, setMutedVideos] = useState({});
   const [pausedVideos, setPausedVideos] = useState({});
   const [mutedYouTube, setMutedYouTube] = useState({});
@@ -143,7 +143,16 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
 
       <div style={feedViewport}>
       <div ref={feedRef} style={feedList} className="pretty-scroll">
-        {filteredFeedItems.length === 0 && <div style={emptyState}><h3>No items here yet</h3><p>Add something to this space to start building your feed.</p></div>}
+        {filteredFeedItems.length === 0 && <div style={emptyState}>
+          <div style={emptyVisual} aria-hidden="true">
+            <div style={{ ...emptyBackCard, transform:"rotate(-9deg) translate(-8px, 5px)" }} />
+            <div style={{ ...emptyBackCard, transform:"rotate(8deg) translate(8px, 5px)" }} />
+            <div style={emptyFrontCard}><BookmarkPlus size={34} strokeWidth={1.8} /></div>
+          </div>
+          <h2 style={emptyTitle}>Start your {activeFeed} Feed</h2>
+          <p style={emptyCopy}>Save something you want to revisit. Your Feed will come to life here.</p>
+          <button type="button" style={emptyButton} onClick={onAddContent}><BookmarkPlus size={18} />Add your first save</button>
+        </div>}
         {sortedFeedItems.map((item) => (
           <div key={item.id} style={feedCard}>
             {item.media_type === "video" ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.image} style={imageStyle} autoPlay muted loop playsInline preload="auto" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) youtubeRefs.current[item.id] = el; }} src={`https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?enablejsapi=1&autoplay=1&mute=1&playsinline=1&rel=0`} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && getTikTokId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) tiktokRefs.current[item.id] = el; }} src={`https://www.tiktok.com/player/v1/${getTikTokId(item.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={item.source_title || "TikTok video"} style={youtubeEmbed} allow="autoplay; fullscreen" allowFullScreen /> : item.media_type === "link" && getInstagramEmbedUrl(item.source_url) ? <InstagramEmbed url={item.source_url} title={item.source_title} style={instagramEmbedWrap} /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
@@ -191,7 +200,13 @@ const feedCard = { position:"relative", height:"100%", minHeight:"calc(100vh - 1
 const imageStyle = { width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" };
 const overlayStyle = { position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,.35), transparent)", pointerEvents:"none" };
 const favoriteIndicator = { position:"absolute", top:"18px", left:"18px", color:"var(--favorite)", fontSize:"30px", zIndex:3, textShadow:"0 2px 10px rgba(0,0,0,.6)", opacity:.9 };
-const emptyState = { marginTop:"80px", textAlign:"center", color:"var(--text-secondary)" };
+const emptyState = { alignSelf:"start", justifySelf:"center", width:"min(100% - 40px, 420px)", marginTop:"clamp(70px, 16vh, 150px)", textAlign:"center", color:"var(--text-secondary)", display:"flex", flexDirection:"column", alignItems:"center" };
+const emptyVisual = { width:"112px", height:"96px", position:"relative", marginBottom:"24px" };
+const emptyBackCard = { position:"absolute", width:"70px", height:"82px", top:"7px", left:"21px", borderRadius:"20px", background:"var(--surface-elevated)", border:"1px solid var(--border)" };
+const emptyFrontCard = { position:"absolute", width:"76px", height:"88px", top:0, left:"18px", borderRadius:"22px", background:"var(--accent-bg)", border:"1px solid var(--accent-border)", color:"var(--brand)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"var(--shadow)" };
+const emptyTitle = { margin:"0 0 10px", fontSize:"var(--text-xl)", color:"var(--text-primary)" };
+const emptyCopy = { maxWidth:"340px", margin:"0 0 24px", fontSize:"var(--text-md)", lineHeight:"var(--leading-normal)", color:"var(--text-secondary)" };
+const emptyButton = { border:"none", borderRadius:"999px", padding:"13px 19px", background:"var(--brand)", color:"white", fontWeight:"var(--weight-bold)", display:"flex", alignItems:"center", gap:"8px", cursor:"pointer", boxShadow:"0 8px 22px rgba(var(--brand-rgb),.22)" };
 const homeStyle = { height:"100%", display:"flex", flexDirection:"column", minHeight:0 };
 const floatingActions = { position:"absolute", right:"20px", bottom:"108px", display:"flex", flexDirection:"column", gap:"22px", zIndex:10 };
 const floatingIconButton = { border:"none", background:"transparent", color:"white", cursor:"pointer", padding:"8px", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" };
