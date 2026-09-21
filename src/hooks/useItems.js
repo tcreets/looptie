@@ -17,7 +17,6 @@ export function useItems(user) {
       const { data, error } = await supabase
         .from("items")
         .select("*")
-        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -29,6 +28,8 @@ export function useItems(user) {
       const formattedItems = data.map((item) => ({
         id: item.id,
         space: item.space,
+        space_id: item.space_id,
+        added_by: item.added_by,
         image: item.image_url,
         media_url: item.media_url,
         storage_path: item.storage_path,
