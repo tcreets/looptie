@@ -58,7 +58,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       const { data, error } = await supabase.from("items").insert(uploadedItems).select();
       if (error) { alert("Error saving upload: " + error.message); return; }
       await trackEvent("content_uploaded", { count: data.length, space: selectedSpaceName, media_types: data.map((item) => item.media_type), duration_ms: Date.now() - uploadStart });
-      const formattedItems = data.map((item) => ({ id: item.id, space: item.space, space_id: item.space_id, added_by: item.added_by, image: item.image_url, storagePath: item.storage_path, favorite: item.favorite, media_type: item.media_type, created_at: item.created_at }));
+      const formattedItems = data.map((item) => ({ id: item.id, space: item.space, space_id: item.space_id, added_by: item.added_by, added_by_name: item.added_by_name, image: item.image_url, storagePath: item.storage_path, favorite: item.favorite, media_type: item.media_type, created_at: item.created_at }));
       setFeedItems([...formattedItems, ...feedItems]); setSelectedFiles([]); setActiveFeed(selectedSpaceName); setShowSuccess(false); setTab("home");
     } catch (err) { console.error(err); alert(err.message); }
     finally { setIsUploading(false); setUploadProgress(""); }
@@ -219,7 +219,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       setIsSavingLink(false);
       return;
     }
-    const formatted = { id:data.id, space:data.space, space_id:data.space_id, added_by:data.added_by, image:data.image_url, media_url:data.media_url, storage_path:data.storage_path, favorite:data.favorite, tags:data.tags || [], media_type:data.media_type, created_at:data.created_at, source_url:data.source_url, source_platform:data.source_platform, source_title:data.source_title, source_creator:data.source_creator };
+    const formatted = { id:data.id, space:data.space, space_id:data.space_id, added_by:data.added_by, added_by_name:data.added_by_name, image:data.image_url, media_url:data.media_url, storage_path:data.storage_path, favorite:data.favorite, tags:data.tags || [], media_type:data.media_type, created_at:data.created_at, source_url:data.source_url, source_platform:data.source_platform, source_title:data.source_title, source_creator:data.source_creator };
     setFeedItems((prev) => [formatted, ...prev]);
     setActiveFeed(selectedSpaceName);
     setIsSavingLink(false);
