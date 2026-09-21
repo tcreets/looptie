@@ -2,40 +2,64 @@ import { useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 
 export default function Onboarding({ user, setProfile, onComplete }) {
-  const [step, setStep] = useState(0); const [displayName, setDisplayName] = useState(""); const [spaceName, setSpaceName] = useState(""); const [saving, setSaving] = useState(false);
-  const screens = [
-    { title: "Welcome to Looptie", body: "A personal feed for the things you want to keep close.", subtext: "Like playlists for your mind.", button: "Start" },
-    { title: "Your feed evolves with you.", body: "Save thoughts, videos, reminders, inspiration, and moments worth revisiting.", subtext: "Looptie helps you collect what matters and come back to it later.", button: "Continue" },
-    { title: "Spaces keep your feeds organized.", body: "Create separate feeds for different parts of your life.", list: ["Motivation", "Writing", "Wellness", "Ideas", "Memories", "Books"], subtext: "You can create spaces for anything you want to revisit.", button: "Continue" },
-    { title: "People use Looptie to...", list: ["Build motivation feeds", "Save creative inspiration", "Organize thoughts", "Revisit grounding reminders"], subtext: "There’s no right way to use Looptie.", button: "I get it" },
-  ];
+  const [displayName, setDisplayName] = useState("");
+  const [feedName, setFeedName] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const finishOnboarding = async () => {
-    if (!user) return; const cleanName = displayName.trim(); const cleanSpace = spaceName.trim();
-    if (!cleanName) { alert("Add a display name first."); return; } if (!cleanSpace) { alert("Name your first space first."); return; }
+    if (!user) return;
+    const cleanName = displayName.trim();
+    const cleanFeed = feedName.trim();
+    if (!cleanName) { alert("Add a display name first."); return; }
+    if (!cleanFeed) { alert("Name your first Feed first."); return; }
+
     setSaving(true);
-    const { error: resetDefaultsError } = await supabase.from("spaces").update({ is_default: false }).eq("user_id", user.id); if (resetDefaultsError) { setSaving(false); alert(resetDefaultsError.message); return; }
-    const { data: newSpace, error: spaceError } = await supabase.from("spaces").insert({ user_id: user.id, name: cleanSpace, is_default: true }).select().single(); if (spaceError) { setSaving(false); alert(spaceError.message); return; }
-    const { data: updatedProfile, error: profileError } = await supabase.from("profiles").update({ display_name: cleanName, default_space: newSpace.name, has_completed_onboarding: true }).eq("user_id", user.id).select().single(); setSaving(false);
-    if (profileError) { alert(profileError.message); return; } setProfile(updatedProfile); onComplete(newSpace);
+    const { error: resetDefaultsError } = await supabase.from("spaces").update({ is_default: false }).eq("user_id", user.id);
+    if (resetDefaultsError) { setSaving(false); alert(resetDefaultsError.message); return; }
+
+    const { data: newSpace, error: spaceError } = await supabase.from("spaces").insert({ user_id: user.id, name: cleanFeed, is_default: true }).select().single();
+    if (spaceError) { setSaving(false); alert(spaceError.message); return; }
+
+    const { data: updatedProfile, error: profileError } = await supabase.from("profiles").update({
+      display_name: cleanName,
+      default_space: newSpace.name,
+      has_completed_onboarding: true,
+    }).eq("user_id", user.id).select().single();
+    setSaving(false);
+
+    if (profileError) { alert(profileError.message); return; }
+    setProfile(updatedProfile);
+    onComplete(newSpace);
   };
 
-  const isSetupStep = step === 4;
-  return <div style={page}><div style={card}>
-    <div style={dots}>{[0,1,2,3,4].map((dot) => <span key={dot} style={{ ...dotStyle, opacity: dot === step ? 1 : 0.25 }} />)}</div>
-    {!isSetupStep ? <><h1 style={title}>{screens[step].title}</h1>{screens[step].body && <p style={body}>{screens[step].body}</p>}{screens[step].list && <div style={list}>{screens[step].list.map((item) => <div key={item} style={listItem}><span style={bullet}>✦</span><span>{item}</span></div>)}</div>}<p style={subtext}>{screens[step].subtext}</p><button style={button} onClick={() => setStep(step + 1)}>{screens[step].button}</button></> : <><h1 style={title}>Set up your first space</h1><p style={body}>This is where your first feed will live. You can always create more later.</p><input style={input} placeholder="What should Looptie call you?" value={displayName} onChange={(e) => setDisplayName(e.target.value)} /><input style={input} placeholder="Name your first space, like Motivation" value={spaceName} onChange={(e) => setSpaceName(e.target.value)} /><button style={{ ...button, opacity: saving ? 0.6 : 1 }} onClick={finishOnboarding} disabled={saving}>{saving ? "Creating..." : "Enter Looptie"}</button></>}
-  </div></div>;
+  const disabled = saving || !displayName.trim() || !feedName.trim();
+
+  return <div style={page}>
+    <div style={card}>
+      <div style={eyebrow}>ONE LAST STEP</div>
+      <h1 style={title}>Create your first Feed</h1>
+      <p style={body}>Start with something you already save often. You can create more Feeds anytime.</p>
+      <label style={label}>Your name</label>
+      <input style={input} placeholder="What should Looptie call you?" value={displayName} onChange={(e) => setDisplayName(e.target.value)} autoComplete="name" />
+      <label style={label}>First Feed</label>
+      <input style={input} placeholder="For example, Motivation" value={feedName} onChange={(e) => setFeedName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !disabled) finishOnboarding(); }} />
+      <div style={suggestions}>
+        {["Motivation", "Recipes", "Writing", "Wellness"].map((name) => <button key={name} type="button" style={suggestion} onClick={() => setFeedName(name)}>{name}</button>)}
+      </div>
+      <button style={{ ...button, opacity: disabled ? 0.45 : 1, cursor: disabled ? "not-allowed" : "pointer" }} onClick={finishOnboarding} disabled={disabled}>
+        {saving ? "Creating your Feed..." : "Enter Looptie"}
+      </button>
+    </div>
+  </div>;
 }
 
-const page = { minHeight: "100vh", background: "var(--bg)", color: "var(--text-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", boxSizing: "border-box" };
-const card = { width: "100%", maxWidth: "420px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "28px", padding: "28px", boxShadow: "var(--shadow)" };
-const dots = { display: "flex", gap: "8px", marginBottom: "36px" };
-const dotStyle = { width: "8px", height: "8px", borderRadius: "999px", background: "var(--brand)" };
-const title = { fontSize: "34px", lineHeight: "1.05", marginBottom: "18px", color: "var(--text-primary)", fontWeight:"var(--weight-bold)" };
-const body = { fontSize:"var(--text-lg)", lineHeight: "1.5", color: "var(--text-primary)", marginBottom: "18px" };
-const subtext = { fontSize:"var(--text-md)", lineHeight: "1.5", color: "var(--text-secondary)", marginBottom: "32px" };
-const list = { display: "flex", flexDirection: "column", gap: "14px", marginBottom: "24px" };
-const listItem = { display: "flex", gap: "10px", fontSize:"var(--text-md)", color: "var(--text-primary)" };
-const bullet = { color: "var(--brand)" };
-const input = { width: "100%", padding: "14px 16px", borderRadius: "16px", border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", fontSize:"var(--text-md)", outline: "none", marginBottom: "16px", boxSizing: "border-box" };
-const button = { width: "100%", padding: "15px 18px", borderRadius: "999px", border: "none", background: "var(--brand)", color: "white", fontSize:"var(--text-md)", fontWeight:"var(--weight-bold)", cursor: "pointer", marginTop: "8px" };
+const page = { minHeight:"100vh", background:"var(--bg)", color:"var(--text-primary)", display:"flex", alignItems:"center", justifyContent:"center", padding:"24px", boxSizing:"border-box" };
+const card = { width:"100%", maxWidth:"430px" };
+const eyebrow = { color:"var(--brand)", fontSize:"var(--text-xs)", fontWeight:"var(--weight-bold)", letterSpacing:"1.4px", marginBottom:"14px" };
+const title = { fontSize:"38px", lineHeight:"1.08", letterSpacing:"-1px", margin:"0 0 16px" };
+const body = { fontSize:"var(--text-lg)", lineHeight:"1.5", color:"var(--text-secondary)", marginBottom:"30px" };
+const label = { display:"block", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)", margin:"0 0 8px" };
+const input = { width:"100%", padding:"15px 16px", borderRadius:"16px", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text-primary)", fontSize:"var(--text-md)", outline:"none", marginBottom:"18px", boxSizing:"border-box" };
+const suggestions = { display:"flex", flexWrap:"wrap", gap:"8px", margin:"-4px 0 28px" };
+const suggestion = { padding:"8px 12px", borderRadius:"999px", border:"1px solid var(--border)", background:"var(--surface-elevated)", color:"var(--text-primary)", fontSize:"var(--text-sm)", cursor:"pointer" };
+const button = { width:"100%", padding:"15px 18px", borderRadius:"999px", border:"none", background:"var(--brand)", color:"white", fontSize:"var(--text-md)", fontWeight:"var(--weight-bold)" };
