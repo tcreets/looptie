@@ -30,6 +30,7 @@ export function useItems(user) {
         space: item.space,
         space_id: item.space_id,
         added_by: item.added_by,
+        added_by_name: item.added_by_name,
         image: item.image_url,
         media_url: item.media_url,
         storage_path: item.storage_path,
