@@ -31,14 +31,14 @@ export default function Profile({ items, spaces, setSelectedItem, setTab, profil
       <div style={profileGrid}>
         {visibleItems.length === 0 && (
           <div style={emptyState}>
-            <div style={emptyIllustration} aria-hidden="true">
-              <div style={emptyCardBack} />
-              <div style={emptyCardFront}>
+            <div style={emptyVisual} aria-hidden="true">
+              <div style={{ ...emptyBackCard, transform: "rotate(-9deg) translate(-8px, 5px)" }} />
+              <div style={{ ...emptyBackCard, transform: "rotate(8deg) translate(8px, 5px)" }} />
+              <div style={emptyFrontCard}>
                 {profileView === "favorites"
-                  ? <Heart size={34} strokeWidth={1.9} fill="var(--brand-soft)" />
-                  : <BookmarkPlus size={34} strokeWidth={1.9} />}
+                  ? <Heart size={34} strokeWidth={1.8} />
+                  : <BookmarkPlus size={34} strokeWidth={1.8} />}
               </div>
-              <div style={emptySpark}>✦</div>
             </div>
             <h2 style={emptyTitle}>{profileView === "favorites" ? "Keep your favorites close" : "Your collection starts here"}</h2>
             <p style={emptyCopy}>
@@ -77,13 +77,12 @@ const profileTabs = { display: "flex", gap: "10px", marginBottom: "18px" };
 const profileTab = { border: "1px solid var(--border)", borderRadius: "999px", padding: "9px 14px", fontWeight:"var(--weight-bold)", cursor: "pointer" };
 const profileFavoriteBadge = { position: "absolute", top: "10px", right: "10px", color: "var(--favorite)", fontSize: "22px", zIndex: 2, textShadow: "0 2px 10px rgba(0,0,0,.5)" };
 const profileStickyTop = { position: "sticky", top: 0, zIndex: 10, background: "var(--bg)", paddingBottom: "14px" };
-const emptyState = { width: "100%", maxWidth: "360px", margin: "56px auto 0", padding: "10px 24px 28px", textAlign: "center", color: "var(--text-secondary)", columnSpan: "all", breakInside: "avoid" };
-const emptyIllustration = { width: "112px", height: "104px", margin: "0 auto 22px", position: "relative" };
-const emptyCardBack = { position: "absolute", width: "74px", height: "82px", left: "10px", top: "4px", borderRadius: "20px", background: "var(--brand-soft)", transform: "rotate(-9deg)", opacity: 0.7 };
-const emptyCardFront = { position: "absolute", width: "78px", height: "86px", right: "7px", bottom: 0, borderRadius: "22px", background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 12px 30px rgba(82, 38, 188, .14)", color: "var(--brand)", display: "flex", alignItems: "center", justifyContent: "center" };
-const emptySpark = { position: "absolute", top: "0", right: "0", color: "var(--brand)", fontSize: "24px", lineHeight: 1 };
-const emptyTitle = { margin: "0 0 9px", color: "var(--text-primary)", fontSize: "22px", lineHeight: 1.15, fontWeight: 800 };
-const emptyCopy = { maxWidth: "310px", margin: "0 auto 22px", color: "var(--text-secondary)", fontSize: "14px", lineHeight: 1.5 };
-const emptyButton = { minHeight: "46px", padding: "0 20px", border: 0, borderRadius: "999px", background: "var(--brand)", color: "white", fontWeight: "var(--weight-bold)", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: "0 8px 20px rgba(82, 38, 188, .22)" };
+const emptyState = { width: "min(100% - 40px, 420px)", margin: "56px auto 0", paddingBottom: "28px", textAlign: "center", color: "var(--text-secondary)", columnSpan: "all", breakInside: "avoid", display: "flex", flexDirection: "column", alignItems: "center" };
+const emptyVisual = { width: "112px", height: "96px", position: "relative", marginBottom: "24px" };
+const emptyBackCard = { position: "absolute", width: "70px", height: "82px", top: "7px", left: "21px", borderRadius: "20px", background: "var(--surface-elevated)", border: "1px solid var(--border)" };
+const emptyFrontCard = { position: "absolute", width: "76px", height: "88px", top: 0, left: "18px", borderRadius: "22px", background: "var(--accent-bg)", border: "1px solid var(--accent-border)", color: "var(--brand)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "var(--shadow)" };
+const emptyTitle = { margin: "0 0 10px", fontSize: "var(--text-xl)", color: "var(--text-primary)" };
+const emptyCopy = { maxWidth: "340px", margin: "0 0 24px", fontSize: "var(--text-md)", lineHeight: "var(--leading-normal)", color: "var(--text-secondary)" };
+const emptyButton = { border: "none", borderRadius: "999px", padding: "13px 19px", background: "var(--brand)", color: "white", fontWeight: "var(--weight-bold)", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", boxShadow: "0 8px 22px rgba(var(--brand-rgb),.22)" };
 const settingsButton = { marginLeft: "auto", width: "38px", height: "38px", borderRadius: "999px", border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
 const videoBadge = { position: "absolute", top: "10px", left: "10px", width: "32px", height: "32px", borderRadius: "999px", background: "rgba(0,0,0,.65)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3 };
