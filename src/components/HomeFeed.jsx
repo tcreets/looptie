@@ -145,6 +145,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
       </div>
       </div>
 
+      <div style={feedViewport}>
       <div ref={feedRef} style={feedList} className="pretty-scroll">
         {filteredFeedItems.length === 0 && <div style={emptyState}><h3>No items here yet</h3><p>Add something to this space to start building your feed.</p></div>}
         {sortedFeedItems.map((item) => (
@@ -180,14 +181,18 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
           </div>
         ))}
       </div>
+      <div style={feedTopFade} aria-hidden="true" />
+      </div>
     </div>
   );
 }
 
-const feedControlsStyle = { display:"flex", alignItems:"center", gap:"6px", paddingRight:"14px", position:"relative", width:"100%", minWidth:0, boxSizing:"border-box" };
+const feedControlsStyle = { display:"flex", alignItems:"center", gap:"6px", paddingRight:"14px", position:"relative", zIndex:3, width:"100%", minWidth:0, boxSizing:"border-box" };
 const feedSelectorStyle = { display:"flex", gap:"10px", margin:"0 0 16px", padding:"12px 8px 8px 16px", boxSizing:"border-box", overflowX:"auto", overflowY:"hidden", flex:"1 1 0", minWidth:0, width:0, maxWidth:"none", touchAction:"pan-x", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" };
 const feedButtonStyle = { border:"1px solid var(--border)", borderRadius:"999px", padding:"10px 16px", fontWeight:"var(--weight-bold)", cursor:"pointer", flexShrink:0, whiteSpace:"nowrap" };
-const feedList = { display:"grid", gap:"18px", paddingBottom:"96px", flex:1, minHeight:0, overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch" };
+const feedViewport = { position:"relative", flex:1, minHeight:0 };
+const feedTopFade = { position:"absolute", top:0, left:0, right:0, height:"44px", background:"linear-gradient(to bottom, var(--bg), transparent)", pointerEvents:"none", zIndex:2 };
+const feedList = { display:"grid", gap:"18px", paddingBottom:"96px", height:"100%", boxSizing:"border-box", minHeight:0, overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch" };
 const feedCard = { position:"relative", height:"100%", minHeight:"calc(100vh - 118px)", borderRadius:"28px", overflow:"hidden", border:"1px solid var(--border)", background:"var(--surface)", scrollSnapAlign:"start", scrollSnapStop:"always" };
 const imageStyle = { width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" };
 const overlayStyle = { position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,.35), transparent)", pointerEvents:"none" };
