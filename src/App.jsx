@@ -19,6 +19,7 @@ import { useItemModal } from "./hooks/useItemModal";
 import { useSearch } from "./hooks/useSearch";
 import { useAuth } from "./hooks/useAuth";
 import { trackEvent } from "./utils/trackEvent";
+import { supabase } from "./utils/supabaseClient";
 
 export default function App() {
   const [tab, setTab] = useState("home");
@@ -36,11 +37,36 @@ export default function App() {
   const { searchTerm, setSearchTerm, searchResults } = useSearch(feedItems);
 
   const currentFeed = activeFeed || defaultFeed;
-  const filteredFeedItems = feedItems.filter((item) => item.space === currentFeed);
+  const currentFeedRecord = spaces.find((feed) => feed.name === currentFeed);
+  const filteredFeedItems = feedItems.filter((item) => currentFeedRecord && item.space_id ? item.space_id === currentFeedRecord.id : item.space === currentFeed);
 
   useEffect(() => {
     if (!user) return;
     trackEvent("app_opened", { source: "app_start" });
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams(window.location.search);
+    const joinToken = params.get("join");
+    if (!joinToken) return;
+
+    let cancelled = false;
+    async function joinSharedFeed() {
+      const { data, error } = await supabase.rpc("join_feed_by_token", { share_token: joinToken });
+      if (cancelled) return;
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("join");
+      window.history.replaceState({}, "", cleanUrl.toString());
+      if (error) {
+        alert(error.message);
+        return;
+      }
+      alert(data?.status === "owner" ? `This is already your ${data.feed_name} Feed.` : `You joined the ${data?.feed_name || "shared"} Feed!`);
+      window.location.reload();
+    }
+    joinSharedFeed();
+    return () => { cancelled = true; };
   }, [user?.id]);
 
   if (authLoading) return null;
@@ -60,7 +86,7 @@ export default function App() {
     <div style={appStyle}>
       <div style={contentStyle}>
         {tab === "home" && <HomeFeed spaces={spaces} activeFeed={currentFeed} setActiveFeed={setActiveFeed} feedRef={feedRef} filteredFeedItems={filteredFeedItems} setSelectedItem={openItemModal} onAddContent={() => setTab("add")} />}
-        {tab === "spaces" && <Spaces spaces={spaces} defaultFeed={defaultFeed} setDefaultFeed={saveDefaultFeed} selectedSpace={selectedSpace} setSelectedSpace={setSelectedSpace} feedItems={feedItems} setFeedItems={setFeedItems} setSelectedItem={openItemModal} setShowNewSpaceForm={setShowNewSpaceForm} setUploadSpace={setUploadSpace} setTab={setTab} renameSpace={renameSpace} onDeleteSpace={(spaceName) => deleteSpace(spaceName, feedItems, setFeedItems, setSelectedSpace)} />}
+        {tab === "spaces" && <Spaces user={user} spaces={spaces} defaultFeed={defaultFeed} setDefaultFeed={saveDefaultFeed} selectedSpace={selectedSpace} setSelectedSpace={setSelectedSpace} feedItems={feedItems} setFeedItems={setFeedItems} setSelectedItem={openItemModal} setShowNewSpaceForm={setShowNewSpaceForm} setUploadSpace={setUploadSpace} setTab={setTab} renameSpace={renameSpace} onDeleteSpace={(spaceName) => deleteSpace(spaceName, feedItems, setFeedItems, setSelectedSpace)} />}
         {tab === "search" && <SearchScreen searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchResults={searchResults} setSelectedItem={openItemModal} spaces={spaces} />}
         {tab === "add" && <AddContentScreen user={user} spaces={spaces} setSpaces={setSpaces} defaultFeed={defaultFeed} uploadSpace={uploadSpace} setUploadSpace={setUploadSpace} selectedFiles={selectedFiles} setSelectedFiles={setSelectedFiles} feedItems={feedItems} setFeedItems={setFeedItems} setActiveFeed={setActiveFeed} setTab={setTab} />}
         {tab === "profile" && <Profile items={feedItems} spaces={spaces} setSelectedItem={openItemModal} setTab={setTab} profile={profile} />}
