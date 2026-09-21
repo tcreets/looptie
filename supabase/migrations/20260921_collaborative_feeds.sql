@@ -78,7 +78,7 @@ after insert on public.spaces for each row execute function public.add_feed_owne
 
 create or replace function public.set_collaboration_attribution()
 returns trigger language plpgsql security definer set search_path = public
-as $
+as $$
 begin
   new.added_by := coalesce(new.added_by, auth.uid(), new.user_id);
   if new.added_by_name is null then
@@ -87,7 +87,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists set_item_collaboration_attribution on public.items;
 create trigger set_item_collaboration_attribution
@@ -95,7 +95,7 @@ before insert on public.items for each row execute function public.set_collabora
 
 create or replace function public.set_note_author_name()
 returns trigger language plpgsql security definer set search_path = public
-as $
+as $$
 begin
   if new.author_name is null then
     select coalesce(display_name, 'Looptie member') into new.author_name
@@ -103,7 +103,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists set_item_note_author_name on public.item_notes;
 create trigger set_item_note_author_name
