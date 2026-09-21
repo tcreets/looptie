@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus, Star, MoreVertical, Pencil, Trash2, Share2, Users, LogOut } from "lucide-react";
 import SpaceDetail from "./SpaceDetail";
 import FeedShareModal from "./FeedShareModal";
+import FeedMembersModal from "./FeedMembersModal";
 import { trackEvent } from "../utils/trackEvent";
 import { supabase } from "../utils/supabaseClient";
 
@@ -25,6 +26,8 @@ export default function Spaces({ user, spaces, defaultFeed, setDefaultFeed, sele
   const [renamingSpace, setRenamingSpace] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
   const [sharingFeed, setSharingFeed] = useState(null);
+  const [managingFeed, setManagingFeed] = useState(null);
+  const [sharedFeedIds, setSharedFeedIds] = useState(new Set());
 
   useEffect(() => {
     if (openMenuSpaceId === null) return;
@@ -34,6 +37,48 @@ export default function Spaces({ user, spaces, defaultFeed, setDefaultFeed, sele
     document.addEventListener("pointerdown", closeMenu);
     return () => document.removeEventListener("pointerdown", closeMenu);
   }, [openMenuSpaceId]);
+
+  useEffect(() => {
+    const ownerFeedIds = spaces.filter((space) => space.user_id === user?.id).map((space) => space.id);
+    if (ownerFeedIds.length === 0) {
+      setSharedFeedIds(new Set());
+      return;
+    }
+
+    let active = true;
+    const loadSharedFeeds = async () => {
+      const { data, error } = await supabase
+        .from("feed_members")
+        .select("feed_id")
+        .in("feed_id", ownerFeedIds)
+        .neq("role", "owner");
+      if (!active) return;
+      if (error) {
+        console.error("Could not check shared Feed access:", error);
+        return;
+      }
+      setSharedFeedIds(new Set((data || []).map((membership) => membership.feed_id)));
+    };
+
+    loadSharedFeeds();
+    const refreshSharedFeeds = () => loadSharedFeeds();
+    window.addEventListener("focus", refreshSharedFeeds);
+    document.addEventListener("visibilitychange", refreshSharedFeeds);
+    return () => {
+      active = false;
+      window.removeEventListener("focus", refreshSharedFeeds);
+      document.removeEventListener("visibilitychange", refreshSharedFeeds);
+    };
+  }, [spaces, user?.id]);
+
+  const updateSharedFeedStatus = (feedId, hasCollaborators) => {
+    setSharedFeedIds((current) => {
+      const next = new Set(current);
+      if (hasCollaborators) next.add(feedId);
+      else next.delete(feedId);
+      return next;
+    });
+  };
 
   const leaveFeed = async (feed) => {
     if (!window.confirm(`Leave the ${feed.name} Feed? You’ll lose access unless someone shares it with you again.`)) return;
@@ -64,6 +109,7 @@ export default function Spaces({ user, spaces, defaultFeed, setDefaultFeed, sele
           <button data-feed-menu aria-label={`More options for ${space.name}`} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(openMenuSpaceId === space.id ? null : space.id); }} style={{ ...menuButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><MoreVertical size={20} /></button>
           {openMenuSpaceId === space.id && <div data-feed-menu style={spaceMenu}>
             {space.user_id === user?.id && <button style={spaceMenuItem} onClick={(e) => { e.stopPropagation(); setSharingFeed(space); setOpenMenuSpaceId(null); }}><Share2 size={15} strokeWidth={2.5} /><span>Share Feed</span></button>}
+            {space.user_id === user?.id && sharedFeedIds.has(space.id) && <button style={spaceMenuItem} onClick={(e) => { e.stopPropagation(); setManagingFeed(space); setOpenMenuSpaceId(null); }}><Users size={15} strokeWidth={2.5} /><span>Manage access</span></button>}
             {space.user_id === user?.id && <button style={spaceMenuItem} onClick={(e) => { e.stopPropagation(); setRenamingSpace(space); setRenameDraft(space.name); setOpenMenuSpaceId(null); }}><Pencil size={15} strokeWidth={2.5} /><span>Rename</span></button>}
             {space.user_id === user?.id && <button style={{ ...spaceMenuItem, color: "var(--danger)" }} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(null); onDeleteSpace(space.name); }}><Trash2 size={15} strokeWidth={2.5} /><span>Delete</span></button>}
             {space.user_id !== user?.id && <button style={{ ...spaceMenuItem, color: "var(--danger)" }} onClick={(e) => { e.stopPropagation(); leaveFeed(space); }}><LogOut size={15} strokeWidth={2.5} /><span>Leave Feed</span></button>}
@@ -78,6 +124,7 @@ export default function Spaces({ user, spaces, defaultFeed, setDefaultFeed, sele
     </div>
 
     {sharingFeed && <FeedShareModal feed={sharingFeed} onClose={() => setSharingFeed(null)} />}
+    {managingFeed && <FeedMembersModal feed={managingFeed} onClose={() => setManagingFeed(null)} onMembershipChange={updateSharedFeedStatus} />}
 
     {renamingSpace && <div style={modalOverlay}><div style={modalCard}>
       <h2 style={modalTitle}>Rename Space</h2><p style={modalSubtitle}>Update the name for this space.</p>
