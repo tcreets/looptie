@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Heart, Play } from "lucide-react";
+import { Settings, Heart, Play, BookmarkPlus } from "lucide-react";
 
 function SmartImage({ src, style }) {
   const [fit, setFit] = useState("cover");
@@ -21,7 +21,7 @@ export default function Profile({ items, spaces, setSelectedItem, setTab, profil
         <div style={profileStats}>
           <div style={profileStatCard}><strong style={profileStatNumber}>{items.length}</strong><span style={profileStatLabel}>Saved</span></div>
           <div style={profileStatCard}><strong style={profileStatNumber}>{favoriteItems.length}</strong><span style={profileStatLabel}>Favorites</span></div>
-          <div style={profileStatCard}><strong style={profileStatNumber}>{spaces.length}</strong><span style={profileStatLabel}>Spaces</span></div>
+          <div style={profileStatCard}><strong style={profileStatNumber}>{spaces.length}</strong><span style={profileStatLabel}>Feeds</span></div>
         </div>
         <div style={profileTabs}>
           <button style={{ ...profileTab, background: profileView === "all" ? "var(--brand)" : "var(--surface-elevated)", borderColor: profileView === "all" ? "var(--brand)" : "var(--border)", color: profileView === "all" ? "white" : "var(--text-primary)" }} onClick={() => setProfileView("all")}>All</button>
@@ -29,7 +29,26 @@ export default function Profile({ items, spaces, setSelectedItem, setTab, profil
         </div>
       </div>
       <div style={profileGrid}>
-        {visibleItems.length === 0 && <div style={emptyState}><h3>{profileView === "favorites" ? "No favorites yet" : "No items yet"}</h3><p>{profileView === "favorites" ? "Tap the heart on items you want to keep close." : "Add something to Looptie to start your collection."}</p></div>}
+        {visibleItems.length === 0 && (
+          <div style={emptyState}>
+            <div style={emptyIllustration} aria-hidden="true">
+              <div style={emptyCardBack} />
+              <div style={emptyCardFront}>
+                {profileView === "favorites"
+                  ? <Heart size={34} strokeWidth={1.9} fill="var(--brand-soft)" />
+                  : <BookmarkPlus size={34} strokeWidth={1.9} />}
+              </div>
+              <div style={emptySpark}>✦</div>
+            </div>
+            <h2 style={emptyTitle}>{profileView === "favorites" ? "Keep your favorites close" : "Your collection starts here"}</h2>
+            <p style={emptyCopy}>
+              {profileView === "favorites"
+                ? "Tap the heart on anything you want to find again fast."
+                : "Save something worth revisiting and it’ll show up right here."}
+            </p>
+            {profileView === "all" && <button style={emptyButton} onClick={() => setTab("add")}><BookmarkPlus size={18} /> Add your first save</button>}
+          </div>
+        )}
         {visibleItems.map((item) => <div style={profileCardItem} key={item.id} onClick={() => setSelectedItem(item)}>
           {item.media_type === "video" ? <video src={item.image} muted playsInline preload="auto" style={profileImage} onLoadedData={(e) => { e.currentTarget.currentTime = 0.1; }} /> : <SmartImage src={item.image} style={profileImage} />}
           {item.media_type === "video" && <div style={videoBadge}><Play fill="white" color="white" size={16} /></div>}
@@ -58,6 +77,13 @@ const profileTabs = { display: "flex", gap: "10px", marginBottom: "18px" };
 const profileTab = { border: "1px solid var(--border)", borderRadius: "999px", padding: "9px 14px", fontWeight:"var(--weight-bold)", cursor: "pointer" };
 const profileFavoriteBadge = { position: "absolute", top: "10px", right: "10px", color: "var(--favorite)", fontSize: "22px", zIndex: 2, textShadow: "0 2px 10px rgba(0,0,0,.5)" };
 const profileStickyTop = { position: "sticky", top: 0, zIndex: 10, background: "var(--bg)", paddingBottom: "14px" };
-const emptyState = { marginTop: "80px", textAlign: "center", color: "var(--text-secondary)", columnSpan: "all" };
+const emptyState = { width: "100%", maxWidth: "360px", margin: "56px auto 0", padding: "10px 24px 28px", textAlign: "center", color: "var(--text-secondary)", columnSpan: "all", breakInside: "avoid" };
+const emptyIllustration = { width: "112px", height: "104px", margin: "0 auto 22px", position: "relative" };
+const emptyCardBack = { position: "absolute", width: "74px", height: "82px", left: "10px", top: "4px", borderRadius: "20px", background: "var(--brand-soft)", transform: "rotate(-9deg)", opacity: 0.7 };
+const emptyCardFront = { position: "absolute", width: "78px", height: "86px", right: "7px", bottom: 0, borderRadius: "22px", background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 12px 30px rgba(82, 38, 188, .14)", color: "var(--brand)", display: "flex", alignItems: "center", justifyContent: "center" };
+const emptySpark = { position: "absolute", top: "0", right: "0", color: "var(--brand)", fontSize: "24px", lineHeight: 1 };
+const emptyTitle = { margin: "0 0 9px", color: "var(--text-primary)", fontSize: "22px", lineHeight: 1.15, fontWeight: 800 };
+const emptyCopy = { maxWidth: "310px", margin: "0 auto 22px", color: "var(--text-secondary)", fontSize: "14px", lineHeight: 1.5 };
+const emptyButton = { minHeight: "46px", padding: "0 20px", border: 0, borderRadius: "999px", background: "var(--brand)", color: "white", fontWeight: "var(--weight-bold)", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: "0 8px 20px rgba(82, 38, 188, .22)" };
 const settingsButton = { marginLeft: "auto", width: "38px", height: "38px", borderRadius: "999px", border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
 const videoBadge = { position: "absolute", top: "10px", left: "10px", width: "32px", height: "32px", borderRadius: "999px", background: "rgba(0,0,0,.65)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3 };
