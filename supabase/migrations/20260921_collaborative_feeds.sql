@@ -21,6 +21,8 @@ create table if not exists public.feed_share_links (
 
 alter table public.items add column if not exists space_id uuid references public.spaces(id) on delete cascade;
 alter table public.items add column if not exists added_by uuid references auth.users(id) on delete set null;
+alter table public.items add column if not exists added_by_name text;
+alter table public.item_notes add column if not exists author_name text;
 
 update public.items i
 set space_id = s.id
@@ -28,6 +30,10 @@ from public.spaces s
 where i.space_id is null and s.user_id = i.user_id and s.name = i.space;
 
 update public.items set added_by = user_id where added_by is null;
+update public.items i set added_by_name = coalesce(p.display_name, 'Looptie member')
+from public.profiles p where p.user_id = i.added_by and i.added_by_name is null;
+update public.item_notes n set author_name = coalesce(p.display_name, 'Looptie member')
+from public.profiles p where p.user_id = n.user_id and n.author_name is null;
 
 insert into public.feed_members (feed_id, user_id, role, invited_by)
 select id, user_id, 'owner', user_id from public.spaces
@@ -69,6 +75,40 @@ drop trigger if exists add_feed_owner_membership on public.spaces;
 create trigger add_feed_owner_membership
 after insert on public.spaces for each row execute function public.add_feed_owner_membership();
 
+
+create or replace function public.set_collaboration_attribution()
+returns trigger language plpgsql security definer set search_path = public
+as $
+begin
+  new.added_by := coalesce(new.added_by, auth.uid(), new.user_id);
+  if new.added_by_name is null then
+    select coalesce(display_name, 'Looptie member') into new.added_by_name
+    from public.profiles where user_id = new.added_by;
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists set_item_collaboration_attribution on public.items;
+create trigger set_item_collaboration_attribution
+before insert on public.items for each row execute function public.set_collaboration_attribution();
+
+create or replace function public.set_note_author_name()
+returns trigger language plpgsql security definer set search_path = public
+as $
+begin
+  if new.author_name is null then
+    select coalesce(display_name, 'Looptie member') into new.author_name
+    from public.profiles where user_id = new.user_id;
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists set_item_note_author_name on public.item_notes;
+create trigger set_item_note_author_name
+before insert on public.item_notes for each row execute function public.set_note_author_name();
+
 alter table public.feed_members enable row level security;
 alter table public.feed_share_links enable row level security;
 
@@ -104,6 +144,21 @@ with check (public.can_edit_feed(space_id));
 drop policy if exists "Contributors can delete their items" on public.items;
 create policy "Contributors can delete their items" on public.items for delete
 using (user_id = auth.uid() or public.is_feed_owner(space_id));
+
+
+drop policy if exists "Feed members can read notes" on public.item_notes;
+create policy "Feed members can read notes" on public.item_notes for select
+using (exists (
+  select 1 from public.items i
+  where i.id = item_notes.item_id and (i.user_id = auth.uid() or public.is_feed_member(i.space_id))
+));
+
+drop policy if exists "Feed editors can add notes" on public.item_notes;
+create policy "Feed editors can add notes" on public.item_notes for insert
+with check (auth.uid() = user_id and exists (
+  select 1 from public.items i
+  where i.id = item_notes.item_id and (i.user_id = auth.uid() or public.can_edit_feed(i.space_id))
+));
 
 create or replace function public.create_feed_share_link(target_feed_id uuid)
 returns text language plpgsql security definer set search_path = public set row_security = off
