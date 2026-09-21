@@ -22,7 +22,6 @@ export function useSpaces(user) {
       const { data, error } = await supabase
         .from("spaces")
         .select("*")
-        .eq("user_id", user.id)
         .order("created_at", { ascending: true });
 
       if (error) {
@@ -34,7 +33,8 @@ export function useSpaces(user) {
       setSpaces(data || []);
 
       const defaultSpace =
-        data?.find((space) => space.is_default) || data?.[0];
+        data?.find((space) => space.user_id === user.id && space.is_default) ||
+        data?.find((space) => space.user_id === user.id) || data?.[0];
 
       if (defaultSpace) {
        setDefaultFeed(defaultSpace.name);
