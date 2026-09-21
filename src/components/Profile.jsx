@@ -50,7 +50,7 @@ export default function Profile({ items, spaces, setSelectedItem, setTab, profil
           </div>
         )}
         {visibleItems.map((item) => <div style={profileCardItem} key={item.id} onClick={() => setSelectedItem(item)}>
-          {item.media_type === "video" ? <video src={item.image} muted playsInline preload="auto" style={profileImage} onLoadedData={(e) => { e.currentTarget.currentTime = 0.1; }} /> : <SmartImage src={item.image} style={profileImage} />}
+          {item.media_type === "video" ? <video src={item.image} muted playsInline preload="metadata" style={profileImage} onLoadedData={(e) => { e.currentTarget.currentTime = 0.1; }} /> : <SmartImage src={item.image} style={profileImage} />}
           {item.media_type === "video" && <div style={videoBadge}><Play fill="white" color="white" size={16} /></div>}
           {item.favorite && <div style={profileFavoriteBadge}><Heart fill="var(--favorite)" color="var(--favorite)" size={24} /></div>}
           <div style={profileOverlay}><span>{item.space}</span></div>
