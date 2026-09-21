@@ -181,7 +181,6 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
           </div>
         ))}
       </div>
-      <div style={feedTopFade} aria-hidden="true" />
       </div>
     </div>
   );
@@ -191,8 +190,7 @@ const feedControlsStyle = { display:"flex", alignItems:"center", gap:"6px", padd
 const feedSelectorStyle = { display:"flex", gap:"10px", margin:"0 0 16px", padding:"12px 8px 8px 16px", boxSizing:"border-box", overflowX:"auto", overflowY:"hidden", flex:"1 1 0", minWidth:0, width:0, maxWidth:"none", touchAction:"pan-x", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" };
 const feedButtonStyle = { border:"1px solid var(--border)", borderRadius:"999px", padding:"10px 16px", fontWeight:"var(--weight-bold)", cursor:"pointer", flexShrink:0, whiteSpace:"nowrap" };
 const feedViewport = { position:"relative", flex:1, minHeight:0 };
-const feedTopFade = { position:"absolute", top:0, left:0, right:0, height:"220px", background:"linear-gradient(to bottom, var(--bg) 0px, var(--bg) 100px, transparent 220px)", pointerEvents:"none", zIndex:2 };
-const feedList = { display:"grid", gap:"18px", paddingBottom:"96px", height:"100%", boxSizing:"border-box", minHeight:0, overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch" };
+const feedList = { display:"grid", gap:"18px", paddingBottom:"96px", height:"100%", boxSizing:"border-box", minHeight:0, overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch", WebkitMaskImage:"linear-gradient(to bottom, transparent 0px, transparent 80px, black 200px)", maskImage:"linear-gradient(to bottom, transparent 0px, transparent 80px, black 200px)" };
 const feedCard = { position:"relative", height:"100%", minHeight:"calc(100vh - 118px)", borderRadius:"28px", overflow:"hidden", border:"1px solid var(--border)", background:"var(--surface)", scrollSnapAlign:"start", scrollSnapStop:"always" };
 const imageStyle = { width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" };
 const overlayStyle = { position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,.35), transparent)", pointerEvents:"none" };
@@ -201,7 +199,7 @@ const emptyState = { marginTop:"80px", textAlign:"center", color:"var(--text-sec
 const homeStyle = { height:"100%", display:"flex", flexDirection:"column", minHeight:0 };
 const floatingActions = { position:"absolute", right:"20px", bottom:"108px", display:"flex", flexDirection:"column", gap:"22px", zIndex:10 };
 const floatingIconButton = { border:"none", background:"transparent", color:"white", cursor:"pointer", padding:"8px", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" };
-const sortWrap = { position:"relative", flexShrink:0, marginBottom:"4px" };
+const sortWrap = { position:"relative", flexShrink:0, alignSelf:"flex-start", marginTop:"12px" };
 const sortButton = { width:"40px", height:"40px", borderRadius:"999px", border:"1px solid var(--border)", background:"var(--surface)", color:"var(--text-primary)", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" };
 const sortMenu = { position:"absolute", top:"48px", right:0, width:"180px", padding:"6px", border:"1px solid var(--border)", borderRadius:"16px", background:"var(--surface)", boxShadow:"var(--shadow)", zIndex:80 };
 const sortMenuItem = { width:"100%", border:"none", background:"transparent", color:"var(--text-primary)", padding:"11px 10px", borderRadius:"11px", display:"flex", alignItems:"center", justifyContent:"space-between", fontSize:"var(--text-sm)", cursor:"pointer" };
