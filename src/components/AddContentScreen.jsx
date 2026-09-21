@@ -26,7 +26,8 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   const handleUpload = async () => {
     if (!selectedFiles.length) return;
     const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
-    if (!selectedSpaceName) { alert("Choose or create a space before saving."); return; }
+    const selectedSpaceRecord = spaces.find((feed) => feed.name === selectedSpaceName);
+    if (!selectedSpaceName || !selectedSpaceRecord) { alert("Choose or create a Feed before saving."); return; }
     const uploadStart = Date.now();
     setIsUploading(true); setUploadProgress("Saving to Looptie...");
     const safeSpace = selectedSpaceName.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-_]/g, "");
@@ -44,7 +45,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       const { error: uploadError } = await supabase.storage.from("looptie-uploads").upload(filePath, fileToUpload, { cacheControl: "3600", upsert: false, contentType: fileToUpload.type });
       if (uploadError) throw new Error(`Upload failed for ${file.name}: ${uploadError.message}`);
       const { data: publicUrlData } = supabase.storage.from("looptie-uploads").getPublicUrl(filePath);
-      return { user_id: user.id, space: selectedSpaceName, media_type: mediaType, image_url: publicUrlData.publicUrl, storage_path: filePath, favorite: false };
+      return { user_id: user.id, added_by: user.id, space: selectedSpaceName, space_id: selectedSpaceRecord.id, media_type: mediaType, image_url: publicUrlData.publicUrl, storage_path: filePath, favorite: false };
     };
 
     try {
@@ -57,7 +58,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       const { data, error } = await supabase.from("items").insert(uploadedItems).select();
       if (error) { alert("Error saving upload: " + error.message); return; }
       await trackEvent("content_uploaded", { count: data.length, space: selectedSpaceName, media_types: data.map((item) => item.media_type), duration_ms: Date.now() - uploadStart });
-      const formattedItems = data.map((item) => ({ id: item.id, space: item.space, image: item.image_url, storagePath: item.storage_path, favorite: item.favorite, media_type: item.media_type, created_at: item.created_at }));
+      const formattedItems = data.map((item) => ({ id: item.id, space: item.space, space_id: item.space_id, added_by: item.added_by, image: item.image_url, storagePath: item.storage_path, favorite: item.favorite, media_type: item.media_type, created_at: item.created_at }));
       setFeedItems([...formattedItems, ...feedItems]); setSelectedFiles([]); setActiveFeed(selectedSpaceName); setShowSuccess(false); setTab("home");
     } catch (err) { console.error(err); alert(err.message); }
     finally { setIsUploading(false); setUploadProgress(""); }
@@ -181,8 +182,9 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
   const saveLink = async () => {
     const preview = getLinkPreview(linkUrl);
     const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
+    const selectedSpaceRecord = spaces.find((feed) => feed.name === selectedSpaceName);
     if (!preview) { setLinkError("Enter a valid link."); return; }
-    if (!selectedSpaceName) { setLinkError("Choose a Space before saving."); return; }
+    if (!selectedSpaceName || !selectedSpaceRecord) { setLinkError("Choose a Feed before saving."); return; }
     if (isLoadingMetadata) { setLinkError("Wait for the preview to finish loading."); return; }
     setLinkError("");
     setIsSavingLink(true);
@@ -192,7 +194,9 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     }
     const payload = {
       user_id: user.id,
+      added_by: user.id,
       space: selectedSpaceName,
+      space_id: selectedSpaceRecord.id,
       media_type: "link",
       image_url: metadata?.image || preview.thumbnail || null,
       media_url: metadata?.mediaUrl || null,
@@ -215,7 +219,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       setIsSavingLink(false);
       return;
     }
-    const formatted = { id:data.id, space:data.space, image:data.image_url, media_url:data.media_url, storage_path:data.storage_path, favorite:data.favorite, tags:data.tags || [], media_type:data.media_type, created_at:data.created_at, source_url:data.source_url, source_platform:data.source_platform, source_title:data.source_title, source_creator:data.source_creator };
+    const formatted = { id:data.id, space:data.space, space_id:data.space_id, added_by:data.added_by, image:data.image_url, media_url:data.media_url, storage_path:data.storage_path, favorite:data.favorite, tags:data.tags || [], media_type:data.media_type, created_at:data.created_at, source_url:data.source_url, source_platform:data.source_platform, source_title:data.source_title, source_creator:data.source_creator };
     setFeedItems((prev) => [formatted, ...prev]);
     setActiveFeed(selectedSpaceName);
     setIsSavingLink(false);
