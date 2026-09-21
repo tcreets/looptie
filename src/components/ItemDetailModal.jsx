@@ -71,6 +71,7 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [notesLoading, setNotesLoading] = useState(false);
   const [openNoteMenuId, setOpenNoteMenuId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const noteInputRef = useRef(null);
   const articleReaderRef = useRef(null);
   const addTag = async () => {
@@ -91,6 +92,7 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
     const saved = await onSaveTags(nextTags);
     if (!saved) setItemTagsDraft(previousTags);
   };
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id || null)); }, []);
   useEffect(() => { if (selectedItem) trackEvent("item_viewed", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type }); }, [selectedItem?.id]);
   useEffect(() => {
     if (!selectedItem) return;
@@ -123,7 +125,7 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
       const { data, error } = await supabase.from("item_notes").update({ content, updated_at: new Date().toISOString() }).eq("id", editingNoteId).select().single();
       if (!error) setNotes(prev => prev.map(note => note.id === editingNoteId ? data : note));
     } else {
-      const { data, error } = await supabase.from("item_notes").insert({ item_id: selectedItem.id, user_id: selectedItem.user_id || (await supabase.auth.getUser()).data.user?.id, content }).select().single();
+      const { data, error } = await supabase.from("item_notes").insert({ item_id: selectedItem.id, user_id: currentUserId || (await supabase.auth.getUser()).data.user?.id, content }).select().single();
       if (!error) setNotes(prev => [data, ...prev]);
     }
     setNoteDraft("");
@@ -165,7 +167,7 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
     {showFullscreen && <div style={fullscreenOverlay} onClick={() => setShowFullscreen(false)}><img src={selectedItem.image} alt="" style={fullscreenImage} /></div>}
     <div style={itemModalContent}>
       <p style={itemModalSpace}>{selectedItem.space}</p>
-      <p style={itemModalTimestamp}>Added {new Date(selectedItem.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+      <p style={itemModalTimestamp}>Added {selectedItem.added_by_name ? `by ${selectedItem.added_by_name} · ` : ""}{new Date(selectedItem.created_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
       {selectedItem.source_title && <h1 style={itemTitle}>{selectedItem.source_title}</h1>}
       {selectedItem.source_creator && <p style={itemCreator}>{selectedItem.source_creator}</p>}
       <div id="looptie-notes" style={notesBlock}>
@@ -173,14 +175,14 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
         {notesLoading ? <p style={emptyNotes}>Loading notes…</p> : notes.length === 0 ? <p style={emptyNotes}>No notes yet.</p> :
           <div style={notesList}>{notes.map(note => <div key={note.id} style={noteCard}>
             <div style={noteTopRow}>
-              <div style={noteAuthorRow}><span style={noteAuthor}>You</span><span style={noteTimestamp}>{new Date(note.created_at).toLocaleString("en-US", { month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" })}{note.updated_at !== note.created_at ? " · Edited" : ""}</span></div>
-              <div style={noteMenuWrap}>
+              <div style={noteAuthorRow}><span style={noteAuthor}>{note.user_id === currentUserId ? "You" : (note.author_name || "Looptie member")}</span><span style={noteTimestamp}>{new Date(note.created_at).toLocaleString("en-US", { month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"2-digit" })}{note.updated_at !== note.created_at ? " · Edited" : ""}</span></div>
+              {note.user_id === currentUserId && <div style={noteMenuWrap}>
                 <button type="button" aria-label="Note options" style={noteMenuButton} onClick={() => setOpenNoteMenuId(openNoteMenuId === note.id ? null : note.id)}><MoreHorizontal size={18} /></button>
                 {openNoteMenuId === note.id && <div style={noteMenu}>
                   <button type="button" style={noteMenuEdit} onClick={() => { setEditingNoteId(note.id); setNoteDraft(note.content); setOpenNoteMenuId(null); }}>Edit</button>
                   <button type="button" style={noteMenuDelete} onClick={() => { setOpenNoteMenuId(null); deleteNote(note.id); }}>Delete</button>
                 </div>}
-              </div>
+              </div>}
             </div>
             <p style={noteContent}>{note.content}</p>
           </div>)}</div>}
