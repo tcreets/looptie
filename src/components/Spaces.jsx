@@ -63,8 +63,8 @@ export default function Spaces({ user, spaces, defaultFeed, setDefaultFeed, sele
 
 const spacesPage = { color:"var(--text-primary)", padding:"12px 0 8px" };
 const spacesGrid = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" };
-const spaceCard = { background:"var(--surface)", borderRadius:"20px", border:"1px solid var(--border)", minHeight:"170px", overflow:"hidden", position:"relative", cursor:"pointer", boxSizing:"border-box" };
-const coverGrid = { position:"absolute", inset:0, display:"grid", gridTemplateRows:"1fr 1fr", gap:"2px", background:"var(--surface-elevated)" };
+const spaceCard = { background:"var(--surface)", borderRadius:"20px", border:"1px solid var(--border)", minHeight:"170px", overflow:"visible", position:"relative", cursor:"pointer", boxSizing:"border-box" };
+const coverGrid = { position:"absolute", inset:0, overflow:"hidden", borderRadius:"inherit", display:"grid", gridTemplateRows:"1fr 1fr", gap:"2px", background:"var(--surface-elevated)" };
 const coverTile = { width:"100%", height:"100%", minWidth:0, minHeight:0, objectFit:"cover", display:"block" };
 const emptyCover = { position:"absolute", inset:0, background:"var(--surface-elevated)" };
 const emptySpaceCard = { background:"var(--surface)", border:"1px solid var(--border)" };
@@ -72,7 +72,7 @@ const emptyCardControl = { background:"transparent", color:"var(--text-secondary
 const emptySpaceContent = { left:"16px", right:"16px", bottom:"14px" };
 const emptySpaceName = { color:"var(--text-primary)", textShadow:"none" };
 const emptySpaceItemsText = { color:"var(--text-secondary)", textShadow:"none" };
-const coverShade = { position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.22) 48%, rgba(0,0,0,.18) 100%)", pointerEvents:"none" };
+const coverShade = { position:"absolute", inset:0, borderRadius:"inherit", background:"linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.22) 48%, rgba(0,0,0,.18) 100%)", pointerEvents:"none" };
 const starButton = { position:"absolute", top:"10px", right:"10px", width:"40px", height:"40px", display:"flex", alignItems:"center", justifyContent:"center", padding:0, background:"rgba(0,0,0,.22)", border:"none", borderRadius:"999px", color:"white", cursor:"pointer", zIndex:4, backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)" };
 const menuButton = { position:"absolute", top:"10px", left:"10px", width:"40px", height:"40px", display:"flex", alignItems:"center", justifyContent:"center", padding:0, background:"rgba(0,0,0,.22)", border:"none", borderRadius:"999px", color:"white", cursor:"pointer", zIndex:4, backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)" };
 const spaceMenu = { position:"absolute", top:"54px", left:"10px", background:"var(--surface-elevated)", border:"1px solid var(--border)", borderRadius:"14px", padding:"6px", zIndex:20, boxShadow:"var(--shadow)" };
