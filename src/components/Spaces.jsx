@@ -21,7 +21,7 @@ function SpaceCover({ items }) {
   </div>;
 }
 
-export default function Spaces({ user, spaces, defaultFeed, setDefaultFeed, selectedSpace, setSelectedSpace, feedItems, setFeedItems, setSelectedItem, setShowNewSpaceForm, setUploadSpace, setTab, onDeleteSpace, renameSpace }) {
+export default function Spaces({ user, spaces, setSpaces, defaultFeed, setDefaultFeed, selectedSpace, setSelectedSpace, feedItems, setFeedItems, setSelectedItem, setShowNewSpaceForm, setUploadSpace, setTab, onDeleteSpace, renameSpace }) {
   const [openMenuSpaceId, setOpenMenuSpaceId] = useState(null);
   const [renamingSpace, setRenamingSpace] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
