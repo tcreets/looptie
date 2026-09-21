@@ -43,7 +43,7 @@ export default function SpaceDetail({ selectedSpace, setSelectedSpace, spaces, f
     {selectedSpaceItems.length === 0 && <p style={emptyStateText}>Build a feed that pulls you back into this world.</p>}
     <div style={spaceDetailGrid}>
       {selectedSpaceItems.map((item) => <div key={item.id} style={{ ...spaceDetailCard, border: selectedItemIds.includes(item.id) ? "3px solid var(--brand)" : "1px solid var(--border)" }} onClick={() => { if (isSelectingItems) setSelectedItemIds((prev) => prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]); else setSelectedItem(item); }}>
-        {item.media_type === "video" ? <video src={item.image} style={spaceDetailImage} muted playsInline /> : <img src={item.image} loading="lazy" alt="" style={spaceDetailImage} />}
+        {item.media_type === "video" ? <video src={item.image} style={spaceDetailImage} muted playsInline preload="metadata" /> : <img src={item.image} loading="lazy" alt="" style={spaceDetailImage} />}
         {isSelectingItems && selectedItemIds.includes(item.id) && <div style={selectedCheck}><Check size={18} strokeWidth={3} /></div>}
         {item.favorite && <div style={spaceFavoriteIndicator}><Heart size={22} fill="var(--favorite)" color="var(--favorite)" /></div>}
       </div>)}
