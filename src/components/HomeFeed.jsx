@@ -60,11 +60,7 @@ function InstagramEmbed({ url, title, style }) {
 }
 
 function SmartImage({ src, style }) {
-  const [fit, setFit] = useState("cover");
-  return <img src={src} loading="lazy" alt="" style={{ ...style, objectFit: fit, background: "var(--bg)" }} onLoad={(e) => {
-    const img = e.currentTarget;
-    setFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover");
-  }} />;
+  return <img src={src} loading="lazy" alt="" style={{ ...style, objectFit: "cover", background: "var(--bg)" }} />;
 }
 
 export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, filteredFeedItems, setSelectedItem }) {
@@ -190,7 +186,7 @@ const feedControlsStyle = { display:"flex", alignItems:"center", gap:"6px", padd
 const feedSelectorStyle = { display:"flex", gap:"10px", margin:"0 0 16px", padding:"12px 8px 8px 16px", boxSizing:"border-box", overflowX:"auto", overflowY:"hidden", flex:"1 1 0", minWidth:0, width:0, maxWidth:"none", touchAction:"pan-x", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", scrollbarWidth:"none" };
 const feedButtonStyle = { border:"1px solid var(--border)", borderRadius:"999px", padding:"10px 16px", fontWeight:"var(--weight-bold)", cursor:"pointer", flexShrink:0, whiteSpace:"nowrap" };
 const feedViewport = { position:"relative", flex:1, minHeight:0 };
-const feedList = { display:"grid", gap:"18px", paddingBottom:"96px", height:"100%", boxSizing:"border-box", minHeight:0, overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch", WebkitMaskImage:"linear-gradient(to bottom, transparent 0px, transparent 80px, black 200px)", maskImage:"linear-gradient(to bottom, transparent 0px, transparent 80px, black 200px)" };
+const feedList = { display:"grid", gap:"18px", paddingBottom:"96px", height:"100%", boxSizing:"border-box", minHeight:0, overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch", WebkitMaskImage:"linear-gradient(to bottom, transparent 0px, black 76px)", maskImage:"linear-gradient(to bottom, transparent 0px, black 76px)" };
 const feedCard = { position:"relative", height:"100%", minHeight:"calc(100vh - 118px)", borderRadius:"28px", overflow:"hidden", border:"1px solid var(--border)", background:"var(--surface)", scrollSnapAlign:"start", scrollSnapStop:"always" };
 const imageStyle = { width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" };
 const overlayStyle = { position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,.35), transparent)", pointerEvents:"none" };
