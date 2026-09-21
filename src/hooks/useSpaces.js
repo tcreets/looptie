@@ -19,10 +19,7 @@ export function useSpaces(user) {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("spaces")
-        .select("*")
-        .order("created_at", { ascending: true });
+      const { data, error } = await supabase.rpc("get_my_feeds");
 
       if (error) {
         console.error("Error fetching spaces:", error);
