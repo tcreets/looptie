@@ -135,7 +135,7 @@ export default function Spaces({ user, spaces, setSpaces, defaultFeed, setDefaul
   </div>;
 }
 
-const spacesPage = { color:"var(--text-primary)", padding:"12px 0 8px" };
+const spacesPage = { color:"var(--text-primary)", height:"100%", overflowY:"auto", overscrollBehavior:"contain", WebkitOverflowScrolling:"touch", boxSizing:"border-box", padding:"12px 0 28px" };
 const spacesGrid = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" };
 const spaceCard = { background:"var(--surface)", borderRadius:"20px", border:"1px solid var(--border)", minHeight:"170px", overflow:"visible", position:"relative", cursor:"pointer", boxSizing:"border-box" };
 const coverGrid = { position:"absolute", inset:0, overflow:"hidden", borderRadius:"inherit", display:"grid", gridTemplateRows:"1fr 1fr", gap:"2px", background:"var(--surface-elevated)" };
