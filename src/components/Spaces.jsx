@@ -97,7 +97,7 @@ export default function Spaces({ user, spaces, setSpaces, defaultFeed, setDefaul
 
   if (selectedSpace !== null) return <SpaceDetail selectedSpace={selectedSpace} setSelectedSpace={setSelectedSpace} spaces={spaces} feedItems={feedItems} setFeedItems={setFeedItems} setSelectedItem={setSelectedItem} setUploadSpace={setUploadSpace} setTab={setTab} />;
 
-  return <div style={spacesPage}>
+  return <div style={spacesPage} className="no-scrollbar">
     <div style={spacesGrid}>
       {spaces.map((space) => {
         // feedItems are kept in their existing order; the first three saved to a Space become its cover.
