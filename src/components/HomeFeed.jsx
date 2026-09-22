@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Volume2, VolumeX, Pause, Play, SquarePen, Heart, ArrowDownUp, Check, Link2, BookmarkPlus } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
@@ -120,9 +120,10 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
     return () => observer.disconnect();
   }, [filteredFeedItems, feedRef]);
 
-  useEffect(() => {
-    // A Feed is a fresh viewing session: switching Feeds returns both
-    // the outgoing and incoming Feed to their beginning.
+  useLayoutEffect(() => {
+    // Reset before the browser paints the newly selected Feed so the user
+    // never sees it render at the previous Feed's scroll position.
+    if (feedRef.current) feedRef.current.scrollTop = 0;
     Object.values(videoRefs.current).forEach((video) => {
       if (!video) return;
       video.pause();
@@ -135,10 +136,6 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
       frame?.contentWindow?.postMessage({ type: "pause", value: undefined, "x-tiktok-player": true }, "*");
     });
     setPausedVideos({});
-    if (feedRef.current) {
-      feedRef.current.scrollTop = 0;
-      feedRef.current.scrollTo({ top: 0, behavior: "auto" });
-    }
   }, [activeFeed, feedRef]);
 
   return (
@@ -216,7 +213,7 @@ const feedControlsStyle = { display:"flex", alignItems:"center", gap:"6px", padd
 const feedSelectorStyle = { display:"flex", gap:"10px", margin:"0 0 16px", padding:"12px 8px 8px 16px", boxSizing:"border-box", overflowX:"auto", overflowY:"hidden", flex:"1 1 0", minWidth:0, width:0, maxWidth:"none", touchAction:"pan-x", whiteSpace:"nowrap", WebkitOverflowScrolling:"touch", scrollbarWidth:"none", WebkitMaskImage:"linear-gradient(to right, black 0, black calc(100% - 28px), transparent 100%)", maskImage:"linear-gradient(to right, black 0, black calc(100% - 28px), transparent 100%)" };
 const feedButtonStyle = { border:"1px solid var(--border)", borderRadius:"999px", padding:"10px 16px", fontWeight:"var(--weight-bold)", cursor:"pointer", flexShrink:0, whiteSpace:"nowrap" };
 const feedViewport = { position:"relative", flex:1, minHeight:0 };
-const feedList = { display:"grid", gap:"18px", paddingBottom:"96px", height:"100%", boxSizing:"border-box", minHeight:0, overflowY:"auto", scrollSnapType:"y mandatory", scrollBehavior:"smooth", WebkitOverflowScrolling:"touch" };
+const feedList = { display:"grid", gap:"18px", paddingBottom:"96px", height:"100%", boxSizing:"border-box", minHeight:0, overflowY:"auto", scrollSnapType:"y mandatory", WebkitOverflowScrolling:"touch" };
 const feedCard = { position:"relative", height:"100%", minHeight:"calc(100vh - 118px)", borderRadius:"28px", overflow:"hidden", border:"1px solid var(--border)", background:"var(--surface)", scrollSnapAlign:"start", scrollSnapStop:"always" };
 const imageStyle = { width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" };
 const videoStyle = { ...imageStyle, objectFit:"contain", background:"#000" };
