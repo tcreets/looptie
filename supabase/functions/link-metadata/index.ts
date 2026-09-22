@@ -81,7 +81,11 @@ Deno.serve(async (req) => {
 
     const response = await fetch(parsed.href, {
       redirect: "follow",
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; Looptie/1.0)" },
+      headers: isInstagram ? {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      } : { "User-Agent": "Mozilla/5.0 (compatible; Looptie/1.0)" },
     });
     if (!response.ok) throw new Error("Source returned " + response.status + ".");
     const html = await response.text();
@@ -98,7 +102,26 @@ Deno.serve(async (req) => {
     let title = readMeta("og:title") || readMeta("twitter:title") || clean(titleMatch?.[1] || null);
     let image = absoluteUrl(readMeta("og:image:secure_url") || readMeta("og:image") || readMeta("twitter:image:src") || readMeta("twitter:image"), response.url || parsed.href);
     let siteName = readMeta("og:site_name") || (isInstagram ? "Instagram" : isTikTok ? "TikTok" : isLinkedIn ? "LinkedIn" : host);
-    const mediaUrl = absoluteUrl(readMeta("og:video:secure_url") || readMeta("og:video:url") || readMeta("og:video") || readMeta("twitter:player:stream"), response.url || parsed.href);
+    let mediaUrl = absoluteUrl(readMeta("og:video:secure_url") || readMeta("og:video:url") || readMeta("og:video") || readMeta("twitter:player:stream"), response.url || parsed.href);
+
+    // Instagram does not consistently expose og:video to server-side requests.
+    // Public Reel/Post HTML can still contain a direct video_url in its embedded JSON.
+    if (isInstagram && !mediaUrl) {
+      const videoPatterns = [
+        /"video_url"\s*:\s*"([^"]+)"/i,
+        /"video_versions"\s*:\s*\[\s*\{[^}]*"url"\s*:\s*"([^"]+)"/i,
+      ];
+      for (const pattern of videoPatterns) {
+        const match = html.match(pattern);
+        if (!match?.[1]) continue;
+        const decodedVideoUrl = match[1]
+          .replace(/\\u0026/g, "&")
+          .replace(/\\\//g, "/")
+          .replace(/&amp;/g, "&");
+        mediaUrl = absoluteUrl(decodedVideoUrl, response.url || parsed.href);
+        if (mediaUrl) break;
+      }
+    }
     let creator = readMeta("author") || readMeta("article:author") || null;
     if (isInstagram && !creator) {
       const creatorCandidates = [
