@@ -189,7 +189,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
                 frame.contentWindow.postMessage(JSON.stringify({ event:"command", func:"playVideo", args:[] }), "*");
                 setMutedYouTube((prev) => ({ ...prev, [item.id]: !isUnmuted }));
               }}>{mutedYouTube[item.id] ? <Volume2 size={30} strokeWidth={2.5} /> : <VolumeX size={30} strokeWidth={2.5} />}</button>}
-              {item.media_type === "link" && getTikTokId(item.source_url) && <button type="button" style={floatingIconButton} aria-label={mutedTikTok[item.id] ? "Mute TikTok video" : "Unmute TikTok video"} title={mutedTikTok[item.id] ? "Mute" : "Unmute"} onClick={(e) => {
+              {item.media_type === "link" && getTikTokId(item.source_url) && !item.media_url && <button type="button" style={floatingIconButton} aria-label={mutedTikTok[item.id] ? "Mute TikTok video" : "Unmute TikTok video"} title={mutedTikTok[item.id] ? "Mute" : "Unmute"} onClick={(e) => {
                 e.stopPropagation();
                 const frame = tiktokRefs.current[item.id];
                 if (!frame?.contentWindow) return;
