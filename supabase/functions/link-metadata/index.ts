@@ -55,9 +55,25 @@ const extractArticle = (html: string, base: string) => {
     const tag = (match[1] || "img").toLowerCase();
     const attrs = match[2] || match[4] || "";
     if (tag === "img") {
-      const raw = attr(attrs, "src") || attr(attrs, "data-src") || attr(attrs, "data-original");
+      const raw = attr(attrs, "data-src") || attr(attrs, "data-original") || attr(attrs, "src");
       const url = absoluteUrl(raw, base);
-      if (url && !url.startsWith("data:")) blocks.push({ type: "image", url, alt: clean(attr(attrs, "alt")) });
+      if (!url || url.startsWith("data:")) continue;
+
+      // Reader images should be editorial content, not avatars/icons/UI or tiny responsive placeholders.
+      const width = Number.parseInt(attr(attrs, "width") || "", 10);
+      const height = Number.parseInt(attr(attrs, "height") || "", 10);
+      const className = (attr(attrs, "class") || "").toLowerCase();
+      const alt = clean(attr(attrs, "alt"));
+      const lowerUrl = url.toLowerCase();
+      const looksLikeUi = /avatar|profile|icon|emoji|logo|author|button/.test(className) ||
+        /avatar|profile|icon|emoji|logo/.test(lowerUrl);
+      const explicitlyTiny = (Number.isFinite(width) && width > 0 && width < 180) ||
+        (Number.isFinite(height) && height > 0 && height < 120);
+      const substackTinyTransform = /substackcdn\.com\/image\/fetch\/[^/]*(?:w_|h_)(?:\d|%)/i.test(url) &&
+        /(?:w_|h_)(?:[1-9]\d?|1[0-7]\d)(?:,|\/)/i.test(url);
+
+      if (looksLikeUi || explicitlyTiny || substackTinyTransform) continue;
+      blocks.push({ type: "image", url, alt });
       continue;
     }
     const text = stripTags(match[3] || "");
