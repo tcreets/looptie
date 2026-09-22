@@ -57,39 +57,47 @@ Deno.serve(async (req) => {
       console.warn("YouTube oEmbed returned", oembedResponse.status);
     }
 
-    if (isInstagram) {
-      const saveApiKey = Deno.env.get("SAVEAPI_KEY");
-      if (saveApiKey) {
-        try {
-          const saveApiUrl = new URL("https://api.saveapi.org/v1/instagram");
-          saveApiUrl.searchParams.set("url", parsed.href);
-          const saveApiResponse = await fetch(saveApiUrl, {
-            headers: { "Authorization": `Bearer ${saveApiKey}` },
-          });
-          const saveApi = await saveApiResponse.json();
-          if (saveApiResponse.ok && saveApi?.success && Array.isArray(saveApi.medias)) {
-            const video = saveApi.medias.find((media: any) => media?.type === "video" && media?.url);
-            const firstMedia = saveApi.medias.find((media: any) => media?.url);
-            const meta = saveApi.meta || {};
-            if (video?.url || firstMedia?.url) {
-              return new Response(JSON.stringify({
-                url: saveApi.source_url || parsed.href,
-                title: clean(meta.title || meta.caption || null),
-                image: clean(meta.thumbnail || meta.image || (firstMedia?.type === "image" ? firstMedia.url : null)),
-                siteName: "Instagram",
-                creator: clean(meta.author || meta.username || null),
-                mediaUrl: clean(video?.url || null),
-              }), {
-                status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-              });
-            }
-          }
-          console.warn("SaveAPI Instagram resolve failed:", saveApi?.error?.code || saveApiResponse.status);
-        } catch (saveApiError) {
-          console.warn("SaveAPI Instagram resolve error:", saveApiError);
-        }
-      } else {
+    const saveApiKey = Deno.env.get("SAVEAPI_KEY");
+    const resolveWithSaveApi = async (platform: "instagram" | "tiktok") => {
+      if (!saveApiKey) {
         console.warn("SAVEAPI_KEY is not configured.");
+        return null;
+      }
+      try {
+        const saveApiUrl = new URL(`https://api.saveapi.org/v1/${platform}`);
+        saveApiUrl.searchParams.set("url", parsed.href);
+        const saveApiResponse = await fetch(saveApiUrl, {
+          headers: { "Authorization": `Bearer ${saveApiKey}` },
+        });
+        const saveApi = await saveApiResponse.json();
+        if (!saveApiResponse.ok || !saveApi?.success || !Array.isArray(saveApi.medias)) {
+          console.warn(`SaveAPI ${platform} resolve failed:`, saveApi?.error?.code || saveApiResponse.status);
+          return null;
+        }
+        const video = saveApi.medias.find((media: any) => media?.type === "video" && media?.url);
+        const firstMedia = saveApi.medias.find((media: any) => media?.url);
+        if (!video?.url && !firstMedia?.url) return null;
+        const meta = saveApi.meta || {};
+        return {
+          url: saveApi.source_url || parsed.href,
+          title: clean(meta.title || meta.caption || null),
+          image: clean(meta.thumbnail || meta.image || (firstMedia?.type === "image" ? firstMedia.url : null)),
+          siteName: platform === "instagram" ? "Instagram" : "TikTok",
+          creator: clean(meta.author || meta.username || null),
+          mediaUrl: clean(video?.url || null),
+        };
+      } catch (saveApiError) {
+        console.warn(`SaveAPI ${platform} resolve error:`, saveApiError);
+        return null;
+      }
+    };
+
+    if (isInstagram || isTikTok) {
+      const resolved = await resolveWithSaveApi(isInstagram ? "instagram" : "tiktok");
+      if (resolved?.mediaUrl) {
+        return new Response(JSON.stringify(resolved), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 
