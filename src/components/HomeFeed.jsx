@@ -59,6 +59,14 @@ function InstagramEmbed({ url, title, style }) {
   </div>;
 }
 
+function getArticleSourceLabel(item) {
+  const platform = (item.source_platform || "").trim();
+  const url = (item.source_url || "").toLowerCase();
+  if (url.includes("substack.com") || platform.toLowerCase().includes("substack")) return "Substack";
+  if (platform) return platform.replace(/^www\./i, "");
+  try { return new URL(item.source_url).hostname.replace(/^www\./i, ""); } catch { return "Web"; }
+}
+
 function isArticleLink(item) {
   return item.media_type === "link" && !getYouTubeId(item.source_url) && !getTikTokId(item.source_url) && !getInstagramEmbedUrl(item.source_url);
 }
@@ -178,7 +186,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
           <div key={item.id} data-feed-card-id={item.id} style={feedCard}>
             {item.media_type === "video" || (item.media_type === "link" && item.media_url && (getInstagramEmbedUrl(item.source_url) || getTikTokId(item.source_url))) ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.media_url || item.image} style={videoStyle} autoPlay muted loop playsInline preload="metadata" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) youtubeRefs.current[item.id] = el; }} src={String(activeItemId) === String(item.id) ? `https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?enablejsapi=1&autoplay=1&mute=1&playsinline=1&rel=0` : "about:blank"} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && getTikTokId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) tiktokRefs.current[item.id] = el; }} src={String(activeItemId) === String(item.id) ? `https://www.tiktok.com/player/v1/${getTikTokId(item.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0` : "about:blank"} title={item.source_title || "TikTok video"} style={youtubeEmbed} allow="autoplay; fullscreen" allowFullScreen /> : item.media_type === "link" && getInstagramEmbedUrl(item.source_url) ? <InstagramEmbed url={item.source_url} title={item.source_title} style={instagramEmbedWrap} /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
             <div style={overlayStyle} />
-            {isArticleLink(item) && <><div style={articleIndicator} aria-label="Article"><FileText size={22} strokeWidth={2.2} /></div><div style={articleMetadata}><h2 style={articleFeedTitle}>{item.source_title || "Saved article"}</h2><div style={articleFeedMeta}>{[item.source_creator, item.source_platform].filter(Boolean).join(" · ") || "Web"}</div></div></>}
+            {isArticleLink(item) && <><div style={articleIndicator} aria-label="Article"><FileText size={22} strokeWidth={2.2} /></div><div style={articleMetadata}><h2 style={articleFeedTitle}>{item.source_title || "Saved article"}</h2><div style={articleFeedMeta}>{[item.source_creator, getArticleSourceLabel(item)].filter(Boolean).join(" · ")}</div></div></>}
             {item.favorite && <div style={favoriteIndicator}><Heart fill="var(--favorite)" color="var(--favorite)" size={28} /></div>}
             <div style={floatingActions}>
               {(item.media_type === "video" || (item.media_type === "link" && item.media_url && (getInstagramEmbedUrl(item.source_url) || getTikTokId(item.source_url)))) && <>
