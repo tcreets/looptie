@@ -96,7 +96,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
         const tiktokFrame = tiktokRefs.current[itemId];
         if (video) {
           if (entry.isIntersecting) { video.play().catch(console.error); setPausedVideos((prev) => ({ ...prev, [itemId]: false })); }
-          else { video.pause(); setPausedVideos((prev) => ({ ...prev, [itemId]: true })); }
+          else { video.pause(); video.currentTime = 0; setPausedVideos((prev) => ({ ...prev, [itemId]: true })); }
         }
         if (youtubeFrame?.contentWindow) {
           youtubeFrame.contentWindow.postMessage(JSON.stringify({
@@ -119,6 +119,27 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
     Object.values(tiktokRefs.current).forEach((frame) => { if (frame) observer.observe(frame); });
     return () => observer.disconnect();
   }, [filteredFeedItems, feedRef]);
+
+  useEffect(() => {
+    // A Feed is a fresh viewing session: switching Feeds returns both
+    // the outgoing and incoming Feed to their beginning.
+    Object.values(videoRefs.current).forEach((video) => {
+      if (!video) return;
+      video.pause();
+      video.currentTime = 0;
+    });
+    Object.values(youtubeRefs.current).forEach((frame) => {
+      frame?.contentWindow?.postMessage(JSON.stringify({ event: "command", func: "stopVideo", args: [] }), "*");
+    });
+    Object.values(tiktokRefs.current).forEach((frame) => {
+      frame?.contentWindow?.postMessage({ type: "pause", value: undefined, "x-tiktok-player": true }, "*");
+    });
+    setPausedVideos({});
+    if (feedRef.current) {
+      feedRef.current.scrollTop = 0;
+      feedRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, [activeFeed, feedRef]);
 
   return (
     <div style={homeStyle}>
