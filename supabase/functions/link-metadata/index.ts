@@ -57,6 +57,42 @@ Deno.serve(async (req) => {
       console.warn("YouTube oEmbed returned", oembedResponse.status);
     }
 
+    if (isInstagram) {
+      const saveApiKey = Deno.env.get("SAVEAPI_KEY");
+      if (saveApiKey) {
+        try {
+          const saveApiUrl = new URL("https://api.saveapi.org/v1/instagram");
+          saveApiUrl.searchParams.set("url", parsed.href);
+          const saveApiResponse = await fetch(saveApiUrl, {
+            headers: { "Authorization": `Bearer ${saveApiKey}` },
+          });
+          const saveApi = await saveApiResponse.json();
+          if (saveApiResponse.ok && saveApi?.success && Array.isArray(saveApi.medias)) {
+            const video = saveApi.medias.find((media: any) => media?.type === "video" && media?.url);
+            const firstMedia = saveApi.medias.find((media: any) => media?.url);
+            const meta = saveApi.meta || {};
+            if (video?.url || firstMedia?.url) {
+              return new Response(JSON.stringify({
+                url: saveApi.source_url || parsed.href,
+                title: clean(meta.title || meta.caption || null),
+                image: clean(meta.thumbnail || meta.image || (firstMedia?.type === "image" ? firstMedia.url : null)),
+                siteName: "Instagram",
+                creator: clean(meta.author || meta.username || null),
+                mediaUrl: clean(video?.url || null),
+              }), {
+                status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+              });
+            }
+          }
+          console.warn("SaveAPI Instagram resolve failed:", saveApi?.error?.code || saveApiResponse.status);
+        } catch (saveApiError) {
+          console.warn("SaveAPI Instagram resolve error:", saveApiError);
+        }
+      } else {
+        console.warn("SAVEAPI_KEY is not configured.");
+      }
+    }
+
     if (isTikTok) {
       try {
         const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(parsed.href)}`;
