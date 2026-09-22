@@ -143,14 +143,21 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
     if (!selectedItem) return null;
 
   const isArticle = selectedItem.media_type === "link" && !getYouTubeId(selectedItem.source_url) && !getTikTokId(selectedItem.source_url) && !getInstagramEmbedUrl(selectedItem.source_url);
-  const nativeArticleReader = isArticle && canUseNativeArticleReader();\n\n  useEffect(() => {\n    if (!isArticle || !selectedItem?.source_url) { setArticleData(null); setArticleError(""); return; }
+  const nativeArticleReader = isArticle && canUseNativeArticleReader();
+
+  useEffect(() => {
+    if (!isArticle || !selectedItem?.source_url) { setArticleData(null); setArticleError(""); return; }
     let cancelled = false;
     setArticleLoading(true);
     setArticleError("");
-    supabase.functions.invoke("link-metadata", { body: { url: selectedItem.source_url, includeArticle: true } })\n      .then(({ data, error }) => {\n        if (cancelled) return;
-        if (error || !data?.article?.blocks?.length) {\n          setArticleError("This article could not be opened in Reader.");
+    supabase.functions.invoke("link-metadata", { body: { url: selectedItem.source_url, includeArticle: true } })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data?.article?.blocks?.length) {
+          setArticleError("This article could not be opened in Reader.");
           setArticleData(null);
-        } else {\n          setArticleData(data);
+        } else {
+          setArticleData(data);
         }
         setArticleLoading(false);
       });
