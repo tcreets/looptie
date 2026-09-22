@@ -72,9 +72,6 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
   const [notesLoading, setNotesLoading] = useState(false);
   const [openNoteMenuId, setOpenNoteMenuId] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [articleData, setArticleData] = useState(null);
-  const [articleLoading, setArticleLoading] = useState(false);
-  const [articleError, setArticleError] = useState("");
   const noteInputRef = useRef(null);
   const articleReaderRef = useRef(null);
   const addTag = async () => {
@@ -146,25 +143,6 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
   const nativeArticleReader = isArticle && canUseNativeArticleReader();
 
   useEffect(() => {
-    if (!isArticle || !selectedItem?.source_url) { setArticleData(null); setArticleError(""); return; }
-    let cancelled = false;
-    setArticleLoading(true);
-    setArticleError("");
-    supabase.functions.invoke("link-metadata", { body: { url: selectedItem.source_url, includeArticle: true } })
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error || !data?.article?.blocks?.length) {
-          setArticleError("This article could not be opened in Reader.");
-          setArticleData(null);
-        } else {
-          setArticleData(data);
-        }
-        setArticleLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [isArticle, selectedItem?.source_url]);
-
-  useEffect(() => {
     if (!nativeArticleReader || !articleReaderRef.current || !selectedItem?.source_url) return;
     const syncReader = () => {
       const rect = articleReaderRef.current?.getBoundingClientRect();
@@ -185,7 +163,7 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
   return <div style={itemModalOverlay}><div style={itemModalCard} className="pretty-scroll">
     <button onClick={onClose} style={itemModalClose}><ArrowLeft size={22} strokeWidth={2.5} /></button>
     <button type="button" onClick={() => { trackEvent("favorite_clicked", { item_id: selectedItem.id, space: selectedItem.space, media_type: selectedItem.media_type, new_value: !itemFavoriteDraft }); onToggleFavorite(); }} style={{ ...favoriteButton, color: itemFavoriteDraft ? "var(--favorite)" : "white" }}><Heart size={28} fill={itemFavoriteDraft ? "var(--favorite)" : "transparent"} color={itemFavoriteDraft ? "var(--favorite)" : "white"} /></button>
-    {(selectedItem.media_url || selectedItem.media_type === "video") ? <video src={selectedItem.media_url || selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : selectedItem.media_type === "link" && getYouTubeId(selectedItem.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(selectedItem.source_url)}?autoplay=1&playsinline=1&rel=0`} title={selectedItem.source_title || "YouTube video"} style={itemDetailEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : selectedItem.media_type === "link" && getTikTokId(selectedItem.source_url) ? <iframe src={`https://www.tiktok.com/player/v1/${getTikTokId(selectedItem.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={selectedItem.source_title || "TikTok video"} style={itemDetailEmbed} allow="autoplay; fullscreen" allowFullScreen /> : selectedItem.media_type === "link" && getInstagramEmbedUrl(selectedItem.source_url) ? <InstagramEmbed url={selectedItem.source_url} title={selectedItem.source_title} /> : selectedItem.media_type === "link" ? <div style={articleWebWrap}><div style={articleWebChrome}><span style={articleWebSource}>{selectedItem.source_platform || "Web"}</span><a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={articleWebExternal}>Open externally <ExternalLink size={13} /></a></div>{articleLoading ? <div style={articleDevFallback}><div style={articleDevFallbackTitle}>Opening Reader…</div></div> : articleData?.article?.blocks?.length ? <div style={articleReader}><div style={articleReaderInner}>{articleData.image && <img src={articleData.image} alt="" style={articleReaderHero} />}<h1 style={articleReaderTitle}>{articleData.title || selectedItem.source_title}</h1>{(articleData.creator || selectedItem.source_creator) && <p style={articleReaderByline}>{articleData.creator || selectedItem.source_creator}</p>}<div style={articleReaderBody}>{articleData.article.blocks.map((block, index) => block.type === "image" ? <img key={index} src={block.url} alt={block.alt || ""} style={articleReaderImage} /> : block.type === "heading" ? <h2 key={index} style={articleReaderHeading}>{block.text}</h2> : block.type === "quote" ? <blockquote key={index} style={articleReaderQuote}>{block.text}</blockquote> : <p key={index} style={articleReaderParagraph}>{block.text}</p>)}</div></div></div> : nativeArticleReader ? <div ref={articleReaderRef} style={nativeArticleSlot} aria-label="Article reader" /> : <div style={articleDevFallback}><div style={articleDevFallbackTitle}>Article unavailable</div><div style={articleDevFallbackText}>{articleError || "Looptie could not extract this article."}</div><a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={articleDevFallbackLink}>View original <ExternalLink size={14} /></a></div>}</div> : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
+    {(selectedItem.media_url || selectedItem.media_type === "video") ? <video src={selectedItem.media_url || selectedItem.image} controls autoPlay playsInline muted={false} style={itemModalMedia} /> : selectedItem.media_type === "link" && getYouTubeId(selectedItem.source_url) ? <iframe src={`https://www.youtube.com/embed/${getYouTubeId(selectedItem.source_url)}?autoplay=1&playsinline=1&rel=0`} title={selectedItem.source_title || "YouTube video"} style={itemDetailEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : selectedItem.media_type === "link" && getTikTokId(selectedItem.source_url) ? <iframe src={`https://www.tiktok.com/player/v1/${getTikTokId(selectedItem.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0`} title={selectedItem.source_title || "TikTok video"} style={itemDetailEmbed} allow="autoplay; fullscreen" allowFullScreen /> : selectedItem.media_type === "link" && getInstagramEmbedUrl(selectedItem.source_url) ? <InstagramEmbed url={selectedItem.source_url} title={selectedItem.source_title} /> : selectedItem.media_type === "link" ? <div style={articleWebWrap}><div style={articleWebChrome}><span style={articleWebSource}>{selectedItem.source_platform || "Web"}</span><a href={selectedItem.source_url} target="_blank" rel="noreferrer" style={articleWebExternal}>Open externally <ExternalLink size={13} /></a></div>{nativeArticleReader ? <div ref={articleReaderRef} style={nativeArticleSlot} aria-label="In-app browser" /> : <iframe src={selectedItem.source_url} title={selectedItem.source_title || "Original webpage"} style={articleBrowserFrame} sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts" />}</div> : <img src={selectedItem.image} alt="" style={{ ...itemModalMedia, objectFit: mediaFit, cursor: "zoom-in" }} onClick={() => { trackEvent("fullscreen_opened", { item_id: selectedItem.id, space: selectedItem.space }); setShowFullscreen(true); }} onLoad={(e) => { const img = e.currentTarget; setMediaFit(img.naturalWidth > img.naturalHeight * 1.3 ? "contain" : "cover"); }} />}
     {showFullscreen && <div style={fullscreenOverlay} onClick={() => setShowFullscreen(false)}><img src={selectedItem.image} alt="" style={fullscreenImage} /></div>}
     <div style={itemModalContent}>
       <p style={itemModalSpace}>{selectedItem.space}</p>
@@ -254,6 +232,7 @@ const articleWebChrome = { height:"42px", flex:"0 0 42px", padding:"0 14px", dis
 const articleWebSource = { fontSize:"var(--text-xs)", color:"var(--text-secondary)", fontWeight:"var(--weight-semibold)" };
 const articleWebExternal = { display:"inline-flex", alignItems:"center", gap:"4px", fontSize:"var(--text-xs)", color:"var(--text-secondary)", textDecoration:"none" };
 const nativeArticleSlot = { width:"100%", flex:1, minHeight:0, background:"var(--surface)" };
+const articleBrowserFrame = { width:"100%", flex:1, minHeight:0, border:0, display:"block", background:"white" };
 const articleReader = { flex:1, overflowY:"auto", background:"var(--bg)" };
 const articleReaderInner = { width:"min(680px, 100%)", boxSizing:"border-box", margin:"0 auto", padding:"28px 22px 48px" };
 const articleReaderHero = { width:"100%", maxHeight:"380px", objectFit:"cover", borderRadius:"18px", marginBottom:"28px" };
