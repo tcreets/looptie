@@ -71,7 +71,10 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [notesLoading, setNotesLoading] = useState(false);
   const [openNoteMenuId, setOpenNoteMenuId] = useState(null);
-  const [currentUserId, setCurrentUserId] = useState(null);\n  const [articleData, setArticleData] = useState(null);\n  const [articleLoading, setArticleLoading] = useState(false);\n  const [articleError, setArticleError] = useState("");
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [articleData, setArticleData] = useState(null);
+  const [articleLoading, setArticleLoading] = useState(false);
+  const [articleError, setArticleError] = useState("");
   const noteInputRef = useRef(null);
   const articleReaderRef = useRef(null);
   const addTag = async () => {
@@ -140,7 +143,19 @@ export default function ItemDetailModal({ selectedItem, itemTagsDraft, setItemTa
     if (!selectedItem) return null;
 
   const isArticle = selectedItem.media_type === "link" && !getYouTubeId(selectedItem.source_url) && !getTikTokId(selectedItem.source_url) && !getInstagramEmbedUrl(selectedItem.source_url);
-  const nativeArticleReader = isArticle && canUseNativeArticleReader();\n\n  useEffect(() => {\n    if (!isArticle || !selectedItem?.source_url) { setArticleData(null); setArticleError(""); return; }\n    let cancelled = false;\n    setArticleLoading(true);\n    setArticleError("");\n    supabase.functions.invoke("link-metadata", { body: { url: selectedItem.source_url, includeArticle: true } })\n      .then(({ data, error }) => {\n        if (cancelled) return;\n        if (error || !data?.article?.blocks?.length) {\n          setArticleError("This article could not be opened in Reader.");\n          setArticleData(null);\n        } else {\n          setArticleData(data);\n        }\n        setArticleLoading(false);\n      });\n    return () => { cancelled = true; };\n  }, [isArticle, selectedItem?.source_url]);
+  const nativeArticleReader = isArticle && canUseNativeArticleReader();\n\n  useEffect(() => {\n    if (!isArticle || !selectedItem?.source_url) { setArticleData(null); setArticleError(""); return; }
+    let cancelled = false;
+    setArticleLoading(true);
+    setArticleError("");
+    supabase.functions.invoke("link-metadata", { body: { url: selectedItem.source_url, includeArticle: true } })\n      .then(({ data, error }) => {\n        if (cancelled) return;
+        if (error || !data?.article?.blocks?.length) {\n          setArticleError("This article could not be opened in Reader.");
+          setArticleData(null);
+        } else {\n          setArticleData(data);
+        }
+        setArticleLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [isArticle, selectedItem?.source_url]);
 
   useEffect(() => {
     if (!nativeArticleReader || !articleReaderRef.current || !selectedItem?.source_url) return;
@@ -231,7 +246,17 @@ const articleWebWrap = { width:"100%", height:"72vh", minHeight:"560px", backgro
 const articleWebChrome = { height:"42px", flex:"0 0 42px", padding:"0 14px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid var(--border)", background:"var(--bg)" };
 const articleWebSource = { fontSize:"var(--text-xs)", color:"var(--text-secondary)", fontWeight:"var(--weight-semibold)" };
 const articleWebExternal = { display:"inline-flex", alignItems:"center", gap:"4px", fontSize:"var(--text-xs)", color:"var(--text-secondary)", textDecoration:"none" };
-const nativeArticleSlot = { width:"100%", flex:1, minHeight:0, background:"var(--surface)" };\nconst articleReader = { flex:1, overflowY:"auto", background:"var(--bg)" };\nconst articleReaderInner = { width:"min(680px, 100%)", boxSizing:"border-box", margin:"0 auto", padding:"28px 22px 48px" };\nconst articleReaderHero = { width:"100%", maxHeight:"380px", objectFit:"cover", borderRadius:"18px", marginBottom:"28px" };\nconst articleReaderTitle = { margin:"0 0 10px", fontSize:"clamp(30px, 6vw, 44px)", lineHeight:1.08, letterSpacing:"-.025em", color:"var(--text-primary)" };\nconst articleReaderByline = { margin:"0 0 30px", color:"var(--text-secondary)", fontSize:"var(--text-sm)" };\nconst articleReaderBody = { color:"var(--text-primary)" };\nconst articleReaderParagraph = { margin:"0 0 22px", fontSize:"18px", lineHeight:1.72 };\nconst articleReaderHeading = { margin:"34px 0 14px", fontSize:"24px", lineHeight:1.25 };\nconst articleReaderQuote = { margin:"28px 0", paddingLeft:"18px", borderLeft:"3px solid var(--brand)", color:"var(--text-secondary)", fontSize:"19px", lineHeight:1.65 };\nconst articleReaderImage = { width:"100%", height:"auto", display:"block", borderRadius:"14px", margin:"26px 0" };
+const nativeArticleSlot = { width:"100%", flex:1, minHeight:0, background:"var(--surface)" };
+const articleReader = { flex:1, overflowY:"auto", background:"var(--bg)" };
+const articleReaderInner = { width:"min(680px, 100%)", boxSizing:"border-box", margin:"0 auto", padding:"28px 22px 48px" };
+const articleReaderHero = { width:"100%", maxHeight:"380px", objectFit:"cover", borderRadius:"18px", marginBottom:"28px" };
+const articleReaderTitle = { margin:"0 0 10px", fontSize:"clamp(30px, 6vw, 44px)", lineHeight:1.08, letterSpacing:"-.025em", color:"var(--text-primary)" };
+const articleReaderByline = { margin:"0 0 30px", color:"var(--text-secondary)", fontSize:"var(--text-sm)" };
+const articleReaderBody = { color:"var(--text-primary)" };
+const articleReaderParagraph = { margin:"0 0 22px", fontSize:"18px", lineHeight:1.72 };
+const articleReaderHeading = { margin:"34px 0 14px", fontSize:"24px", lineHeight:1.25 };
+const articleReaderQuote = { margin:"28px 0", paddingLeft:"18px", borderLeft:"3px solid var(--brand)", color:"var(--text-secondary)", fontSize:"19px", lineHeight:1.65 };
+const articleReaderImage = { width:"100%", height:"auto", display:"block", borderRadius:"14px", margin:"26px 0" };
 const articleDevFallback = { flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"10px", padding:"28px", textAlign:"center", background:"var(--surface)" };
 const articleDevFallbackTitle = { color:"var(--text-primary)", fontSize:"var(--text-md)", fontWeight:"var(--weight-bold)" };
 const articleDevFallbackText = { maxWidth:"420px", color:"var(--text-secondary)", fontSize:"var(--text-sm)", lineHeight:1.5 };
