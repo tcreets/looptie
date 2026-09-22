@@ -41,22 +41,20 @@ export default function FeedShareModal({ feed, onClose }) {
         <div><div style={eyebrow}>COLLABORATIVE FEED</div><h2 style={title}>Share {feed.name}</h2></div>
         <button type="button" style={iconButton} onClick={onClose} aria-label="Close"><X size={20} /></button>
       </div>
-      <p style={copy}>Each invite lets one person join this Feed and expires after 48 hours.</p>
+      <p style={copy}>Anyone with this link can join this Feed for 48 hours.</p>
 
       {!shareUrl ? (
         <button type="button" style={primaryButton} onClick={createLink} disabled={creating}>
-          <Share2 size={18} />{creating ? "Creating invite…" : "Create invite link"}
+          <Share2 size={18} />{creating ? "Creating link…" : "Create share link"}
         </button>
       ) : (
         <div style={linkBlock}>
           <div style={linkPreview}>{shareUrl}</div>
-          <div style={expiryNote}>One person · Expires in 48 hours</div>
+          <div style={expiryNote}>Expires in 48 hours</div>
           <button type="button" style={primaryButton} onClick={shareLink}>
-            {copied ? <Check size={18} /> : <Copy size={18} />}{copied ? "Copied" : (navigator.share ? "Share invite" : "Copy invite")}
+            {copied ? <Check size={18} /> : <Copy size={18} />}{copied ? "Copied" : (navigator.share ? "Share link" : "Copy link")}
           </button>
-          <button type="button" style={secondaryButton} onClick={createLink} disabled={creating}>
-            <Share2 size={17} />{creating ? "Creating invite…" : "Create another invite"}
-          </button>
+          
         </div>
       )}
     </div>
