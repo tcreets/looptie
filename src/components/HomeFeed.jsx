@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Volume2, VolumeX, Pause, Play, SquarePen, Heart, ArrowDownUp, Check, Link2, BookmarkPlus } from "lucide-react";
+import { Volume2, VolumeX, Pause, Play, SquarePen, Heart, ArrowDownUp, Check, Link2, BookmarkPlus, FileText } from "lucide-react";
 import { trackEvent } from "../utils/trackEvent";
 
 function getYouTubeId(url) {
@@ -57,6 +57,10 @@ function InstagramEmbed({ url, title, style }) {
       <a href={url} target="_blank" rel="noreferrer">{title || "View this post on Instagram"}</a>
     </blockquote>
   </div>;
+}
+
+function isArticleLink(item) {
+  return item.media_type === "link" && !getYouTubeId(item.source_url) && !getTikTokId(item.source_url) && !getInstagramEmbedUrl(item.source_url);
 }
 
 function SmartImage({ src, style }) {
@@ -174,6 +178,7 @@ export default function HomeFeed({ spaces, activeFeed, setActiveFeed, feedRef, f
           <div key={item.id} data-feed-card-id={item.id} style={feedCard}>
             {item.media_type === "video" || (item.media_type === "link" && item.media_url && (getInstagramEmbedUrl(item.source_url) || getTikTokId(item.source_url))) ? <video data-item-id={item.id} ref={(el) => { if (el) videoRefs.current[item.id] = el; }} src={item.media_url || item.image} style={videoStyle} autoPlay muted loop playsInline preload="metadata" /> : item.media_type === "link" && getYouTubeId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) youtubeRefs.current[item.id] = el; }} src={String(activeItemId) === String(item.id) ? `https://www.youtube.com/embed/${getYouTubeId(item.source_url)}?enablejsapi=1&autoplay=1&mute=1&playsinline=1&rel=0` : "about:blank"} title={item.source_title || "YouTube video"} style={youtubeEmbed} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /> : item.media_type === "link" && getTikTokId(item.source_url) ? <iframe data-item-id={item.id} ref={(el) => { if (el) tiktokRefs.current[item.id] = el; }} src={String(activeItemId) === String(item.id) ? `https://www.tiktok.com/player/v1/${getTikTokId(item.source_url)}?autoplay=1&loop=1&controls=1&volume_control=1&rel=0` : "about:blank"} title={item.source_title || "TikTok video"} style={youtubeEmbed} allow="autoplay; fullscreen" allowFullScreen /> : item.media_type === "link" && getInstagramEmbedUrl(item.source_url) ? <InstagramEmbed url={item.source_url} title={item.source_title} style={instagramEmbedWrap} /> : item.media_type === "link" && !item.image ? <div style={linkFallback}><div style={linkFallbackIcon}><Link2 size={34} /></div><div style={linkFallbackSource}>{item.source_platform || "Web"}</div><h2 style={linkFallbackTitle}>{item.source_title || "Saved link"}</h2></div> : <SmartImage src={item.image} style={imageStyle} />}
             <div style={overlayStyle} />
+            {isArticleLink(item) && <><div style={articleIndicator} aria-label="Article"><FileText size={22} strokeWidth={2.2} /></div><div style={articleMetadata}><h2 style={articleFeedTitle}>{item.source_title || "Saved article"}</h2><div style={articleFeedMeta}>{[item.source_creator, item.source_platform].filter(Boolean).join(" · ") || "Web"}</div></div></>}
             {item.favorite && <div style={favoriteIndicator}><Heart fill="var(--favorite)" color="var(--favorite)" size={28} /></div>}
             <div style={floatingActions}>
               {(item.media_type === "video" || (item.media_type === "link" && item.media_url && (getInstagramEmbedUrl(item.source_url) || getTikTokId(item.source_url)))) && <>
@@ -217,6 +222,10 @@ const feedCard = { position:"relative", height:"100%", minHeight:"calc(100vh - 1
 const imageStyle = { width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" };
 const videoStyle = { ...imageStyle, objectFit:"contain", background:"#000" };
 const overlayStyle = { position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,.35), transparent)", pointerEvents:"none" };
+const articleIndicator = { position:"absolute", top:"18px", left:"18px", width:"44px", height:"44px", borderRadius:"999px", display:"flex", alignItems:"center", justifyContent:"center", color:"white", background:"rgba(0,0,0,.48)", border:"1px solid rgba(255,255,255,.18)", backdropFilter:"blur(8px)", zIndex:4 };
+const articleMetadata = { position:"absolute", left:"22px", right:"88px", bottom:"34px", zIndex:4, color:"white", textShadow:"0 2px 12px rgba(0,0,0,.75)", pointerEvents:"none" };
+const articleFeedTitle = { margin:"0 0 7px", fontSize:"clamp(24px, 5vw, 38px)", lineHeight:1.08, letterSpacing:"-.02em", fontWeight:"var(--weight-bold)", color:"white" };
+const articleFeedMeta = { fontSize:"var(--text-md)", color:"rgba(255,255,255,.78)", fontWeight:"var(--weight-medium)" };
 const favoriteIndicator = { position:"absolute", top:"18px", left:"18px", color:"var(--favorite)", fontSize:"30px", zIndex:3, textShadow:"0 2px 10px rgba(0,0,0,.6)", opacity:.9 };
 const emptyState = { alignSelf:"start", justifySelf:"center", width:"min(100% - 40px, 420px)", marginTop:"clamp(70px, 16vh, 150px)", textAlign:"center", color:"var(--text-secondary)", display:"flex", flexDirection:"column", alignItems:"center" };
 const emptyVisual = { width:"112px", height:"96px", position:"relative", marginBottom:"24px" };
