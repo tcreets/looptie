@@ -18,6 +18,7 @@ import { useItems } from "./hooks/useItems";
 import { useItemModal } from "./hooks/useItemModal";
 import { useSearch } from "./hooks/useSearch";
 import { useAuth } from "./hooks/useAuth";
+import { useActivity } from "./hooks/useActivity";
 import { trackEvent } from "./utils/trackEvent";
 import { supabase } from "./utils/supabaseClient";
 
@@ -35,6 +36,7 @@ export default function App() {
   const { feedItems, setFeedItems, itemsLoading, saveItemTags, toggleFavorite, deleteItem, deleteAllUserItemsAndStorage } = useItems(user);
   const { selectedItem, itemFavoriteDraft, setItemFavoriteDraft, itemTagsDraft, setItemTagsDraft, openItemModal, closeItemModal } = useItemModal();
   const { searchTerm, setSearchTerm, searchResults } = useSearch(feedItems);
+  const { activities, hasUnreadActivity, markAllRead } = useActivity(user);
 
   const currentFeed = activeFeed || defaultFeed;
   const currentFeedRecord = spaces.find((feed) => feed.name === currentFeed);
@@ -89,12 +91,12 @@ export default function App() {
         {tab === "spaces" && <Spaces user={user} spaces={spaces} setSpaces={setSpaces} defaultFeed={defaultFeed} setDefaultFeed={saveDefaultFeed} selectedSpace={selectedSpace} setSelectedSpace={setSelectedSpace} feedItems={feedItems} setFeedItems={setFeedItems} setSelectedItem={openItemModal} setShowNewSpaceForm={setShowNewSpaceForm} setUploadSpace={setUploadSpace} setTab={setTab} renameSpace={renameSpace} onDeleteSpace={(spaceName) => deleteSpace(spaceName, feedItems, setFeedItems, setSelectedSpace)} />}
         {tab === "search" && <SearchScreen searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchResults={searchResults} setSelectedItem={openItemModal} spaces={spaces} />}
         {tab === "add" && <AddContentScreen user={user} spaces={spaces} setSpaces={setSpaces} defaultFeed={defaultFeed} uploadSpace={uploadSpace} setUploadSpace={setUploadSpace} selectedFiles={selectedFiles} setSelectedFiles={setSelectedFiles} feedItems={feedItems} setFeedItems={setFeedItems} setActiveFeed={setActiveFeed} setTab={setTab} />}
-        {tab === "profile" && <Profile items={feedItems} spaces={spaces} setSelectedItem={openItemModal} setTab={setTab} profile={profile} />}
+        {tab === "profile" && <Profile items={feedItems} spaces={spaces} setSelectedItem={openItemModal} setTab={setTab} profile={profile} activities={activities} hasUnreadActivity={hasUnreadActivity} markAllRead={markAllRead} onOpenActivityFeed={(feed) => { setSelectedSpace(feed); setTab("spaces"); }} />}
         {tab === "settings" && <SettingsScreen profile={profile} spaces={spaces} defaultFeed={defaultFeed} setDefaultFeed={setDefaultFeed} setActiveFeed={setActiveFeed} setProfile={setProfile} setTab={setTab} user={user} deleteAllUserItemsAndStorage={deleteAllUserItemsAndStorage} />}
         {showNewSpaceForm && <CreateSpaceModal user={user} newSpaceName={newSpaceName} setNewSpaceName={setNewSpaceName} spaces={spaces} setSpaces={setSpaces} setSelectedSpace={setSelectedSpace} setShowNewSpaceForm={setShowNewSpaceForm} setTab={setTab} />}
         {selectedItem && <ItemDetailModal selectedItem={selectedItem} itemTagsDraft={itemTagsDraft} setItemTagsDraft={setItemTagsDraft} onClose={closeItemModal} itemFavoriteDraft={itemFavoriteDraft} setItemFavoriteDraft={setItemFavoriteDraft} onToggleFavorite={async () => { const nextFavorite = !itemFavoriteDraft; setItemFavoriteDraft(nextFavorite); await toggleFavorite(selectedItem, nextFavorite); }} onSaveTags={(tags) => saveItemTags(selectedItem, tags)} onDelete={() => deleteItem({ selectedItem, closeItemModal })} canDeleteItem={selectedItem.added_by === user.id || spaces.some((space) => space.id === selectedItem.space_id && space.user_id === user.id)} />}
       </div>
-      <BottomNav setTab={setTab} setSelectedSpace={setSelectedSpace} />
+      <BottomNav setTab={setTab} setSelectedSpace={setSelectedSpace} hasUnreadActivity={hasUnreadActivity} />
     </div>
   );
 }
