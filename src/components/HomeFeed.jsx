@@ -251,9 +251,9 @@ const sortMenu = { position:"absolute", top:"48px", right:0, width:"180px", padd
 const sortMenuItem = { width:"100%", border:"none", background:"transparent", color:"var(--text-primary)", padding:"11px 10px", borderRadius:"11px", display:"flex", alignItems:"center", justifyContent:"space-between", fontSize:"var(--text-sm)", cursor:"pointer" };
 
 const linkFallback = { width:"100%", height:"100%", minHeight:"calc(100vh - 118px)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"14px", padding:"40px", boxSizing:"border-box", textAlign:"center", background:"var(--surface)" };
-const articleFallbackContent = { display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"10px" };
-const articleFallbackIcon = { width:"62px", height:"62px", borderRadius:"20px", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--brand)", background:"var(--surface-elevated)", border:"1px solid var(--border)" };
-const articleFallbackDomain = { margin:"4px 0 0", color:"var(--text-primary)", fontSize:"clamp(24px, 5vw, 34px)", lineHeight:1.1 };
+const articleFallbackContent = { position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"10px", borderRadius:"inherit", background:"radial-gradient(circle at 12% 100%, rgba(109,40,217,.16), transparent 32%), radial-gradient(circle at 82% 0%, rgba(139,92,246,.12), transparent 38%), linear-gradient(145deg, var(--surface-elevated), var(--surface))" };
+const articleFallbackIcon = { width:"52px", height:"52px", borderRadius:"999px", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--brand)", background:"color-mix(in srgb, var(--surface-elevated) 82%, transparent)", border:"1px solid var(--border)", backdropFilter:"blur(8px)" };
+const articleFallbackDomain = { margin:"8px 0 0", color:"var(--text-primary)", fontSize:"clamp(24px, 5vw, 34px)", lineHeight:1.1, fontWeight:"var(--weight-bold)" };
 const articleFallbackType = { color:"var(--text-secondary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-medium)" };
 const linkFallbackIcon = { width:"72px", height:"72px", borderRadius:"22px", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--brand)", background:"var(--surface-elevated)", border:"1px solid var(--border)" };
 const linkFallbackSource = { color:"var(--text-secondary)", fontSize:"var(--text-sm)", fontWeight:"var(--weight-semibold)" };
