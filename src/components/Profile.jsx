@@ -24,7 +24,7 @@ export default function Profile({ items, spaces, setSelectedItem, setTab, profil
           <div style={profileStatCard}><strong style={profileStatNumber}>{spaces.length}</strong><span style={profileStatLabel}>Feeds</span></div>
         </div>
         <div style={profileTabs}>
-          <button style={{ ...profileTab, background: profileView === "all" ? "var(--brand)" : "var(--surface-elevated)", borderColor: profileView === "all" ? "var(--brand)" : "var(--border)", color: profileView === "all" ? "white" : "var(--text-primary)" }} onClick={() => setProfileView("all")}>All</button>
+          <button style={{ ...profileTab, background: profileView === "all" ? "var(--brand)" : "var(--surface-elevated)", borderColor: profileView === "all" ? "var(--brand)" : "var(--border)", color: profileView === "all" ? "white" : "var(--text-primary)" }} onClick={() => setProfileView("all")}>Saves</button>
           <button style={{ ...profileTab, background: profileView === "favorites" ? "var(--brand)" : "var(--surface-elevated)", borderColor: profileView === "favorites" ? "var(--brand)" : "var(--border)", color: profileView === "favorites" ? "white" : "var(--text-primary)" }} onClick={() => setProfileView("favorites")}>Favorites</button>
           <button style={profileTab} onClick={() => setTab("activity")}>Activity</button>
         </div>
