@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Settings, Heart, Play, BookmarkPlus } from "lucide-react";
+import Activity from "./Activity";
 
 function SmartImage({ src, style }) {
   const [fit, setFit] = useState("cover");
   return <img src={src} loading="lazy" alt="" style={{ ...style, objectFit: fit, background: "var(--bg)" }} onLoad={(e) => { const img = e.currentTarget; setFit(img.naturalWidth > img.naturalHeight ? "contain" : "cover"); }} />;
 }
 
-export default function Profile({ items, spaces, setSelectedItem, setTab, profile }) {
+export default function Profile({ items, spaces, setSelectedItem, setTab, profile, activities = [], hasUnreadActivity = false, markAllRead, onOpenActivityFeed }) {
   const favoriteItems = items.filter((item) => item.favorite);
   const [profileView, setProfileView] = useState("all");
   const visibleItems = profileView === "favorites" ? favoriteItems : items;
+  const openActivity = () => { setProfileView("activity"); markAllRead?.(); };
   return (
     <div style={profilePage} className="no-scrollbar">
       <div style={profileStickyTop}>
@@ -26,10 +28,10 @@ export default function Profile({ items, spaces, setSelectedItem, setTab, profil
         <div style={profileTabs}>
           <button style={{ ...profileTab, background: profileView === "all" ? "var(--brand)" : "var(--surface-elevated)", borderColor: profileView === "all" ? "var(--brand)" : "var(--border)", color: profileView === "all" ? "white" : "var(--text-primary)" }} onClick={() => setProfileView("all")}>Saves</button>
           <button style={{ ...profileTab, background: profileView === "favorites" ? "var(--brand)" : "var(--surface-elevated)", borderColor: profileView === "favorites" ? "var(--brand)" : "var(--border)", color: profileView === "favorites" ? "white" : "var(--text-primary)" }} onClick={() => setProfileView("favorites")}>Favorites</button>
-          <button style={profileTab} onClick={() => setTab("activity")}>Activity</button>
+          <button style={{ ...profileTab, position:"relative", background: profileView === "activity" ? "var(--brand)" : "var(--surface-elevated)", borderColor: profileView === "activity" ? "var(--brand)" : "var(--border)", color: profileView === "activity" ? "white" : "var(--text-primary)" }} onClick={openActivity}>Activity{hasUnreadActivity && <span style={activityDot} />}</button>
         </div>
       </div>
-      <div style={profileGrid}>
+      {profileView === "activity" ? <Activity activities={activities} spaces={spaces} items={items} onOpenItem={setSelectedItem} onOpenFeed={onOpenActivityFeed} /> : <div style={profileGrid}>
         {visibleItems.length === 0 && (
           <div style={emptyState}>
             <div style={emptyVisual} aria-hidden="true">
@@ -56,7 +58,7 @@ export default function Profile({ items, spaces, setSelectedItem, setTab, profil
           {item.favorite && <div style={profileFavoriteBadge}><Heart fill="var(--favorite)" color="var(--favorite)" size={24} /></div>}
           <div style={profileOverlay}><span>{item.space}</span></div>
         </div>)}
-      </div>
+      </div>}
     </div>
   );
 }
@@ -87,3 +89,5 @@ const emptyCopy = { maxWidth: "340px", margin: "0 0 24px", fontSize: "var(--text
 const emptyButton = { border: "none", borderRadius: "999px", padding: "13px 19px", background: "var(--brand)", color: "white", fontWeight: "var(--weight-bold)", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", boxShadow: "0 8px 22px rgba(var(--brand-rgb),.22)" };
 const settingsButton = { marginLeft: "auto", width: "38px", height: "38px", borderRadius: "999px", border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
 const videoBadge = { position: "absolute", top: "10px", left: "10px", width: "32px", height: "32px", borderRadius: "999px", background: "rgba(0,0,0,.65)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3 };
+
+const activityDot = { position:"absolute", top:"5px", right:"6px", width:"7px", height:"7px", borderRadius:"999px", background:"var(--favorite)", boxShadow:"0 0 0 2px var(--surface-elevated)" };
