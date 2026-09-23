@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Heart, Play, BookmarkPlus, Bell } from "lucide-react";
+import { Settings, Heart, Play, BookmarkPlus } from "lucide-react";
 
 function SmartImage({ src, style }) {
   const [fit, setFit] = useState("cover");
@@ -26,7 +26,7 @@ export default function Profile({ items, spaces, setSelectedItem, setTab, profil
         <div style={profileTabs}>
           <button style={{ ...profileTab, background: profileView === "all" ? "var(--brand)" : "var(--surface-elevated)", borderColor: profileView === "all" ? "var(--brand)" : "var(--border)", color: profileView === "all" ? "white" : "var(--text-primary)" }} onClick={() => setProfileView("all")}>All</button>
           <button style={{ ...profileTab, background: profileView === "favorites" ? "var(--brand)" : "var(--surface-elevated)", borderColor: profileView === "favorites" ? "var(--brand)" : "var(--border)", color: profileView === "favorites" ? "white" : "var(--text-primary)" }} onClick={() => setProfileView("favorites")}>Favorites</button>
-          <button style={activityButton} onClick={() => setTab("activity")}><Bell size={17} />Activity</button>
+          <button style={profileTab} onClick={() => setTab("activity")}>Activity</button>
         </div>
       </div>
       <div style={profileGrid}>
@@ -87,4 +87,3 @@ const emptyCopy = { maxWidth: "340px", margin: "0 0 24px", fontSize: "var(--text
 const emptyButton = { border: "none", borderRadius: "999px", padding: "13px 19px", background: "var(--brand)", color: "white", fontWeight: "var(--weight-bold)", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", boxShadow: "0 8px 22px rgba(var(--brand-rgb),.22)" };
 const settingsButton = { marginLeft: "auto", width: "38px", height: "38px", borderRadius: "999px", border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
 const videoBadge = { position: "absolute", top: "10px", left: "10px", width: "32px", height: "32px", borderRadius: "999px", background: "rgba(0,0,0,.65)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3 };
-const activityButton = { marginLeft:"auto", border:"1px solid var(--border)", borderRadius:"999px", padding:"9px 14px", background:"var(--surface-elevated)", color:"var(--text-primary)", fontWeight:"var(--weight-bold)", cursor:"pointer", display:"flex", alignItems:"center", gap:"7px" };
