@@ -3,12 +3,12 @@ import { UserPlus, UserMinus, MessageCircle, BookmarkPlus } from "lucide-react";
 function labelFor(a, spaces, items) {
   const feed=spaces.find(s=>s.id===a.feed_id);
   const item=items.find(i=>i.id===a.item_id);
-  const feedName=feed?.name || "a shared Feed";
+  const feedName=feed?.name || a.feed_name || "a shared Feed";
   const actor=a.actor_name || "Someone";
   if(a.event_type==="item_added") return {text:`${actor} added a save to ${feedName}`, icon:BookmarkPlus, item};
   if(a.event_type==="note_added") return {text:`${actor} added a note in ${feedName}`, icon:MessageCircle, item};
-  if(a.event_type==="member_joined") return {text:`${actor} joined ${feedName}`, icon:UserPlus, feed};
-  if(a.event_type==="member_left") return {text:`${actor} left ${feedName}`, icon:UserMinus, feed};
+  if(a.event_type==="member_joined") return {text:`${actor} joined ${feedName}`, icon:UserPlus, feed: feed || (a.feed_id ? { id:a.feed_id, name:feedName } : null)};
+  if(a.event_type==="member_left") return {text:`${actor} left ${feedName}`, icon:UserMinus, feed: feed || (a.feed_id ? { id:a.feed_id, name:feedName } : null)};
   return {text:`You were removed from ${feedName}`, icon:UserMinus, feed};
 }
 export default function Activity({activities,spaces,items,onOpenItem,onOpenFeed}){
