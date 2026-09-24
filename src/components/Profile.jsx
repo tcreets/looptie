@@ -90,4 +90,4 @@ const emptyButton = { border: "none", borderRadius: "999px", padding: "13px 19px
 const settingsButton = { marginLeft: "auto", width: "38px", height: "38px", borderRadius: "999px", border: "1px solid var(--border)", background: "var(--surface-elevated)", color: "var(--text-primary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" };
 const videoBadge = { position: "absolute", top: "10px", left: "10px", width: "32px", height: "32px", borderRadius: "999px", background: "rgba(0,0,0,.65)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3 };
 
-const activityDot = { position:"absolute", top:"5px", right:"6px", width:"7px", height:"7px", borderRadius:"999px", background:"var(--favorite)", boxShadow:"0 0 0 2px var(--surface-elevated)" };
+const activityDot = { position:"absolute", top:"3px", right:"4px", width:"9px", height:"9px", borderRadius:"999px", background:"var(--favorite)", boxShadow:"0 0 0 2px var(--surface-elevated)" };
