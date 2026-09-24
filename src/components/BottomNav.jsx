@@ -21,4 +21,4 @@ const navStyle = { display:"flex", alignItems:"center", justifyContent:"space-ar
 const navButton = { width:"44px", height:"44px", background:"transparent", color:"var(--text-primary)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0 };
 const addNavButton = { width:"50px", height:"50px", borderRadius:"17px", border:"none", background:"var(--brand)", color:"white", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0, lineHeight:1, boxShadow:"0 5px 16px rgba(var(--brand-rgb),.28)" };
 
-const profileActivityDot = { position:"absolute", top:"7px", right:"7px", width:"8px", height:"8px", borderRadius:"999px", background:"var(--favorite)", boxShadow:"0 0 0 2px var(--surface)" };
+const profileActivityDot = { position:"absolute", top:"5px", right:"5px", width:"11px", height:"11px", borderRadius:"999px", background:"var(--favorite)", boxShadow:"0 0 0 2px var(--surface), 0 1px 5px rgba(var(--brand-rgb),.45)" };
