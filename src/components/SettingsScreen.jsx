@@ -10,21 +10,34 @@ const applyTheme = (theme) => {
 
 export default function SettingsScreen({ profile, spaces, defaultFeed, setDefaultFeed, setActiveFeed, setProfile, setTab, user, deleteAllUserItemsAndStorage }) {
   const [displayName, setDisplayName] = useState(profile?.display_name || "");
+  const [email, setEmail] = useState(user?.email || profile?.email || "");
   const [selectedDefault, setSelectedDefault] = useState(defaultFeed || "");
   const [theme, setTheme] = useState(getStoredTheme);
+  const [saving, setSaving] = useState(false);
 
   const changeTheme = (nextTheme) => { setTheme(nextTheme); applyTheme(nextTheme); };
 
   const saveSettings = async () => {
+    if (saving) return;
     const cleanName = displayName.trim();
+    const cleanEmail = email.trim();
     if (!selectedDefault) { alert("Choose a default feed."); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) { alert("Enter a valid email address."); return; }
+    setSaving(true);
     const { data, error } = await supabase.from("profiles").update({ display_name: cleanName, default_space: selectedDefault }).eq("user_id", user.id).select().single();
-    if (error) { alert(error.message); return; }
+    if (error) { alert(error.message); setSaving(false); return; }
     const { error: spacesError } = await supabase.from("spaces").update({ is_default: false }).eq("user_id", user.id);
-    if (spacesError) { alert(spacesError.message); return; }
+    if (spacesError) { alert(spacesError.message); setSaving(false); return; }
     const { error: defaultSpaceError } = await supabase.from("spaces").update({ is_default: true }).eq("user_id", user.id).eq("name", selectedDefault);
-    if (defaultSpaceError) { alert(defaultSpaceError.message); return; }
-    setProfile(data); setDefaultFeed(selectedDefault); setActiveFeed(selectedDefault); alert("Settings saved.");
+    if (defaultSpaceError) { alert(defaultSpaceError.message); setSaving(false); return; }
+    setProfile(data); setDefaultFeed(selectedDefault); setActiveFeed(selectedDefault);
+    if (cleanEmail.toLowerCase() !== user.email?.toLowerCase()) {
+      const { error: emailError } = await supabase.auth.updateUser({ email: cleanEmail }, { emailRedirectTo: window.location.origin });
+      if (emailError) { alert(`Other settings saved, but the email change failed: ${emailError.message}`); setSaving(false); return; }
+      alert("Settings saved. Check your email for confirmation links to finish changing your address.");
+    }
+    setSaving(false);
+    setTab("profile");
   };
 
   const handleDeleteAccount = async () => {
@@ -40,7 +53,7 @@ export default function SettingsScreen({ profile, spaces, defaultFeed, setDefaul
     <button style={backButton} onClick={() => setTab("profile")}>←</button>
     <h1 style={title}>Settings</h1>
     <label style={label}>Display name</label><input style={input} value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-    <label style={label}>Email</label><input style={{ ...input, opacity:.7, cursor:"not-allowed" }} value={profile?.email || ""} disabled />
+    <label style={label} htmlFor="settings-email">Email</label><input id="settings-email" style={input} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
     <label style={label}>Default Feed</label><select style={input} value={selectedDefault} onChange={(e) => setSelectedDefault(e.target.value)}>{spaces.map((space) => <option key={space.id} value={space.name}>{space.name}</option>)}</select>
 
     <label style={label}>Appearance</label>
@@ -49,7 +62,7 @@ export default function SettingsScreen({ profile, spaces, defaultFeed, setDefaul
     </div>
     <p style={appearanceHint}>{theme === "system" ? "Matches your device appearance." : `Looptie will stay in ${theme} mode.`}</p>
 
-    <button style={saveButton} onClick={saveSettings}>Save Settings</button>
+    <button style={{ ...saveButton, opacity: saving ? .5 : 1 }} disabled={saving} onClick={saveSettings}>{saving ? "Saving…" : "Save Settings"}</button>
     <button style={logoutButton} onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }}>Log Out</button>
     <button style={deleteButton} onClick={handleDeleteAccount}>Delete Account</button>
   </div>;

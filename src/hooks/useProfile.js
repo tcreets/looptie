@@ -57,7 +57,7 @@ export function useProfile(user, setDefaultFeed, setActiveFeed, setUploadSpace) 
         return;
       }
 
-      if (data && !data.email && user.email) {
+      if (data && user.email && data.email !== user.email) {
         const { data: updatedProfile, error: emailUpdateError } = await supabase
           .from("profiles")
           .update({ email: user.email })
