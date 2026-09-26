@@ -53,7 +53,7 @@ export function useSpaces(user) {
       .eq("user_id", user.id);
 
     if (resetError) {
-      console.error("Error resetting default spaces:", resetError);
+      console.error("Error resetting default feeds:", resetError);
       return;
     }
 
@@ -64,7 +64,7 @@ export function useSpaces(user) {
       .eq("name", spaceName);
 
     if (defaultError) {
-      console.error("Error setting default space:", defaultError);
+      console.error("Error setting default feed:", defaultError);
       return;
     }
 
@@ -74,7 +74,7 @@ export function useSpaces(user) {
       .eq("user_id", user.id);
 
     if (profileError) {
-      console.error("Error updating profile default space:", profileError);
+      console.error("Error updating profile default feed:", profileError);
       return;
     }
 
@@ -181,7 +181,7 @@ export function useSpaces(user) {
   const cleanName = newName.trim();
 
   if (!cleanName) {
-    alert("Space name cannot be blank.");
+    alert("Feed name cannot be blank.");
     return false;
   }
 
@@ -192,7 +192,7 @@ export function useSpaces(user) {
   );
 
   if (duplicateSpace) {
-    alert("You already have a space with that name.");
+    alert("You already have a feed with that name.");
     return false;
   }
 
@@ -210,7 +210,7 @@ export function useSpaces(user) {
   }
 
   if (!updatedSpace) {
-    alert("Rename failed. No space was updated.");
+    alert("Rename failed. No feed was updated.");
     return false;
   }
 

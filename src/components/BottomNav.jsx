@@ -7,7 +7,7 @@ export default function BottomNav({ setTab, setSelectedSpace, hasUnreadActivity 
     <div style={navWrap}>
       <div style={navStyle}>
         <button aria-label="Home" title="Home" onClick={() => { trackEvent("tab_changed", { tab: "home" }); setTab("home"); }} style={navButton}><Home size={24} /></button>
-        <button aria-label="Spaces" title="Spaces" onClick={() => { trackEvent("tab_changed", { tab: "spaces" }); setTab("spaces"); setSelectedSpace(null); }} style={navButton}><Layers3 size={24} /></button>
+        <button aria-label="Feeds" title="Feeds" onClick={() => { trackEvent("tab_changed", { tab: "spaces" }); setTab("spaces"); setSelectedSpace(null); }} style={navButton}><Layers3 size={24} /></button>
         <button aria-label="Add content" title="Add content" onClick={() => { trackEvent("tab_changed", { tab: "add" }); setTab("add"); }} style={addNavButton}><Plus size={30} strokeWidth={3} /></button>
         <button aria-label="Search" title="Search" onClick={() => { trackEvent("tab_changed", { tab: "search" }); setTab("search"); }} style={navButton}><Search size={24} /></button>
         <button aria-label="Profile" title="Profile" onClick={() => { trackEvent("tab_changed", { tab: "profile" }); setTab("profile"); }} style={{...navButton,position:"relative"}}><User size={24} />{hasUnreadActivity && <span style={profileActivityDot} />}</button>

@@ -16,7 +16,7 @@ export default function Search({ searchTerm, setSearchTerm, searchResults, setSe
 
       {searchTerm === "" ? <div style={searchPrompt}>Find anything you've saved across Looptie.</div> : <>
         <div style={resultsCount}>{searchResults.length} {searchResults.length === 1 ? "result" : "results"}</div>
-        {searchResults.length === 0 ? <div style={emptyState}><h3>No results found</h3><p>Try another word, tag, or space.</p></div> : <div style={searchResultsGrid}>
+        {searchResults.length === 0 ? <div style={emptyState}><h3>No results found</h3><p>Try another word, tag, or feed.</p></div> : <div style={searchResultsGrid}>
           {searchResults.map((item) => <button key={item.id} style={searchResultTile} onClick={() => { trackEvent("item_opened", { item_id: item.id, space: item.space, media_type: item.media_type, source: "search" }); setSelectedItem(item); }}>
             {item.media_type === "video" ? <video src={item.image} style={searchResultMedia} muted playsInline /> : <img src={item.image} alt="" loading="lazy" style={searchResultMedia} />}
             {item.media_type === "video" && <div style={videoIndicator}><Play size={15} fill="currentColor" /></div>}

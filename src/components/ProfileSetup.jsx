@@ -60,7 +60,7 @@ const [displayName, setDisplayName] = useState("");
   return (
     <div style={page}>
       <h1>Set up your Looptie</h1>
-      <p style={subtitle}>Let’s make your space feel like yours.</p>
+      <p style={subtitle}>Let’s make your feed feel like yours.</p>
 
       <input
         style={input}
@@ -73,7 +73,7 @@ const [displayName, setDisplayName] = useState("");
        style={input}
        value={firstSpace}
        onChange={(e) => setFirstSpace(e.target.value)}
-       placeholder="Create your first space"
+       placeholder="Create your first feed"
      />
 
       <button style={button} onClick={saveProfile}>

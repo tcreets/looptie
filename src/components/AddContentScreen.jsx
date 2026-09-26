@@ -27,7 +27,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     if (!selectedFiles.length) return;
     const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
     const selectedSpaceRecord = spaces.find((feed) => feed.name === selectedSpaceName);
-    if (!selectedSpaceName || !selectedSpaceRecord) { alert("Choose or create a Feed before saving."); return; }
+    if (!selectedSpaceName || !selectedSpaceRecord) { alert("Choose or create a feed before saving."); return; }
     const uploadStart = Date.now();
     setIsUploading(true); setUploadProgress("Saving to Looptie...");
     const safeSpace = selectedSpaceName.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-_]/g, "");
@@ -68,7 +68,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     if (isCreatingSpace) return;
     const trimmedName = newSpaceName.trim(); if (!trimmedName) return;
     const duplicateSpace = spaces.some((space) => (typeof space === "string" ? space : space.name).toLowerCase() === trimmedName.toLowerCase());
-    if (duplicateSpace) { alert("You already have a space with that name."); return; }
+    if (duplicateSpace) { alert("You already have a feed with that name."); return; }
     setIsCreatingSpace(true);
     const { data: newSpace, error } = await supabase.from("spaces").insert({ user_id: user.id, name: trimmedName, is_default: false }).select().single();
     if (error) { alert(error.message); setIsCreatingSpace(false); return; }
@@ -184,7 +184,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
     const selectedSpaceName = typeof uploadSpace === "string" ? uploadSpace : uploadSpace?.name;
     const selectedSpaceRecord = spaces.find((feed) => feed.name === selectedSpaceName);
     if (!preview) { setLinkError("Enter a valid link."); return; }
-    if (!selectedSpaceName || !selectedSpaceRecord) { setLinkError("Choose a Feed before saving."); return; }
+    if (!selectedSpaceName || !selectedSpaceRecord) { setLinkError("Choose a feed before saving."); return; }
     if (isLoadingMetadata) { setLinkError("Wait for the preview to finish loading."); return; }
     setLinkError("");
     setIsSavingLink(true);
@@ -239,19 +239,19 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
         <div style={linkPreviewCopy}><strong>{linkMetadata?.title || (linkPreview.source === "YouTube" ? "YouTube video" : linkPreview.host)}</strong><span style={addCardSubtitle}>{linkMetadata?.creator || linkMetadata?.siteName || linkPreview.source}</span></div>
       </div>}
       {linkPreview && <div style={linkSaveBlock}>
-        <label style={linkFieldLabel}>Save to Space</label>
-        <div style={{position:"relative"}}><select value={uploadSpace} onChange={(e) => { if (e.target.value === "__new__") { setShowCreateSpaceModal(true); return; } setUploadSpace(e.target.value); }} style={{...modalInput,marginTop:"8px",paddingRight:"42px",appearance:"none"}}><option value="">Select a Space</option>{spaces.map((space) => { const name = typeof space === "string" ? space : space.name; return <option key={name} value={name}>{name}</option>; })}<option value="__new__">Create New Space</option></select><div style={selectChevron}><ChevronDown size={16} /></div></div>
+        <label style={linkFieldLabel}>Save to Feed</label>
+        <div style={{position:"relative"}}><select value={uploadSpace} onChange={(e) => { if (e.target.value === "__new__") { setShowCreateSpaceModal(true); return; } setUploadSpace(e.target.value); }} style={{...modalInput,marginTop:"8px",paddingRight:"42px",appearance:"none"}}><option value="">Select a Feed</option>{spaces.map((space) => { const name = typeof space === "string" ? space : space.name; return <option key={name} value={name}>{name}</option>; })}<option value="__new__">Create New Feed</option></select><div style={selectChevron}><ChevronDown size={16} /></div></div>
         {linkError && <p style={linkErrorStyle}>{linkError}</p>}
         <button type="button" style={{...modalPrimaryButton,opacity:!uploadSpace || isSavingLink || isLoadingMetadata ? .5 : 1}} disabled={!uploadSpace || isSavingLink || isLoadingMetadata} onClick={saveLink}>{isLoadingMetadata ? "Getting preview…" : isSavingLink ? "Saving…" : "Save to Looptie"}</button>
       </div>}
       {!linkPreview && linkError && <p style={linkErrorStyle}>{linkError}</p>}
-      {showCreateSpaceModal && <div style={spaceModalOverlay}><div style={spaceModal}><h2 style={spaceModalTitle}>Create a Space</h2><p style={spaceModalText}>What do you want to call this space?</p><input style={modalInput} placeholder="Space name" value={newSpaceName} onChange={(e) => setNewSpaceName(e.target.value)} /><button style={{ ...modalPrimaryButton, opacity: isCreatingSpace ? 0.5 : 1 }} disabled={isCreatingSpace} onClick={createSpace}>{isCreatingSpace ? "Creating..." : "Create Feed"}</button><button style={spaceCancelButton} onClick={() => { setNewSpaceName(""); setShowCreateSpaceModal(false); }}>Cancel</button></div></div>}
+      {showCreateSpaceModal && <div style={spaceModalOverlay}><div style={spaceModal}><h2 style={spaceModalTitle}>Create a Feed</h2><p style={spaceModalText}>What do you want to call this feed?</p><input style={modalInput} placeholder="Feed name" value={newSpaceName} onChange={(e) => setNewSpaceName(e.target.value)} /><button style={{ ...modalPrimaryButton, opacity: isCreatingSpace ? 0.5 : 1 }} disabled={isCreatingSpace} onClick={createSpace}>{isCreatingSpace ? "Creating..." : "Create Feed"}</button><button style={spaceCancelButton} onClick={() => { setNewSpaceName(""); setShowCreateSpaceModal(false); }}>Cancel</button></div></div>}
     </div>;
   }
 
   return <div style={{ color: "var(--text-primary)" }}>
     <button type="button" style={iconBackButton} aria-label="Back" title="Back" onClick={() => { setSelectedFiles([]); setAddMode("menu"); }}><ArrowLeft size={22} /></button>
-    <p style={uploadInstruction}>Choose a Space and save your media.</p>
+    <p style={uploadInstruction}>Choose a Feed and save your media.</p>
     <div style={addGrid}>
       {selectedFiles.length > 0 && <div style={uploadPreviewGrid} className="horizontal-pretty-scrollbar" onWheel={handlePreviewWheel}>{selectedFiles.map((file, index) => {
         const previewUrl = URL.createObjectURL(file); const isVideo = file.type.startsWith("video");
@@ -260,7 +260,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
 
       <div style={{ position: "relative" }}>
         <select value={uploadSpace} onChange={(e) => { if (e.target.value === "__new__") { setShowCreateSpaceModal(true); return; } setUploadSpace(e.target.value); }} style={{ ...modalInput, paddingRight: "42px", appearance: "none", WebkitAppearance: "none" }}>
-          <option value="">Select a Space</option>{spaces.map((space) => { const spaceName = typeof space === "string" ? space : space.name; return <option key={spaceName} value={spaceName}>{spaceName}</option>; })}<option value="__new__">Create New Space</option>
+          <option value="">Select a Feed</option>{spaces.map((space) => { const spaceName = typeof space === "string" ? space : space.name; return <option key={spaceName} value={spaceName}>{spaceName}</option>; })}<option value="__new__">Create New Feed</option>
         </select>
         <div style={selectChevron}><ChevronDown size={16} strokeWidth={2.5} /></div>
       </div>
@@ -271,7 +271,7 @@ export default function AddContentScreen({ user, spaces, setSpaces, uploadSpace,
       {previewFile && <div style={previewOverlay} onClick={() => setPreviewFile(null)}>{previewFile.type.startsWith("video") ? <video src={URL.createObjectURL(previewFile)} controls autoPlay style={previewModalMedia} /> : <img src={URL.createObjectURL(previewFile)} alt="" style={previewModalMedia} />}</div>}
     </div>
 
-    {showCreateSpaceModal && <div style={spaceModalOverlay}><div style={spaceModal}><h2 style={spaceModalTitle}>Create a Space</h2><p style={spaceModalText}>What do you want to call this space?</p><input style={modalInput} placeholder="Space name" value={newSpaceName} onChange={(e) => setNewSpaceName(e.target.value)} /><button style={{ ...modalPrimaryButton, opacity: isCreatingSpace ? 0.5 : 1 }} disabled={isCreatingSpace} onClick={createSpace}>{isCreatingSpace ? "Creating..." : "Create Space"}</button><button style={spaceCancelButton} onClick={() => { setNewSpaceName(""); setShowCreateSpaceModal(false); }}>Cancel</button></div></div>}
+    {showCreateSpaceModal && <div style={spaceModalOverlay}><div style={spaceModal}><h2 style={spaceModalTitle}>Create a Feed</h2><p style={spaceModalText}>What do you want to call this feed?</p><input style={modalInput} placeholder="Feed name" value={newSpaceName} onChange={(e) => setNewSpaceName(e.target.value)} /><button style={{ ...modalPrimaryButton, opacity: isCreatingSpace ? 0.5 : 1 }} disabled={isCreatingSpace} onClick={createSpace}>{isCreatingSpace ? "Creating..." : "Create Feed"}</button><button style={spaceCancelButton} onClick={() => { setNewSpaceName(""); setShowCreateSpaceModal(false); }}>Cancel</button></div></div>}
     {showSuccess && <div style={successOverlay}><div style={successCard}><Check size={22} strokeWidth={3} /><span>Saved to Looptie</span></div></div>}
   </div>;
 }

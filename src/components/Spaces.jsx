@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Star, MoreVertical, Pencil, Trash2, Share2, Users, LogOut } from "lucide-react";
+import { Plus, Pin, MoreVertical, Pencil, Trash2, Share2, Users, LogOut } from "lucide-react";
 import SpaceDetail from "./SpaceDetail";
 import FeedShareModal from "./FeedShareModal";
 import FeedMembersModal from "./FeedMembersModal";
@@ -100,12 +100,12 @@ export default function Spaces({ user, spaces, setSpaces, defaultFeed, setDefaul
   return <div style={spacesPage} className="no-scrollbar">
     <div style={spacesGrid}>
       {spaces.map((space) => {
-        // feedItems are kept in their existing order; the first three saved to a Space become its cover.
+        // feedItems are kept in their existing order; the first three saved to a feed become its cover.
         const spaceItems = feedItems.filter((item) => item.space_id ? item.space_id === space.id : item.space === space.name);
         return <div key={space.id} onClick={() => { if (openMenuSpaceId !== null) { setOpenMenuSpaceId(null); return; } trackEvent("space_opened", { space: space.name, source: "spaces_tab_card" }); setSelectedSpace(space.name); }} style={{ ...spaceCard, ...(spaceItems.length === 0 ? emptySpaceCard : {}) }}>
           {spaceItems.length > 0 && <SpaceCover items={spaceItems} />}
           {spaceItems.length > 0 && <div style={coverShade} />}
-          <button aria-label={defaultFeed === space.name ? `${space.name} is your default space` : `Make ${space.name} your default space`} onClick={(e) => { e.stopPropagation(); setDefaultFeed(space.name); trackEvent("default_space_changed", { space: space.name, source: "spaces_tab" }); }} style={{ ...starButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><Star size={21} strokeWidth={2.2} fill={defaultFeed === space.name ? "var(--brand)" : "transparent"} color={defaultFeed === space.name ? "var(--brand)" : (spaceItems.length === 0 ? "var(--text-muted)" : "white")} /></button>
+          <button aria-label={defaultFeed === space.name ? `${space.name} is your default feed` : `Make ${space.name} your default feed`} onClick={(e) => { e.stopPropagation(); setDefaultFeed(space.name); trackEvent("default_space_changed", { space: space.name, source: "spaces_tab" }); }} style={{ ...pinButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><Pin size={21} strokeWidth={2.2} fill={defaultFeed === space.name ? "var(--brand)" : "transparent"} color={defaultFeed === space.name ? "var(--brand)" : (spaceItems.length === 0 ? "var(--text-muted)" : "white")} /></button>
           <button data-feed-menu aria-label={`More options for ${space.name}`} onClick={(e) => { e.stopPropagation(); setOpenMenuSpaceId(openMenuSpaceId === space.id ? null : space.id); }} style={{ ...menuButton, ...(spaceItems.length === 0 ? emptyCardControl : {}) }}><MoreVertical size={20} /></button>
           {openMenuSpaceId === space.id && <div data-feed-menu style={spaceMenu}>
             {space.user_id === user?.id && <button style={spaceMenuItem} onClick={(e) => { e.stopPropagation(); setSharingFeed(space); setOpenMenuSpaceId(null); }}><Share2 size={15} strokeWidth={2.5} /><span>Share Feed</span></button>}
@@ -119,7 +119,7 @@ export default function Spaces({ user, spaces, setSpaces, defaultFeed, setDefaul
       })}
       <div style={newSpaceCard} onClick={() => { trackEvent("new_space_clicked", { source: "spaces_tab" }); setShowNewSpaceForm(true); }}>
         <div style={newSpacePlus}><Plus size={22} strokeWidth={2.8} /></div>
-        <h3 style={newSpaceLabel}>New Space</h3>
+        <h3 style={newSpaceLabel}>New Feed</h3>
       </div>
     </div>
 
@@ -127,7 +127,7 @@ export default function Spaces({ user, spaces, setSpaces, defaultFeed, setDefaul
     {managingFeed && <FeedMembersModal feed={managingFeed} onClose={() => setManagingFeed(null)} onMembershipChange={updateSharedFeedStatus} />}
 
     {renamingSpace && <div style={modalOverlay}><div style={modalCard}>
-      <h2 style={modalTitle}>Rename Space</h2><p style={modalSubtitle}>Update the name for this space.</p>
+      <h2 style={modalTitle}>Rename Feed</h2><p style={modalSubtitle}>Update the name for this feed.</p>
       <input style={modalInput} value={renameDraft} onChange={(e) => setRenameDraft(e.target.value)} autoFocus />
       <button style={modalPrimaryButton} onClick={async () => { const success = await renameSpace({ spaceId: renamingSpace.id, oldName: renamingSpace.name, newName: renameDraft, feedItems, setFeedItems, setSelectedSpace }); if (!success) return; setRenamingSpace(null); setRenameDraft(""); }}>Save Name</button>
       <button style={modalSecondaryButton} onClick={() => { setRenamingSpace(null); setRenameDraft(""); }}>Cancel</button>
@@ -147,7 +147,7 @@ const emptySpaceContent = { left:"16px", right:"16px", bottom:"14px" };
 const emptySpaceName = { color:"var(--text-primary)", textShadow:"none" };
 const emptySpaceItemsText = { color:"var(--text-secondary)", textShadow:"none" };
 const coverShade = { position:"absolute", inset:0, borderRadius:"inherit", background:"linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.22) 48%, rgba(0,0,0,.18) 100%)", pointerEvents:"none" };
-const starButton = { position:"absolute", top:"10px", right:"10px", width:"40px", height:"40px", display:"flex", alignItems:"center", justifyContent:"center", padding:0, background:"rgba(0,0,0,.22)", border:"none", borderRadius:"999px", color:"white", cursor:"pointer", zIndex:4, backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)" };
+const pinButton = { position:"absolute", top:"10px", right:"10px", width:"40px", height:"40px", display:"flex", alignItems:"center", justifyContent:"center", padding:0, background:"rgba(0,0,0,.22)", border:"none", borderRadius:"999px", color:"white", cursor:"pointer", zIndex:4, backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)" };
 const menuButton = { position:"absolute", top:"10px", left:"10px", width:"40px", height:"40px", display:"flex", alignItems:"center", justifyContent:"center", padding:0, background:"rgba(0,0,0,.22)", border:"none", borderRadius:"999px", color:"white", cursor:"pointer", zIndex:4, backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)" };
 const spaceMenu = { position:"absolute", top:"54px", left:"10px", background:"var(--surface-elevated)", border:"1px solid var(--border)", borderRadius:"14px", padding:"6px", zIndex:20, boxShadow:"var(--shadow)" };
 const spaceMenuItem = { display:"flex", alignItems:"center", gap:"8px", width:"100%", padding:"10px 14px", border:"none", background:"transparent", color:"var(--text-primary)", textAlign:"left", cursor:"pointer" };
