@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../utils/supabaseClient";
 
 const getStoredTheme = () => localStorage.getItem("looptie-theme") || "system";
-const applyTheme = (theme) => {
+const previewTheme = (theme) => {
   if (theme === "system") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", theme);
+};
+const applyTheme = (theme) => {
+  previewTheme(theme);
   localStorage.setItem("looptie-theme", theme);
 };
 
@@ -14,6 +17,17 @@ export default function SettingsScreen({ profile, spaces, defaultFeed, setDefaul
   const [selectedDefault, setSelectedDefault] = useState(defaultFeed || "");
   const [theme, setTheme] = useState(getStoredTheme);
   const [saving, setSaving] = useState(false);
+  const originalTheme = useRef(getStoredTheme());
+  const themeSaved = useRef(false);
+
+  useEffect(() => () => {
+    if (!themeSaved.current) previewTheme(originalTheme.current);
+  }, []);
+
+  const changeTheme = (nextTheme) => {
+    setTheme(nextTheme);
+    previewTheme(nextTheme);
+  };
 
   const saveSettings = async () => {
     if (saving) return;
@@ -35,6 +49,7 @@ export default function SettingsScreen({ profile, spaces, defaultFeed, setDefaul
       alert("Settings saved. Check both your current and new email inboxes for confirmation links to finish changing your address.");
     }
     applyTheme(theme);
+    themeSaved.current = true;
     setSaving(false);
     setTab("profile");
   };
@@ -57,7 +72,7 @@ export default function SettingsScreen({ profile, spaces, defaultFeed, setDefaul
 
     <label style={label}>Appearance</label>
     <div style={themeGroup}>
-      {[{value:"system",label:"System"},{value:"light",label:"Light"},{value:"dark",label:"Dark"}].map((option) => <button key={option.value} type="button" onClick={() => setTheme(option.value)} style={{ ...themeButton, ...(theme === option.value ? activeThemeButton : {}) }}>{option.label}</button>)}
+      {[{value:"system",label:"System"},{value:"light",label:"Light"},{value:"dark",label:"Dark"}].map((option) => <button key={option.value} type="button" onClick={() => changeTheme(option.value)} style={{ ...themeButton, ...(theme === option.value ? activeThemeButton : {}) }}>{option.label}</button>)}
     </div>
     <p style={appearanceHint}>{theme === "system" ? "Matches your device appearance." : `Looptie will stay in ${theme} mode.`}</p>
 
